@@ -6,11 +6,13 @@
  * Copyright (C) 2005 by ZiLOG, Inc.  All Rights Reserved.
  *****************************************************************************/
 
+#define _Z84C15_IORQ
+
 #include <string.h>
 #include <stdio.h>
 #include <ez80.h>
 #include "LCDInit.h"
-#include "..\zilog\Z84C15.h"
+#include "Z84C15.h"
 
 
 /*  LED matrix display pointer, what ever 5 byte string this points to will
@@ -31,7 +33,7 @@ char LCD128(char ch)
     int i;
 	i = 100;
 
-	while((LCD_DAT&0x03) == 0x03)
+	while(( LCD_DAT & 0x03) == 0x03)
 	{
 		if (!i) 
 		{
