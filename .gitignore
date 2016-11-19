@@ -34,3 +34,6 @@
 
 Debug
 Release
+
+include/std
+include/zilog
