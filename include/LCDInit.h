@@ -19,7 +19,11 @@ extern unsigned char matrix_char_map[128][7];
 
 /* eZ80 development board led matrix functions */
 
-char LCD128(char);
+void LCD128_ini(void);
+void LCD128_cmd(char);
+char LCD128_dt1(char);
+char LCD128_dt2(short int);
+void LCD128_adt(char);
 //bbit lcd_daten(char dat);
 //bbit lcd_command(char com);
 /*void ledmatrix_fill(void);
