@@ -1,11 +1,8 @@
 /*****************************************************************************
- * LedMatrix.c
- *
- * functions for LED matrix on eZ80 Development Board
+ * LCSInit.c
  *****************************************************************************
- * Copyright (C) 2005 by ZiLOG, Inc.  All Rights Reserved.
+ * Copyright (C) 2016 All Contributors All Rights Reserved.
  *****************************************************************************/
-
 #define _Z84C15_IORQ
 
 #include <string.h>
@@ -22,150 +19,91 @@ unsigned char *pcolumn;
 unsigned char *p_user_input;
 char user_input;
 
-int TXHOME = 0x40;  // Set Text Home Add.
-int TXAREA = 0x41;	// Set Text Area
-int GRHOME = 0x42;	// Set Grafik Home Add.
-int GRAREA = 0x43;	// Set Grafik Area
-int OFFSET = 0x22;	// Set offset Add.
-int ADPSET = 0x24;	// Set Add. PTR
-int AWRON  = 0x80;	// Set auto Write Mode
+extern unsigned char matrix_char_map[128][7];
 
-// *********************
-// *  LCD Initialisieren
-//**********************
 
-void LCD128_ini(void)
+//----- Utils --------------------------------------------
+void lcd128_put_byte(int addr, short int data);
+
+//----- API ----------------------------------------------
+
+void lcd128_init_driver(Display* interface) {
+	interface->init = lcd128_init;
+}
+
+void lcd128_init(void)
 {
-	//*
-	//* Set Text Home adresse
-	//*
-	short int i;
-	char ex;
-	
-	i =0x0000;				// Adresse
-	ex = LCD128_dt2(i);	
-	ex = 0x40;
-	LCD128_cmd(ex);
+	// Set Text Home adresse
+	lcd128_data_write(0);	// Adresse
+	lcd128_cmd(ADDR_TXT_HOME);
 		
-	//*
-	//* set Graphic Home Adresse
-	//*
-	i =0x0200;
-	ex = LCD128_dt2(i);
-	ex = 0x42;
-	LCD128_cmd(ex);
+	// Set Graphic Home Adresse
+	lcd128_data_write(0x0200);
+	lcd128_cmd(ADDR_GRAPHIC_HOME);
 	
-	//*
-	//* set Text Area
-	//*
-	i =0x0014;
-	ex = LCD128_dt2(i);
-	ex = 0x41;
-	LCD128_cmd(ex);	
+	// Set Text Area
+	lcd128_data_write(0x0014);
+	lcd128_cmd(TXT_AREA);	
 
-	//*
-	//* set Graphic Area
-	//*
-	i =0x0014;
-	ex = LCD128_dt2(i);
-	ex = 0x43;
-	LCD128_cmd(ex);
+	// Set Graphic Area
+	lcd128_data_write(0x0014);
+	lcd128_cmd(GRAPHIC_AREA);
 	
-	//*
-	//* Mode Set (orMade, Internal Character Generator Mode)
-	//*
-	i = 0x80;
-	LCD128_cmd(i);
+	// Mode Set (orMade, Internal Character Generator Mode)
+	lcd128_cmd(MODE_AUTOWRITE);
 	
-	//*
-	//* set Offset Register 
-	//*
-	i =0x0002;
-	ex = LCD128_dt2(i);
-	ex = 0x22;
-	LCD128_cmd(ex);
+	// Set Offset Register
+	lcd128_data_write(0x0002);
+	lcd128_cmd(ADDR_OFFSET);
 	
-	//*
-	//* Display Mode (Text on, Grafik of, Cursor off)
-	//*
-	i = 0x98;
-	ex = LCD128_dt2(i);
+	// Display Mode (Text on, Grafik of, Cursor off)
+	lcd128_data_write(0x98);
 
-	//*
-	//* Write Text Blank Code 
-	//*
-	i =0x0000;
-	ex = LCD128_dt2(i);
-	ex = 0x24;
-	LCD128_cmd(ex);
-	i = 0xb0;
-	LCD128_cmd(i);
+	// Write Text Blank Code 
+	lcd128_data_write(0x0000);
+	lcd128_cmd(0x24);
+	lcd128_cmd(0xb0);
 	
-	//*
-	//* mit Space Blank Display löschen
+	//* mit Space Blank Display lÃ¶schen
 	
 	// Weiter .....
-	
-	
 }
 
-//*
-//* Command Write Routne
-//*
-
-void LCD128_cmd(char hm)
+void lcd128_cmd(char cmd)
 {
-	int i;
-
-   	while(( LCD_DAT & 0x03) == 0x03);		// LCD Ready
-		
-	LCD_DAT= hm;
-	return ;				
-}
-
-//*
-//* Data Write 1Byte Routine
-//*
-
-char LCD128_dt1(char hm)
-{
-	int i;
-
-	for(i = 1000; i > 0; i--)			// Time Out -> Return =0
-	   {
-		   	if(!( LCD_DAT & 0x03) == 0x03)
-			{
-				LCD_CMD= hm;			// 8Bit Ausgabe 
-				return 1;				// LCD Ready	
-			}
-		}
-		return 0;
-}
-
-//*
-//* Date Write 2Byte Routine
-//*
-
-char LCD128_dt2(short int hm)
-{
+   	int i = 0;
+	char result = 0;
 	
-	int i;
-
-	for(i = 1000; i > 0; i--)			// Time Out -> Return =0
-	   {
-		   	if(!( LCD_DAT & 0x03) == 0x03)
-			{
-				LCD_CMD= hm;			// 16Bit Ausgabe 2x bei Z80
-				return 1;				// LCD Ready	
-			}
-		}
-		return 0;
+	result = lcd128_put_byte(&LCD_CMD, cmd);
+	
+	return result;
 }
 
-/*
+char lcd128_data_write(short int data)
+{
+	char result = 0;
+	
+	result = lcd128_put_byte(&LCD_DATA, data);
+	
+	return result;
+}
 
 void LCD128_adt(char ch)
 {
-	return 0
+	return 0;
 }
-*/
+
+//----- Utils --------------------------------------------
+char lcd128_put_byte(int* addr, short int data)
+{
+	char result = 0;
+	
+	while(i++ < 1000 && ( LCD_DAT & 0x03) == 0x03);		// LCD Ready
+	
+	if (i < 1000) {
+		(*addr) = hm;
+		result = 1;
+	}
+	
+	return result;
+}
