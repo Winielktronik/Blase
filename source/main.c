@@ -222,9 +222,8 @@ int main()
 
     uart_init();
     test();
-	ch = LCD128(200);
-	
-	printf("LCD Ready = %d\n", ch);
+	LCD128_ini();
+
 	
     printf("\nUsing Uart %i\n", UART);
     printf("-----------------------\n");

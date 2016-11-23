@@ -4,8 +4,10 @@
 <!-- file information -->
 <files>
 <file filter-key="">source\main.c</file>
-<file filter-key="">..\..\include\zilog\Z84C15.h</file>
 <file filter-key="">source\LCDInit.c</file>
+<file filter-key="">include\LCDInit.h</file>
+<file filter-key="">include\Z84C15.h</file>
+<file filter-key="">.\zsldevinit.asm</file>
 </files>
 
 <!-- configuration information -->
@@ -237,7 +239,7 @@
 </tool>
 <tool name="Middleware">
 <options>
-<option name="usezsl" type="boolean" change-action="rebuild">false</option>
+<option name="usezsl" type="boolean" change-action="rebuild">true</option>
 <option name="zslports" type="string" change-action="rebuild"></option>
 <option name="zsluarts" type="string" change-action="rebuild"></option>
 <option name="userzk" type="boolean" change-action="rebuild">false</option>

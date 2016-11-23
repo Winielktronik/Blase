@@ -22,27 +22,71 @@ unsigned char *pcolumn;
 unsigned char *p_user_input;
 char user_input;
 
-//int i;
+int TXHOME = 40;  	// Set XT HM ADD
 
 // *********************
 // *  LCD Initialisieren
 //**********************
 
-char LCD128(char ch)
+void LCD128_ini(void)
 {
-    int i;
-	i = 100;
-
-	while(( LCD_DAT & 0x03) == 0x03)
-	{
-		if (!i) 
-		{
-			return (0);
-		}
-		i--;
-	}
+	//*
+	//* Set Text Home adresse
+	//*
+	short int i;
+	char ex;
 	
-	return (1);
+	i =0x0000;				// Adresse
+	ex = LCD128_dt2(i);	
+	i =TXHOME;
+	ex = LCD_CMD(i);
+	
+	//*
+	//* set Graphic Home Adresse
+	//*
+	i =0x0200;
+	
+	
 	
 }
 
+/*
+void LCD128_cmd(char ch)
+{
+	return 0
+}
+
+void LCD128_dt1(char ch)
+{
+	return 0
+}
+*/
+char LCD128_dt2(short int hm)
+{
+	
+	int i;
+	//while(!( LCD_DAT & 0x03) == 0x03)
+	{ 
+		for(i = 1000; i > 0; i--)
+		   {
+			   	if(( LCD_DAT & 0x03) == 0x03)
+				{
+					LCD_DAT= hm;
+					return 1;
+				}
+			}
+			return 0;
+	}
+	
+	LCD_CMD = hm;
+	return 1;
+	
+}
+
+/*
+
+void LCD128_adt(char ch)
+{
+	return 0
+}
+*/
