@@ -22,7 +22,13 @@ unsigned char *pcolumn;
 unsigned char *p_user_input;
 char user_input;
 
-int TXHOME = 40;  	// Set XT HM ADD
+int TXHOME = 0x40;  // Set Text Home Add.
+int TXAREA = 0x41;	// Set Text Area
+int GRHOME = 0x42;	// Set Grafik Home Add.
+int GRAREA = 0x43;	// Set Grafik Area
+int OFFSET = 0x22;	// Set offset Add.
+int ADPSET = 0x24;	// Set Add. PTR
+int AWRON  = 0x80;	// Set auto Write Mode
 
 // *********************
 // *  LCD Initialisieren
@@ -38,49 +44,122 @@ void LCD128_ini(void)
 	
 	i =0x0000;				// Adresse
 	ex = LCD128_dt2(i);	
-	i =TXHOME;
-	ex = LCD_CMD(i);
-	
+	ex = 0x40;
+	LCD128_cmd(ex);
+		
 	//*
 	//* set Graphic Home Adresse
 	//*
 	i =0x0200;
+	ex = LCD128_dt2(i);
+	ex = 0x42;
+	LCD128_cmd(ex);
 	
+	//*
+	//* set Text Area
+	//*
+	i =0x0014;
+	ex = LCD128_dt2(i);
+	ex = 0x41;
+	LCD128_cmd(ex);	
+
+	//*
+	//* set Graphic Area
+	//*
+	i =0x0014;
+	ex = LCD128_dt2(i);
+	ex = 0x43;
+	LCD128_cmd(ex);
+	
+	//*
+	//* Mode Set (orMade, Internal Character Generator Mode)
+	//*
+	i = 0x80;
+	LCD128_cmd(i);
+	
+	//*
+	//* set Offset Register 
+	//*
+	i =0x0002;
+	ex = LCD128_dt2(i);
+	ex = 0x22;
+	LCD128_cmd(ex);
+	
+	//*
+	//* Display Mode (Text on, Grafik of, Cursor off)
+	//*
+	i = 0x98;
+	ex = LCD128_dt2(i);
+
+	//*
+	//* Write Text Blank Code 
+	//*
+	i =0x0000;
+	ex = LCD128_dt2(i);
+	ex = 0x24;
+	LCD128_cmd(ex);
+	i = 0xb0;
+	LCD128_cmd(i);
+	
+	//*
+	//* mit Space Blank Display löschen
+	
+	// Weiter .....
 	
 	
 }
 
-/*
-void LCD128_cmd(char ch)
+//*
+//* Command Write Routne
+//*
+
+void LCD128_cmd(char hm)
 {
-	return 0
+	int i;
+
+   	while(( LCD_DAT & 0x03) == 0x03);		// LCD Ready
+		
+	LCD_DAT= hm;
+	return ;				
 }
 
-void LCD128_dt1(char ch)
+//*
+//* Data Write 1Byte Routine
+//*
+
+char LCD128_dt1(char hm)
 {
-	return 0
+	int i;
+
+	for(i = 1000; i > 0; i--)			// Time Out -> Return =0
+	   {
+		   	if(!( LCD_DAT & 0x03) == 0x03)
+			{
+				LCD_CMD= hm;			// 8Bit Ausgabe 
+				return 1;				// LCD Ready	
+			}
+		}
+		return 0;
 }
-*/
+
+//*
+//* Date Write 2Byte Routine
+//*
+
 char LCD128_dt2(short int hm)
 {
 	
 	int i;
-	//while(!( LCD_DAT & 0x03) == 0x03)
-	{ 
-		for(i = 1000; i > 0; i--)
-		   {
-			   	if(( LCD_DAT & 0x03) == 0x03)
-				{
-					LCD_DAT= hm;
-					return 1;
-				}
+
+	for(i = 1000; i > 0; i--)			// Time Out -> Return =0
+	   {
+		   	if(!( LCD_DAT & 0x03) == 0x03)
+			{
+				LCD_CMD= hm;			// 16Bit Ausgabe 2x bei Z80
+				return 1;				// LCD Ready	
 			}
-			return 0;
-	}
-	
-	LCD_CMD = hm;
-	return 1;
-	
+		}
+		return 0;
 }
 
 /*

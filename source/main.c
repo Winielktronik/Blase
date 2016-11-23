@@ -75,7 +75,6 @@
 #define UART_BRG_H           UART0_BRG_H
 #define UART_LCTL            UART0_LCTL
 #define UART_LSR             UART0_LSR
-#define LCD1_DAT			 LCD_DAT
 #endif
  
 #define LCTL_DLAB            (unsigned char)0x80
