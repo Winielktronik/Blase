@@ -15,37 +15,37 @@
 /**
  * Set text home address
  */
-const int ADDR_TXT_HOME = 0x40;
+static const int ADDR_TXT_HOME = 0x40;
 
 /**
  * Set text area
  */
-const int TXT_AREA = 0x41;
+static const int TXT_AREA = 0x41;
 
 /**
  * Set grafic home address
  */
-const int ADDR_GRAPHIC_HOME = 0x42;
+static const int ADDR_GRAPHIC_HOME = 0x42;
 
 /**
  * Set grafic area
  */
-const int GRAPHIC_AREA = 0x43;
+static const int GRAPHIC_AREA = 0x43;
 
 /**
  * Set offset address
  */
-const int ADDR_OFFSET = 0x22;
+static const int ADDR_OFFSET = 0x22;
 
 /**
  * Set address PTR
  */
-const int PTR_ADDR = 0x24;
+static const int PTR_ADDR = 0x24;
 
 /**
  * Set auto write mode
  */
-const int MODE_AUTOWRITE  = 0x80;
+static const int MODE_AUTOWRITE  = 0x80;
 
 
 
