@@ -221,7 +221,7 @@ int main()
 
     uart_init();
     test();
-	LCD128_ini();
+	lcd128_init();
 
 	
     printf("\nUsing Uart %i\n", UART);

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * LCSInit.c
+ * LCDInit.c
  *****************************************************************************
  * Copyright (C) 2016 All Contributors All Rights Reserved.
  *****************************************************************************/
@@ -11,19 +11,14 @@
 #include "LCDInit.h"
 #include "Z84C15.h"
 
-
-/*  LED matrix display pointer, what ever 5 byte string this points to will
- *  be displayed
- */
-unsigned char *pcolumn;
-unsigned char *p_user_input;
-char user_input;
-
-extern unsigned char matrix_char_map[128][7];
-
-
 //----- Utils --------------------------------------------
-void lcd128_put_byte(int addr, short int data);
+#define lcd128_put_byte(addr, data, result) \
+	int __i = 0; \
+	while(__i++ < 1000 && (LCD_DAT & 0x03) != 0x03); // LCD Ready \
+	if (__i < 1000) { \
+		addr = data; \
+		result = 1; \
+	} \
 
 //----- API ----------------------------------------------
 
@@ -64,46 +59,31 @@ void lcd128_init(void)
 	lcd128_cmd(0x24);
 	lcd128_cmd(0xb0);
 	
-	//* mit Space Blank Display lÃ¶schen
+	//* mit Space Blank Display löschen
 	
 	// Weiter .....
 }
 
-void lcd128_cmd(char cmd)
+BOOL lcd128_cmd(char cmd)
 {
    	int i = 0;
 	char result = 0;
 	
-	result = lcd128_put_byte(&LCD_CMD, cmd);
+	lcd128_put_byte(LCD_CMD, cmd, result);
 	
 	return result;
 }
 
-char lcd128_data_write(short int data)
+BOOL lcd128_data_write(short int data)
 {
 	char result = 0;
 	
-	result = lcd128_put_byte(&LCD_DATA, data);
+	lcd128_put_byte(LCD_DATA, data, result);
 	
 	return result;
 }
 
-void LCD128_adt(char ch)
+BOOL LCD128_adt(char ch)
 {
 	return 0;
-}
-
-//----- Utils --------------------------------------------
-char lcd128_put_byte(int* addr, short int data)
-{
-	char result = 0;
-	
-	while(i++ < 1000 && ( LCD_DAT & 0x03) == 0x03);		// LCD Ready
-	
-	if (i < 1000) {
-		(*addr) = hm;
-		result = 1;
-	}
-	
-	return result;
 }

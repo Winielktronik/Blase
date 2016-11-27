@@ -6,18 +6,8 @@
 #ifndef INC_LCDINIT_H
 #define INC_LCDINIT_H
 
-//----- External I/O -------------------------------------
-
-// LED anode and cathode
-/**
- * Todo: Brief!
- */
-const unsigned char *LEDMATRIX_ROW  	= 0x800000  //Anode
-
-/**
- * Todo: Brief!
- */
-const unsigned char *LEDMATRIX_COLUMN	= 0x800001  //Cathode
+#include "Display.h"
+#include "defines.h"
 
 
 //----- Constants ----------------------------------------
@@ -77,19 +67,19 @@ void lcd128_init(void);
  * 
  * @param The command byte to send to the lcd interface
  */
-void lcd128_cmd(char cmd);
+BOOL lcd128_cmd(char cmd);
 
 /**
  * Sends data directly to the lcd interface
  * 
  * @param The data to send to the lcd interface
  */
-char LCD128_data_write(short int);
+BOOL lcd128_data_write(short int);
 
 /**
  * 
  */
-void lcd128_adt(char);
+BOOL lcd128_adt(char);
 
 //bbit lcd_daten(char dat);
 //bbit lcd_command(char com);
