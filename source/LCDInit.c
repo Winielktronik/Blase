@@ -4,6 +4,7 @@
  * Copyright (C) 2016 All Contributors All Rights Reserved.
  *****************************************************************************/
 #define _Z84C15_IORQ
+#define _Z84C15_PIO
 
 #include <string.h>
 #include <stdio.h>
@@ -28,6 +29,11 @@ void lcd128_init_driver(Display* interface) {
 
 void lcd128_init(void)
 {
+	char ECB_BUS;
+	
+	ECB_BUS = PIOA_DATA;
+	PIOA_DATA = (ECB_BUS & 0x7F);
+	
 	// Set Text Home adresse
 	lcd128_data_write(0);	// Adresse
 	lcd128_cmd(ADDR_TXT_HOME);
@@ -62,6 +68,8 @@ void lcd128_init(void)
 	//* mit Space Blank Display löschen
 	
 	// Weiter .....
+	PIOA_DATA = ECB_BUS;
+	
 }
 
 BOOL lcd128_cmd(char cmd)

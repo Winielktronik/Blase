@@ -65,16 +65,14 @@
 #define SIOB_DATA		(*(volatile unsigned char __EXTIO *)0x1A)	//!< The SIO B Data for eZ84C15.
 #define SIOB_COM		(*(volatile unsigned char __EXTIO *)0x1B)	//!< The SIO B Command for eZ84C15.
 
-
-
 #endif
 
 #ifdef _Z84C15_PIO
-#define PIOA_DATA		(*(volatile unsigned char __EXTIO *)0x40)	0x1C			//!< The Port A Data for eZ84C15.
-#define PIOA_COM		(*(volatile unsigned char __EXTIO *)0x40)	0x1D			//!< The Port A Command for eZ84C15.
+#define PIOA_DATA		(*(volatile unsigned char __INTIO *)0x1C) 	//!< The Port A Data for eZ84C15.
+#define PIOA_COM		(*(volatile unsigned char __INTIO *)0x1D) 	//!< The Port A Command for eZ84C15.
 
-#define PIOB_DATA		(*(volatile unsigned char __EXTIO *)0x40)	0x1E			//!< The Port B Data for eZ84C15.
-#define PIOB_COM		(*(volatile unsigned char __EXTIO *)0x40)	0x1F			//!< The Port B Command for eZ84C15.
+#define PIOB_DATA		(*(volatile unsigned char __EXTIO *)0x1E) //	0x1E			//!< The Port B Data for eZ84C15.
+#define PIOB_COM		(*(volatile unsigned char __EXTIO *)0x1F) //	0x1F			//!< The Port B Command for eZ84C15.
 
 #define PIOB_MODE0			0x0F			//!< The Port Mode 0 for eZ84C15.
 #define PIOB_MODE1			0x4F			//!< The Port Mode 1 for eZ84C15.
