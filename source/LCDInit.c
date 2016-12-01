@@ -78,6 +78,8 @@ BOOL lcd128_cmd(char cmd)
 	char result = 0;
 	
 	lcd128_put_byte(LCD_CMD, cmd, result);
+	// if(result)
+	LCD_CMD =cmd;
 	
 	return result;
 }
@@ -87,6 +89,7 @@ BOOL lcd128_data_write(short int data)
 	char result = 0;
 	
 	lcd128_put_byte(LCD_DATA, data, result);
+	// if(result)
 	LCD_DAT =data;
 	
 	return result;
