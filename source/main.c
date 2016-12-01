@@ -47,6 +47,8 @@
 #include <stdio.h>
 #include "LCDInit.h"
 #include "Z84C15.h"
+//#include "zsldevinit.asm"
+
 
 #define UART                 0			// change to 1 when using UART 1
 #define UART_BPS             57600
@@ -219,8 +221,8 @@ int main()
 	//i = 0;
     static char zds[] = "ZiLOG Developers Studio";
 
-    uart_init();
-    test();
+    //uart_init();
+    //test();
 	lcd128_init();
 
 	

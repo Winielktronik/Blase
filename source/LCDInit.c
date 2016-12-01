@@ -87,6 +87,7 @@ BOOL lcd128_data_write(short int data)
 	char result = 0;
 	
 	lcd128_put_byte(LCD_DATA, data, result);
+	LCD_DAT =data;
 	
 	return result;
 }

@@ -12,7 +12,7 @@
 	include "intvect.inc"
 
 	segment	CODE
-	.assume adl=1
+	.assume adl=0
 	
 	XDEF _open_periphdevice
 	XDEF __open_periphdevice
