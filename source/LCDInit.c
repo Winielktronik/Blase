@@ -13,10 +13,12 @@
 #include "Z84C15.h"
 
 //----- Utils --------------------------------------------
-#define lcd128_put_byte(addr, data, result) \
+#define lcd128_put_byte(addr, data, result)\
+
 	int __i = 0; \
+	
 	while(__i++ < 1000 && (LCD_DAT & 0x03) != 0x03); // LCD Ready \
-	if (__i < 1000) { \
+ 	if (__i < 1000) { \
 		addr = data; \
 		result = 1; \
 	} \
@@ -31,8 +33,6 @@ void lcd128_init(void)
 {
 	char ECB_BUS;
 	
-	ECB_BUS = PIOA_DATA;
-	PIOA_DATA = (ECB_BUS & 0x7F);
 	
 	// Set Text Home adresse
 	lcd128_data_write(0);	// Adresse
@@ -68,7 +68,6 @@ void lcd128_init(void)
 	//* mit Space Blank Display löschen
 	
 	// Weiter .....
-	PIOA_DATA = ECB_BUS;
 	
 }
 
@@ -76,26 +75,40 @@ BOOL lcd128_cmd(char cmd)
 {
    	int i = 0;
 	char result = 0;
+	ECB_BUS = PIOA_DATA;
+	PIOA_DATA = (ECB_BUS & 0x7F);
 	
 	lcd128_put_byte(LCD_CMD, cmd, result);
 	// if(result)
 	LCD_CMD =cmd;
-	
+
+	PIOA_DATA = ECB_BUS;
 	return result;
 }
 
 BOOL lcd128_data_write(short int data)
 {
 	char result = 0;
+	ECB_BUS = PIOA_DATA;
+	PIOA_DATA = (ECB_BUS & 0x7F);
 	
 	lcd128_put_byte(LCD_DATA, data, result);
 	// if(result)
 	LCD_DAT =data;
-	
+
+	PIOA_DATA = ECB_BUS;	
 	return result;
 }
 
 BOOL LCD128_adt(char ch)
 {
-	return 0;
+	ECB_BUS = PIOA_DATA;
+	PIOA_DATA = (ECB_BUS & 0x7F);
+
+	lcd128_put_byte(LCD_DATA, data, result);
+	// if(result)
+	LCD_DAT =data;
+	
+	PIOA_DATA = ECB_BUS;
+	return result;
 }
