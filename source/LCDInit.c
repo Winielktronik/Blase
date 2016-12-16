@@ -14,19 +14,17 @@
 
 //----- Utils --------------------------------------------
 #define lcd128_put_byte(addr, data, result)\
-
-	int __i = 0; \
-	
+	int __i = 0;\
 	while(__i++ < 1000 && (LCD_DAT & 0x03) != 0x03); // LCD Ready \
- 	if (__i < 1000) { \
+	if (__i < 1000) { \
 		addr = data; \
 		result = 1; \
-	} \
+		}
 
 //----- API ----------------------------------------------
-
+	
 void lcd128_init_driver(Display* interface) {
-	interface->init = lcd128_init;
+		interface->init = lcd128_init;
 }
 
 void lcd128_init(void)
@@ -73,14 +71,21 @@ void lcd128_init(void)
 
 BOOL lcd128_cmd(char cmd)
 {
-   	int i = 0;
+   	int __i = 0;
+	char ECB_BUS;
 	char result = 0;
 	ECB_BUS = PIOA_DATA;
+	
 	PIOA_DATA = (ECB_BUS & 0x7F);
 	
-	lcd128_put_byte(LCD_CMD, cmd, result);
-	// if(result)
-	LCD_CMD =cmd;
+	while(__i++ < 1000 && (LCD_DAT & 0x03) != 0x03); // LCD Ready \
+	if (__i < 1000) { \
+		addr = data; \
+		result = 1; \
+		}
+	
+	//lcd128_put_byte(LCD_DATA, cmd, result);
+	if(result) 	LCD_CMD =cmd;
 
 	PIOA_DATA = ECB_BUS;
 	return result;
@@ -88,26 +93,31 @@ BOOL lcd128_cmd(char cmd)
 
 BOOL lcd128_data_write(short int data)
 {
+	int __i = 0;
+	char ECB_BUS;
 	char result = 0;
 	ECB_BUS = PIOA_DATA;
 	PIOA_DATA = (ECB_BUS & 0x7F);
 	
-	lcd128_put_byte(LCD_DATA, data, result);
+	//lcd128_put_byte(LCD_DATA, data, result);
 	// if(result)
-	LCD_DAT =data;
+	LCD_DAT = data;
 
 	PIOA_DATA = ECB_BUS;	
 	return result;
 }
 
-BOOL LCD128_adt(char ch)
+BOOL lcd128_adt(char ch)
 {
+	int __i = 0;
+	char ECB_BUS;
+	char result = 0;
 	ECB_BUS = PIOA_DATA;
 	PIOA_DATA = (ECB_BUS & 0x7F);
 
-	lcd128_put_byte(LCD_DATA, data, result);
+	//lcd128_put_byte(LCD_DATA, data, result);
 	// if(result)
-	LCD_DAT =data;
+	LCD_DAT = ch;
 	
 	PIOA_DATA = ECB_BUS;
 	return result;
