@@ -67,14 +67,21 @@ void lcd128_init(void);
  * 
  * @param The command byte to send to the lcd interface
  */
-BOOL lcd128_cmd(char cmd);
+BOOL lcd128_cmd(char);
 
 /**
  * Sends data directly to the lcd interface
  * 
  * @param The data to send to the lcd interface
  */
-BOOL lcd128_data_write(short int);
+BOOL lcd128_data_write8(char);
+
+/**
+ * Sends data directly to the lcd interface
+ * 
+ * @param The data to send to the lcd interface
+ */
+BOOL lcd128_data_write16(short int);
 
 /**
  * 
