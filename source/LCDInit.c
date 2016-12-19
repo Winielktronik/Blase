@@ -124,7 +124,7 @@ BOOL lcd128_data_write16(short int data)
 	lcd128_put_byte(LCD_DAT, (data), result);
 	if(result)
 		{
-		//char ECB_BUS;
+		char ECB_BUS;
 		lcd128_put_byte(LCD_DAT, (data >>4), result);
 		}
 
