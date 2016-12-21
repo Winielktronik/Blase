@@ -71,15 +71,14 @@ void lcd128_init(void)
 	lcd128_cmd(0x24);
 	lcd128_cmd(0xb0);
 	
-	// Display Clear mit Space (20H)
-	
+	//* LCD Clear mit Space (20H)
 
 	for (i=0; i < 0x1A0; i++)
 		{
 			lcd128_adt(0x20);
 		}
 	
-	//* mit Space Blank Display löschen
+
 	
 	// Weiter .....
 	
@@ -137,10 +136,11 @@ BOOL lcd128_adt(char data)
 	int __i = 0;
 	char ECB_BUS;
 	char result = 0;
+	// char lcdasc = data - 0x20;
 	
 	ecb_bus_intern();
 
-	lcd128_put_byte(LCD_DAT, data, result);
+	lcd128_put_byte(LCD_DAT, (data - 0x20), result);
 	
 	PIOA_DATA = ECB_BUS;
 	return result;

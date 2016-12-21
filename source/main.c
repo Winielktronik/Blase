@@ -220,6 +220,14 @@ int main()
     int i, ch;
 	//i = 0;
     static char zds[] = "ZiLOG Developers Studio";
+	
+ //* 		Display* display = kerne_init_display();
+ //* 
+ //* 		display->init();
+ //* 
+ //* 		display->print_text(...)
+ //* 
+ //* 		// and so on...
 
     //uart_init();
     //test();
