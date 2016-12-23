@@ -46,6 +46,7 @@
 #include <eZ80.h>
 #include <stdio.h>
 #include "LCDInit.h"
+#include "BlaseSort.h"
 #include "Z84C15.h"
 //#include "zsldevinit.asm"
 
@@ -232,7 +233,8 @@ int main()
     //uart_init();
     //test();
 	lcd128_init();
-
+	ch = LBA_mode_plus(10000);
+	ch = LBA_mode_minus(50000);
 	
     printf("\nUsing Uart %i\n", UART);
     printf("-----------------------\n");
