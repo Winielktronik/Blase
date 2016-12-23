@@ -7,6 +7,11 @@
 //#define INC_LCDINIT_H
 
 /**
- * Registers the lcd128 interface in the given driver instance.
+ * LBA counter Plus.
  */
-int LBA-mode(int);
+int LBA_mode_plus(int);
+
+/**
+ * LBA counter Minus.
+ */
+int LBA_mode_minus(int);
