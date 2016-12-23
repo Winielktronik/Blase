@@ -136,7 +136,6 @@ BOOL lcd128_adt(char data)
 	int __i = 0;
 	char ECB_BUS;
 	char result = 0;
-	// char lcdasc = data - 0x20;
 	
 	ecb_bus_intern();
 
