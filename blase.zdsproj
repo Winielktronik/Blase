@@ -9,6 +9,8 @@
 <file filter-key="">include\Z84C15.h</file>
 <file filter-key="">.\zsldevinit.asm</file>
 <file filter-key="">include\Display.h</file>
+<file filter-key="">source\BlaseSort.c</file>
+<file filter-key="">include\BlaseSort.h</file>
 </files>
 
 <!-- configuration information -->
