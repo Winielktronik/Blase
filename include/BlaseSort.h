@@ -15,3 +15,14 @@ int LBA_mode_plus(int);
  * LBA counter Minus.
  */
 int LBA_mode_minus(int);
+
+/**
+ *   SET Track for HDD
+ * 
+ */
+BOOL lcd128_cmd(char);
+
+/*!
+ * jump to BIOS
+  */
+VOID open_HDD_read();
