@@ -82,12 +82,22 @@
 
 #define PIO_VECTOR			0x1E			//!< The Port Vectoe D0=0 for eZ84C15.
 
-#endif
-
-#ifdef _Z84C15_WATCH_DOG
 #define WATCH_DOG_MODE	(*(volatile unsigned char __INTIO *)0xF0)	//!< The Watch Dog Timer Stand-by mode Register for eZ84C15.
 #define WATCH_DOG_COM	(*(volatile unsigned char __INTIO *)0xF1)	//!< The Watch Dog Timer Command Register for eZ84C15.
 
 #define DAISY_CHAINE	(*(volatile unsigned char __INTIO *)0xF4)	//!< The Daisy-chaine interrupt precedence Register for eZ84C15.			
+
+#endif
+#ifdef _Z84C15_PERIPHERIE
+/**
+ * BIOS Addresses
+ */
+
+#define HDD_Read		(*(0xF814))	//!< Peripherie adress for Z84C15 System.
+#define HDD_Write		(*(volatile unsigned int __EXTIO *)0xF817)	//!< Peripherie adress for Z84C15 System.
+#define HDD_DMA			(*(volatile unsigned int __EXTIO *)0xF82F)	//!< Peripherie adress for Z84C15 System.
+#define HDD_TRK			(*(volatile unsigned short int *)0xF832)	//!< Peripherie adress for Z84C15 System.
+#define HDD_SEK			(*(volatile unsigned int __EXTIO *)0xF835)	//!< Peripherie adress for Z84C15 System.
+#define HDD_DSK			(*(volatile unsigned int __EXTIO *)0xF838)	//!< Peripherie adress for Z84C15 System.
 
 #endif /* Z84c15 included */

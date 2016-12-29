@@ -50,7 +50,6 @@
 #include "Z84C15.h"
 //#include "zsldevinit.asm"
 
-
 #define UART                 0			// change to 1 when using UART 1
 #define UART_BPS             57600
 #define UART_DATA_BITS       8

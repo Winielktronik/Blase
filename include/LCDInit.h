@@ -86,7 +86,7 @@ BOOL lcd128_data_write16(short int);
 /**
  * 
  */
-BOOL lcd128_adt(char);
+BOOL lcd128_adt(char); 
 
 //bbit lcd_daten(char dat);
 //bbit lcd_command(char com);
