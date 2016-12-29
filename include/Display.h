@@ -7,6 +7,7 @@
 #ifndef INC_DISPLAY_H
 #define INC_DISPLAY_H
 
+#include "Driver.h"
 
 /**
  * General display driver interface
@@ -45,7 +46,7 @@
  * 
  * 		display->init();
  * 
- * 		display->print_text(...)
+ * 		display->draw_string(...)
  * 
  * 		// and so on...
  * 	}
@@ -53,9 +54,33 @@
  */
 typedef struct _Display {
 	/**
-	 * Initializes the lcd hardware with the default settings
+	 * 
 	 */
-	void (*init)(void);
+	Driver* base;
+	
+	// Display control
+	void(*set_backlight)(byte_t);
+	void(*set_state)(byte_t);
+	void(*set_tearing)(byte_t);
+	void(*set_idle)(byte_t);
+
+	// Informations
+	void(*get_type)();
+
+	// Drawing
+	void(*draw_pixel)(uint16_t, uint16_t, uint16_t);
+	void(*set_fcolor)(byte_t, byte_t, byte_t);
+	void(*set_bcolor)(byte_t, byte_t, byte_t);
+	void(*draw_pixels)(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t*);
+	void(*draw_rect)(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
+	void(*draw_scroll)(int16_t, uint16_t);
+	void(*clear_screen)(uint16_t);
+	void(*set_xy)(int16_t, uint16_t);
+	
+	// Utils
+	void(*draw_character)(const char);
+	void(*draw_string)(const char*, const int);
+	
 } Display;
 
 #endif // INC_DISPLAY_H

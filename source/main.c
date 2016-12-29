@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "LCDInit.h"
 #include "Z84C15.h"
+#include "KernelConf.h"
 //#include "zsldevinit.asm"
 
 
