@@ -11,14 +11,62 @@
 #include <ez80.h>
 #include "LCDInit.h"
 #include "Z84C15.h"
+#include <gpio.h>
+#include "uart.h"
 
 //----- Utils --------------------------------------------
 #define lcd128_put_byte(addr, data, result)\
-	while(__i++ <1000 && (LCD_DAT & 0x03) != 0x03);\
-	if (__i < 1000) {\
-		addr = data;\
-		result = 1;\
+		SET_BIT(PC_DR, 7);\
+        SET_BIT(PC_DR, 6);\
+        SET_BIT(PC_DR, 5);\
+        LEDMATRIX_COLUMN = 0x1d;\
+        LEDMATRIX_ROW = 0x04;\
+        if(addr < 2) {\
+			LEDMATRIX_ROW = 0x84;\
+            SET_BIT(PC_DR, 4);\
+            while(__i++ <1000 && ((EMUL_GPIO & 0x03) !=0x03)){\
+				SET_BIT(PC_DR, 7);\
+                SET_BIT(PC_DR, 6);\
+                SET_BIT(PC_DR, 5);\
+                delay(2);\
+                CLEAR_BIT(PC_DR, 6);\
+                CLEAR_BIT(PC_DR, 7);\
+                delay(2);\
+            }\
 		}\
+		if(addr == 2) {\
+			LEDMATRIX_ROW = 0x84;\
+			SET_BIT(PC_DR, 4);\
+			while(__i++ <1000 && ((EMUL_GPIO & 0x08) != 0x08)){\
+				SET_BIT(PC_DR, 7);\
+            	SET_BIT(PC_DR, 6);\
+            	SET_BIT(PC_DR, 5);\
+				delay(2);\
+                CLEAR_BIT(PC_DR, 6);\
+                CLEAR_BIT(PC_DR, 7);\
+                delay(2);\
+            }\
+		}\
+        LEDMATRIX_ROW = 0x04;\
+        SET_BIT(PC_DR, 7);\
+		SET_BIT(PC_DR, 6);\
+        SET_BIT(PC_DR, 5);\
+        CLEAR_BIT(PC_DR, 4);\
+        if(addr == 1) {\
+			SET_BIT(PC_DR, 4);\
+        }\
+        delay(2);\
+        CLEAR_BIT(PC_DR, 5);\
+        CLEAR_BIT(PC_DR, 7);\
+        EMUL_GPIO = data;\
+        delay(1);\
+        LEDMATRIX_COLUMN = 0x17;\
+       	result = 1;\
+       	SET_BIT(PC_DR, 7);\
+		SET_BIT(PC_DR, 5);\
+        SET_BIT(PC_DR, 6);\
+		delay(1);\
+        LEDMATRIX_COLUMN = 0x1f;\
 		
 #define ecb_bus_intern()\
 	ECB_BUS = PIOA_DATA;\
@@ -35,50 +83,97 @@ void lcd128_init_driver(Display* interface) {
 		interface->init = lcd128_init;
 }
 
-void lcd128_init(void)
-{
+void lcd128_init(void){
+	
 	char ECB_BUS;
 	int i = 0;
+
+	PC_ALT2 = 0x00;
+	PC_ALT1 = 0x00;
+	PC_DDR = 0x00;
+	
+	CLEAR_BIT(PC_DR, 3);
+	delay(100);
+	SET_BIT(PC_DR, 7);
+	SET_BIT(PC_DR, 3);
+	
 	
 	// Set Text Home adresse
-	lcd128_data_write16(0x0000);	// Adresse
+	lcd128_data_write8(0x00);	// Adre
+	lcd128_data_write8(0x00);	// Adresse
 	lcd128_cmd(ADDR_TXT_HOME);
 		
 	// Set Graphic Home Adresse
-	lcd128_data_write16(0x0200);
+	lcd128_data_write8(0x00);
+	lcd128_data_write8(0x02);
 	lcd128_cmd(ADDR_GRAPHIC_HOME);
 	
 	// Set Text Area
-	lcd128_data_write16(0x0014);
+	lcd128_data_write8(0x14);
+	lcd128_data_write8(0x00);
 	lcd128_cmd(TXT_AREA);	
 
 	// Set Graphic Area
-	lcd128_data_write16(0x0014);
+	lcd128_data_write8(0x14);
+	lcd128_data_write8(0x00);
 	lcd128_cmd(GRAPHIC_AREA);
 	
 	// Mode Set (orMade, Internal Character Generator Mode)
 	lcd128_cmd(MODE_AUTOWRITE);
 	
 	// Set Offset Register
-	lcd128_data_write16(0x0002);
+	lcd128_data_write8(0x02);
+	lcd128_data_write8(0x00);
 	lcd128_cmd(ADDR_OFFSET);
 	
 	// Display Mode (Text on, Grafik of, Cursor off)
-	lcd128_data_write8(0x98);
+	lcd128_cmd(0x94);
 
-	// Write Text Blank Code 
-	lcd128_data_write16(0x0000);
-	lcd128_cmd(0x24);
-	lcd128_cmd(0xb0);
+	// Write Text Blank Code
+	lcd128_data_write8(0x00);
+	lcd128_data_write8(0x00);
+	lcd128_cmd(PTR_ADDR);
 	
+	lcd128_cmd(AWR_ON);
+		
 	//* LCD Clear mit Space (20H)
-
-	for (i=0; i < 0x1A0; i++)
+	
+	for (i=0; i < 322; i++)
 		{
-			lcd128_adt(0x20);
+			lcd128_adt(0);
 		}
 	
+	lcd128_cmd(AWR_OFF);
+	
+	// Write Text Blank Code
+	lcd128_data_write8(0x00);
+	lcd128_data_write8(0x00);
+	lcd128_cmd(PTR_ADDR);
+	
+	lcd128_cmd(AWR_ON);
+		
+	//* LCD Clear mit Space (20H)
+	
+	for (i=0; i < 322; i++)
+		{
+			lcd128_adt(i &0x3f);
+			delay(50);
+		}
+	
+	lcd128_cmd(AWR_OFF);
+		
+	// Write Text Blank Code
+	lcd128_data_write8(0x00);
+	lcd128_data_write8(0x00);
+	lcd128_cmd(PTR_ADDR);
+	lcd128_cmd(AWR_ON);
 
+	lcd128_adt(0x38);
+	
+	lcd128_cmd(AWR_OFF);
+	
+	lcd128_cmd(0x97); 	// Text Mode, Cursor on blinken
+	lcd128_cmd(0xa6);	// Cursor Line 8
 	
 	// Weiter .....
 	
@@ -90,11 +185,11 @@ BOOL lcd128_cmd(char cmd)
 	char ECB_BUS;
 	char result = 0;
 	
-	ecb_bus_intern();
+	//ecb_bus_intern();
+	//lcd128_put_byte(LCD_CMD, cmd, result);
+	lcd128_put_byte(1, cmd, result);
 	
-	lcd128_put_byte(LCD_CMD, cmd, result);
-	
-	PIOA_DATA = ECB_BUS;
+	//PIOA_DATA = ECB_BUS;
 	return result;
 }
 
@@ -104,11 +199,11 @@ BOOL lcd128_data_write8(char data)
 	char ECB_BUS;
 	char result = 0;
 	
-	ecb_bus_intern();
-	
-	lcd128_put_byte(LCD_DAT, data, result);
+	//ecb_bus_intern();
+	//lcd128_put_byte(LCD_DAT, data, result);
+	lcd128_put_byte(0, data, result);
 
-	PIOA_DATA = ECB_BUS;	
+	//PIOA_DATA = ECB_BUS;	
 	return result;
 }
 
@@ -137,11 +232,17 @@ BOOL lcd128_adt(char data)
 	char ECB_BUS;
 	char result = 0;
 	
-	ecb_bus_intern();
-
-	lcd128_put_byte(LCD_DAT, (data - 0x20), result);
+	//ecb_bus_intern();
+	//lcd128_put_byte(LCD_DAT, (data - 0x20), result);
+	lcd128_put_byte(2, data, result);
 	
-	PIOA_DATA = ECB_BUS;
+	//PIOA_DATA = ECB_BUS;
 	return result;
 }
 
+void delay(int amount)  
+{
+	int i = 0;
+	while(i++ < (amount*1000));
+	return;
+}

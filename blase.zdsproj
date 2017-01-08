@@ -138,7 +138,7 @@
 <tools>
 <tool name="Assembler">
 <options>
-<option name="define" type="string" change-action="assemble">_EZ80ACCLAIM!=1,_SIMULATE=1</option>
+<option name="define" type="string" change-action="assemble">_EZ80ACCLAIM!=1</option>
 <option name="include" type="string" change-action="assemble"></option>
 <option name="list" type="boolean" change-action="none">true</option>
 <option name="listmac" type="boolean" change-action="none">false</option>
@@ -152,7 +152,7 @@
 <tool name="Compiler">
 <options>
 <option name="padbranch" type="string" change-action="compile">Off</option>
-<option name="define" type="string" change-action="compile">NDEBUG,_EZ80F91,_EZ80ACCLAIM!,_SIMULATE</option>
+<option name="define" type="string" change-action="compile">NDEBUG,_EZ80F91,_EZ80ACCLAIM!</option>
 <option name="genprintf" type="boolean" change-action="compile">true</option>
 <option name="keepasm" type="boolean" change-action="none">false</option>
 <option name="keeplst" type="boolean" change-action="none">true</option>
@@ -170,8 +170,8 @@
 </tool>
 <tool name="Debugger">
 <options>
-<option name="target" type="string" change-action="rebuild">eZ80DevPlatform_F91_RAM</option>
-<option name="debugtool" type="string" change-action="none">Simulator</option>
+<option name="target" type="string" change-action="rebuild">eZ80DevPlatform_F91_Flash</option>
+<option name="debugtool" type="string" change-action="none">SerialSmartCable</option>
 <option name="usepageerase" type="boolean" change-action="none">true</option>
 </options>
 </tool>

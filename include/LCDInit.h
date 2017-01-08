@@ -9,6 +9,15 @@
 #include "Display.h"
 #include "defines.h"
 
+#define SET_BIT(val, bit) (val |= (1<<bit))
+#define CLEAR_BIT(val, bit) (val &= (~(1<<bit)))
+
+/* LED anode and cathode external I/O pointers */
+#define LEDMATRIX_ROW      (*(unsigned char*)0x800000)  //Anode
+#define LEDMATRIX_COLUMN   (*(unsigned char*)0x800001)  //Cathode
+
+/* emulated GPIO port */
+#define EMUL_GPIO       (*(volatile unsigned char*)0x800002)
 
 //----- Constants ----------------------------------------
 
@@ -47,7 +56,15 @@ static const int PTR_ADDR = 0x24;
  */
 static const int MODE_AUTOWRITE  = 0x80;
 
+/**
+ * Set Data Auto write
+ */
+static const int AWR_ON  = 0xb0;
 
+/**
+ * AUTO RESET
+ */
+static const int AWR_OFF = 0xb2;
 
 //----- API ----------------------------------------------
 // eZ80 development board led matrix functions
@@ -88,13 +105,9 @@ BOOL lcd128_data_write16(short int);
  */
 BOOL lcd128_adt(char); 
 
-//bbit lcd_daten(char dat);
-//bbit lcd_command(char com);
-/*void ledmatrix_fill(void);
-void ledmatrix_putc(char c);
-void ledmatrix_puts(char *str);
-void ledmatrix_test(void);
-*/
-
+/**
+ *  Pause
+ */
+void delay(int);
 
 #endif // INC_LCDINIT_H

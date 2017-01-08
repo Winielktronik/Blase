@@ -1,0 +1,1648 @@
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   1
+
+
+PC     Object              I  Line    Source 
+                           A     1    ; Zilog eZ80 ANSI C Compiler Release 3.4
+                           A     2    ; -nomodsect -optspeed -noreduceopt -nopadbranc
+                           A     3    ; -globalopt -localcse -const=ROM 
+                           A     4    	FILE	"..\SOURCE\LCDINIT.C"
+                           A     5    	.assume ADL=1
+                           A     6    	SEGMENT TEXT
+000000                     A     7    _ADDR_TXT_HOME:
+000000 4000                A     8    	DW	64
+000002 00                  A     9    	DB	0
+000003                     A    10    _TXT_AREA:
+000003 4100                A    11    	DW	65
+000005 00                  A    12    	DB	0
+000006                     A    13    _ADDR_GRAPHIC_HOME:
+000006 4200                A    14    	DW	66
+000008 00                  A    15    	DB	0
+000009                     A    16    _GRAPHIC_AREA:
+000009 4300                A    17    	DW	67
+00000B 00                  A    18    	DB	0
+00000C                     A    19    _ADDR_OFFSET:
+00000C 2200                A    20    	DW	34
+00000E 00                  A    21    	DB	0
+00000F                     A    22    _PTR_ADDR:
+00000F 2400                A    23    	DW	36
+000011 00                  A    24    	DB	0
+000012                     A    25    _MODE_AUTOWRITE:
+000012 8000                A    26    	DW	128
+000014 00                  A    27    	DB	0
+000015                     A    28    _AWR_ON:
+000015 B000                A    29    	DW	176
+000017 00                  A    30    	DB	0
+000018                     A    31    _AWR_OFF:
+000018 B200                A    32    	DW	178
+00001A 00                  A    33    	DB	0
+                           A    34    	SEGMENT CODE
+                           A    35    ;    1	/**************************************
+                           A    36    ;    2	 * LCDInit.c
+                           A    37    ;    3	 **************************************
+                           A    38    ;    4	 * Copyright (C) 2016 All Contributors 
+                           A    39    ;    5	 **************************************
+                           A    40    ;    6	#define _Z84C15_IORQ
+                           A    41    ;    7	#define _Z84C15_PIO
+                           A    42    ;    8	
+                           A    43    ;    9	#include <string.h>
+                           A    44    ;   10	#include <stdio.h>
+                           A    45    ;   11	#include <ez80.h>
+                           A    46    ;   12	#include "LCDInit.h"
+                           A    47    ;   13	#include "Z84C15.h"
+                           A    48    ;   14	#include "gpio.h"
+                           A    49    ;   15	#include "uart.h"
+                           A    50    ;   16	
+                           A    51    ;   17	
+                           A    52    ;   18	//----- Utils -------------------------
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   2
+
+
+PC     Object              I  Line    Source lcdinit.src
+                           A    53    ;   19	#define lcd128_put_byte(addr, data, res
+                           A    54    ;   20		SET_BIT(PC_DR, 7);\
+                           A    55    ;   21		SET_BIT(PC_DR, 6);\
+                           A    56    ;   22		SET_BIT(PC_DR, 5);\
+                           A    57    ;   23		LEDMATRIX_COLUMN = 0x1d;\
+                           A    58    ;   24		LEDMATRIX_ROW = 0x04;\
+                           A    59    ;   25		if(addr < 2) {\
+                           A    60    ;   26				LEDMATRIX_ROW = 0x84;\
+                           A    61    ;   27				SET_BIT(PC_DR, 4);\
+                           A    62    ;   28			while(__i++ <1000 && ((EMUL_GPI
+                           A    63    ;   29				SET_BIT(PC_DR, 7);\
+                           A    64    ;   30				SET_BIT(PC_DR, 6);\
+                           A    65    ;   31				SET_BIT(PC_DR, 5);\
+                           A    66    ;   32				delay(2);\
+                           A    67    ;   33				CLEAR_BIT(PC_DR, 6);\
+                           A    68    ;   34				CLEAR_BIT(PC_DR, 7);\
+                           A    69    ;   35				delay(2);\
+                           A    70    ;   36				}\
+                           A    71    ;   37			}\
+                           A    72    ;   38		if(addr == 2) {\
+                           A    73    ;   39				LEDMATRIX_ROW = 0x84;\
+                           A    74    ;   40				SET_BIT(PC_DR, 4);\
+                           A    75    ;   41			while(__i++ <1000 && ((EMUL_GPI
+                           A    76    ;   42				SET_BIT(PC_DR, 7);\
+                           A    77    ;   43				SET_BIT(PC_DR, 6);\
+                           A    78    ;   44				SET_BIT(PC_DR, 5);\
+                           A    79    ;   45				delay(2);\
+                           A    80    ;   46				CLEAR_BIT(PC_DR, 6);\
+                           A    81    ;   47				CLEAR_BIT(PC_DR, 7);\
+                           A    82    ;   48				delay(2);\
+                           A    83    ;   49				}\
+                           A    84    ;   50			}\
+                           A    85    ;   51		LEDMATRIX_ROW = 0x04;\
+                           A    86    ;   52		SET_BIT(PC_DR, 7);\
+                           A    87    ;   53		SET_BIT(PC_DR, 6);\
+                           A    88    ;   54		SET_BIT(PC_DR, 5);\
+                           A    89    ;   55		CLEAR_BIT(PC_DR, 4);\
+                           A    90    ;   56		if(addr == 1) {\
+                           A    91    ;   57			SET_BIT(PC_DR, 4);\
+                           A    92    ;   58			}\
+                           A    93    ;   59		delay(2);\
+                           A    94    ;   60		CLEAR_BIT(PC_DR, 5);\
+                           A    95    ;   61		CLEAR_BIT(PC_DR, 7);\
+                           A    96    ;   62		EMUL_GPIO = data;\
+                           A    97    ;   63		delay(1);\
+                           A    98    ;   64		LEDMATRIX_COLUMN = 0x17;\
+                           A    99    ;   65		result = 1;\
+                           A   100    ;   66		SET_BIT(PC_DR, 7);\
+                           A   101    ;   67		SET_BIT(PC_DR, 5);\
+                           A   102    ;   68		SET_BIT(PC_DR, 6);\
+                           A   103    ;   69		delay(1);\
+                           A   104    ;   70		LEDMATRIX_COLUMN = 0x1f;\
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   3
+
+
+PC     Object              I  Line    Source lcdinit.src
+                           A   105    ;   71	
+                           A   106    ;   72	#define ecb_bus_intern()\
+                           A   107    ;   73		ECB_BUS = PIOA_DATA;\
+                           A   108    ;   74		PIOA_DATA = (ECB_BUS & 0x7F);\
+                           A   109    ;   75			
+                           A   110    ;   76	#define ecb_bus_extern(karte)\
+                           A   111    ;   77		ECB_BUS = PIOA_DATA;\
+                           A   112    ;   78		PIOA_DATA = (ECB_BUS | 0x80);\
+                           A   113    ;   79		LATCH = karte;\
+                           A   114    ;   80	
+                           A   115    ;   81	//----- API ---------------------------
+                           A   116    ;   82		
+                           A   117    ;   83	void lcd128_init_driver(Display* interf
+000000                     A   118    _lcd128_init_driver:
+000000 CD 00 00 00         A   119    	CALL	__frameset0
+                           A   120    ;   84			interface->init = lcd128_init;
+000004 DD3106              A   121    	LD	IY,(IX+6)
+000007 01 13 00 00         A   122    	LD	BC,_lcd128_init
+00000B FD0F00              A   123    	LD	(IY+0),BC
+                           A   124    ;   85	}
+00000E DDF9                A   125    	LD	SP,IX
+000010 DDE1                A   126    	POP	IX
+000012 C9                  A   127    	RET	
+                           A   128    
+                           A   129    
+                           A   130    ;**************************** _lcd128_init_driv
+                           A   131    ;Name                         Addr/Register   S
+                           A   132    ;_lcd128_init                        IMPORT  --
+                           A   133    ;interface                             IX+6    
+                           A   134    
+                           A   135    
+                           A   136    ; Stack Frame Size: 9 (bytes)
+                           A   137    ;       Spill Code: 0 (instruction)
+                           A   138    
+                           A   139    
+                           A   140    ;   86	
+                           A   141    ;   87	void lcd128_init(void)
+                           A   142    ;   88	{
+000013                     A   143    _lcd128_init:
+000013 21FAFFFF            A   144    	LD	HL,-6
+000017 CD 00 00 00         A   145    	CALL	__frameset
+                           A   146    ;   89		char ECB_BUS;
+                           A   147    ;   90		int i = 0;
+                           A   148    ;   91		int i_a;
+                           A   149    ;   92		;
+                           A   150    ;   93		PC_ALT2 = 0x00;
+00001B AF                  A   151    	XOR	A,A
+00001C ED39A1              A   152    	OUT0	(161),A
+                           A   153    ;   94	    PC_ALT1 = 0x00;
+00001F AF                  A   154    	XOR	A,A
+000020 ED39A0              A   155    	OUT0	(160),A
+                           A   156    ;   95	    PC_DDR = 0x00;
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   4
+
+
+PC     Object              I  Line    Source lcdinit.src
+000023 AF                  A   157    	XOR	A,A
+000024 ED399F              A   158    	OUT0	(159),A
+                           A   159    ;   96	
+                           A   160    ;   97		CLEAR_BIT(PC_DR, 3);
+                           A   161    ;   98		delay(100);
+000027 01640000            A   162    	LD	BC,100
+00002B C5                  A   163    	PUSH	BC
+00002C ED389E              A   164    	IN0	A,(158)
+00002F CB9F                A   165    	RES	3,A
+000031 ED399E              A   166    	OUT0	(158),A
+000034 CD 8F 0A 00         A   167    	CALL	_delay
+000038 C1                  A   168    	POP	BC
+                           A   169    ;   99		SET_BIT(PC_DR, 7);
+000039 ED389E              A   170    	IN0	A,(158)
+                           A   171    ;  100		SET_BIT(PC_DR, 3);
+                           A   172    ;  101		
+                           A   173    ;  102		// Set Text Home adresse
+                           A   174    ;  103		lcd128_data_write8(0x00);	// Adre
+00003C 01000000            A   175    	LD	BC,0
+000040 C5                  A   176    	PUSH	BC
+000041 CBFF                A   177    	SET	7,A
+000043 ED399E              A   178    	OUT0	(158),A
+000046 ED389E              A   179    	IN0	A,(158)
+000049 CBDF                A   180    	SET	3,A
+00004B ED399E              A   181    	OUT0	(158),A
+00004E CD 21 04 00         A   182    	CALL	_lcd128_data_write8
+000052 C1                  A   183    	POP	BC
+                           A   184    ;  104		lcd128_data_write8(0x00);	// Adre
+000053 01000000            A   185    	LD	BC,0
+000057 C5                  A   186    	PUSH	BC
+000058 CD 21 04 00         A   187    	CALL	_lcd128_data_write8
+00005C C1                  A   188    	POP	BC
+                           A   189    ;  105		lcd128_cmd(ADDR_TXT_HOME);
+00005D 01400000            A   190    	LD	BC,64
+000061 C5                  A   191    	PUSH	BC
+000062 CD 79 02 00         A   192    	CALL	_lcd128_cmd
+000066 C1                  A   193    	POP	BC
+                           A   194    ;  106			
+                           A   195    ;  107		// Set Graphic Home Adresse
+                           A   196    ;  108		lcd128_data_write8(0x00);	// Adre
+000067 01000000            A   197    	LD	BC,0
+00006B C5                  A   198    	PUSH	BC
+00006C CD 21 04 00         A   199    	CALL	_lcd128_data_write8
+000070 C1                  A   200    	POP	BC
+                           A   201    ;  109		lcd128_data_write8(0x02);	// Adre
+000071 01020000            A   202    	LD	BC,2
+000075 C5                  A   203    	PUSH	BC
+000076 CD 21 04 00         A   204    	CALL	_lcd128_data_write8
+00007A C1                  A   205    	POP	BC
+                           A   206    ;  110		lcd128_cmd(ADDR_GRAPHIC_HOME);
+00007B 01420000            A   207    	LD	BC,66
+00007F C5                  A   208    	PUSH	BC
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   5
+
+
+PC     Object              I  Line    Source lcdinit.src
+000080 CD 79 02 00         A   209    	CALL	_lcd128_cmd
+000084 C1                  A   210    	POP	BC
+                           A   211    ;  111		
+                           A   212    ;  112		// Set Text Area
+                           A   213    ;  113		lcd128_data_write8(0x14);	// Adre
+000085 01140000            A   214    	LD	BC,20
+000089 C5                  A   215    	PUSH	BC
+00008A CD 21 04 00         A   216    	CALL	_lcd128_data_write8
+00008E C1                  A   217    	POP	BC
+                           A   218    ;  114		lcd128_data_write8(0x00);	// Adre
+00008F 01000000            A   219    	LD	BC,0
+000093 C5                  A   220    	PUSH	BC
+000094 CD 21 04 00         A   221    	CALL	_lcd128_data_write8
+000098 C1                  A   222    	POP	BC
+                           A   223    ;  115		lcd128_cmd(TXT_AREA);	
+000099 01410000            A   224    	LD	BC,65
+00009D C5                  A   225    	PUSH	BC
+00009E CD 79 02 00         A   226    	CALL	_lcd128_cmd
+0000A2 C1                  A   227    	POP	BC
+                           A   228    ;  116	
+                           A   229    ;  117		// Set Graphic Area
+                           A   230    ;  118		lcd128_data_write8(0x14);	// Adre
+0000A3 01140000            A   231    	LD	BC,20
+0000A7 C5                  A   232    	PUSH	BC
+0000A8 CD 21 04 00         A   233    	CALL	_lcd128_data_write8
+0000AC C1                  A   234    	POP	BC
+                           A   235    ;  119		lcd128_data_write8(0x00);	// Adre
+0000AD 01000000            A   236    	LD	BC,0
+0000B1 C5                  A   237    	PUSH	BC
+0000B2 CD 21 04 00         A   238    	CALL	_lcd128_data_write8
+0000B6 C1                  A   239    	POP	BC
+                           A   240    ;  120		lcd128_cmd(GRAPHIC_AREA);
+0000B7 01430000            A   241    	LD	BC,67
+0000BB C5                  A   242    	PUSH	BC
+0000BC CD 79 02 00         A   243    	CALL	_lcd128_cmd
+0000C0 C1                  A   244    	POP	BC
+                           A   245    ;  121		
+                           A   246    ;  122		// Mode Set (orMade, Internal Chara
+                           A   247    ;  123		lcd128_cmd(MODE_AUTOWRITE);
+0000C1 01800000            A   248    	LD	BC,128
+0000C5 C5                  A   249    	PUSH	BC
+0000C6 CD 79 02 00         A   250    	CALL	_lcd128_cmd
+0000CA C1                  A   251    	POP	BC
+                           A   252    ;  124		
+                           A   253    ;  125		// Set Offset Register
+                           A   254    ;  126		lcd128_data_write8(0x02);	// Adre
+0000CB 01020000            A   255    	LD	BC,2
+0000CF C5                  A   256    	PUSH	BC
+0000D0 CD 21 04 00         A   257    	CALL	_lcd128_data_write8
+0000D4 C1                  A   258    	POP	BC
+                           A   259    ;  127		lcd128_data_write8(0x00);	// Adre
+0000D5 01000000            A   260    	LD	BC,0
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   6
+
+
+PC     Object              I  Line    Source lcdinit.src
+0000D9 C5                  A   261    	PUSH	BC
+0000DA CD 21 04 00         A   262    	CALL	_lcd128_data_write8
+0000DE C1                  A   263    	POP	BC
+                           A   264    ;  128		lcd128_cmd(ADDR_OFFSET);
+0000DF 01220000            A   265    	LD	BC,34
+0000E3 C5                  A   266    	PUSH	BC
+0000E4 CD 79 02 00         A   267    	CALL	_lcd128_cmd
+0000E8 C1                  A   268    	POP	BC
+                           A   269    ;  129		
+                           A   270    ;  130		// Display Mode (Text on, Grafik of
+                           A   271    ;  131		lcd128_cmd(0x97);
+0000E9 0197FFFF            A   272    	LD	BC,16777111
+0000ED C5                  A   273    	PUSH	BC
+0000EE CD 79 02 00         A   274    	CALL	_lcd128_cmd
+0000F2 C1                  A   275    	POP	BC
+                           A   276    ;  132	
+                           A   277    ;  133		// Write Text Blank Code 
+                           A   278    ;  134		lcd128_data_write8(0x00);	// Adre
+0000F3 01000000            A   279    	LD	BC,0
+0000F7 C5                  A   280    	PUSH	BC
+0000F8 CD 21 04 00         A   281    	CALL	_lcd128_data_write8
+0000FC C1                  A   282    	POP	BC
+                           A   283    ;  135		lcd128_data_write8(0x00);	// Adre
+0000FD 01000000            A   284    	LD	BC,0
+000101 C5                  A   285    	PUSH	BC
+000102 CD 21 04 00         A   286    	CALL	_lcd128_data_write8
+000106 C1                  A   287    	POP	BC
+                           A   288    ;  136		lcd128_cmd(PTR_ADDR);
+000107 01240000            A   289    	LD	BC,36
+00010B C5                  A   290    	PUSH	BC
+00010C CD 79 02 00         A   291    	CALL	_lcd128_cmd
+000110 C1                  A   292    	POP	BC
+                           A   293    ;  137		
+                           A   294    ;  138	
+                           A   295    ;  139		lcd128_cmd(AWR_ON);
+000111 01B00000            A   296    	LD	BC,176
+000115 C5                  A   297    	PUSH	BC
+000116 CD 79 02 00         A   298    	CALL	_lcd128_cmd
+00011A C1                  A   299    	POP	BC
+                           A   300    ;  140		
+                           A   301    ;  141		// Display Clear mit Space (20H)
+                           A   302    ;  142		
+                           A   303    ;  143	
+                           A   304    ;  144		for (i=0; i < 323; i++)
+00011B 01000000            A   305    	LD	BC,0
+00011F DD0FFD              A   306    	LD	(IX+-3),BC
+000122 18 1F               A   307    	JR	L_4
+000124                     A   308    L_2:
+                           A   309    ;  145			{
+                           A   310    ;  146				lcd128_adt(i & 0x3f);
+000124 DD7EFD              A   311    	LD	A,(IX+-3)
+000127 E63F                A   312    	AND	A,63
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   7
+
+
+PC     Object              I  Line    Source lcdinit.src
+000129 4F                  A   313    	LD	C,A
+00012A 0600                A   314    	LD	B,0
+00012C C5                  A   315    	PUSH	BC
+00012D CD EF 08 00         A   316    	CALL	_lcd128_adt
+000131 C1                  A   317    	POP	BC
+                           A   318    ;  147				delay(10);
+000132 010A0000            A   319    	LD	BC,10
+000136 C5                  A   320    	PUSH	BC
+000137 CD 8F 0A 00         A   321    	CALL	_delay
+00013B C1                  A   322    	POP	BC
+00013C DD07FD              A   323    	LD	BC,(IX+-3)
+00013F 03                  A   324    	INC	BC
+000140 DD0FFD              A   325    	LD	(IX+-3),BC
+                           A   326    ;  148			}
+000143                     A   327    L_4:
+000143 01430100            A   328    	LD	BC,323
+000147 DD27FD              A   329    	LD	HL,(IX+-3)
+00014A B7                  A   330    	OR	A,A
+00014B ED42                A   331    	SBC	HL,BC
+00014D FA 57 01 00         A   332    	JP	M,L__5
+000151 EA 24 01 00         A   333    	JP	PE,L_2
+000155 18 04               A   334    	JR	L__6
+000157                     A   335    L__5:
+000157 E2 24 01 00         A   336    	JP	PO,L_2
+00015B                     A   337    L__6:
+                           A   338    ;  149			
+                           A   339    ;  150		lcd128_cmd(AWR_OFF);
+00015B 01B20000            A   340    	LD	BC,178
+00015F C5                  A   341    	PUSH	BC
+000160 CD 79 02 00         A   342    	CALL	_lcd128_cmd
+000164 C1                  A   343    	POP	BC
+                           A   344    ;  151	
+                           A   345    ;  152		// Display Mode (Text on, Grafik of
+                           A   346    ;  153		lcd128_data_write8(0x9c);
+000165 019CFFFF            A   347    	LD	BC,16777116
+000169 C5                  A   348    	PUSH	BC
+00016A CD 21 04 00         A   349    	CALL	_lcd128_data_write8
+00016E C1                  A   350    	POP	BC
+                           A   351    ;  154			
+                           A   352    ;  155		
+                           A   353    ;  156		// Display Clear mit Space (20H)
+                           A   354    ;  157		for(i = 1; i < 128; ++i)
+00016F 01010000            A   355    	LD	BC,1
+000173 DD0FFD              A   356    	LD	(IX+-3),BC
+000176 18 76               A   357    	JR	L_13
+000178                     A   358    L_11:
+                           A   359    ;  158			{
+                           A   360    ;  159				// Write Text Blank Code 
+                           A   361    ;  160		lcd128_data_write8(0x00);	// Adre
+000178 01000000            A   362    	LD	BC,0
+00017C C5                  A   363    	PUSH	BC
+00017D CD 21 04 00         A   364    	CALL	_lcd128_data_write8
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   8
+
+
+PC     Object              I  Line    Source lcdinit.src
+000181 C1                  A   365    	POP	BC
+                           A   366    ;  161		lcd128_data_write8(0x00);	// Adre
+000182 01000000            A   367    	LD	BC,0
+000186 C5                  A   368    	PUSH	BC
+000187 CD 21 04 00         A   369    	CALL	_lcd128_data_write8
+00018B C1                  A   370    	POP	BC
+                           A   371    ;  162		lcd128_cmd(PTR_ADDR);
+00018C 01240000            A   372    	LD	BC,36
+000190 C5                  A   373    	PUSH	BC
+000191 CD 79 02 00         A   374    	CALL	_lcd128_cmd
+000195 C1                  A   375    	POP	BC
+                           A   376    ;  163		
+                           A   377    ;  164		lcd128_cmd(AWR_ON);
+000196 01B00000            A   378    	LD	BC,176
+00019A C5                  A   379    	PUSH	BC
+00019B CD 79 02 00         A   380    	CALL	_lcd128_cmd
+00019F C1                  A   381    	POP	BC
+                           A   382    ;  165			for (i_a=0; i_a < 323; i_a++)
+0001A0 01000000            A   383    	LD	BC,0
+0001A4 DD0FFA              A   384    	LD	(IX+-6),BC
+0001A7 18 1C               A   385    	JR	L_9
+0001A9                     A   386    L_7:
+                           A   387    ;  166				{
+                           A   388    ;  167					lcd128_adt(i);
+0001A9 DD4EFD              A   389    	LD	C,(IX+-3)
+0001AC 0600                A   390    	LD	B,0
+0001AE C5                  A   391    	PUSH	BC
+0001AF CD EF 08 00         A   392    	CALL	_lcd128_adt
+0001B3 C1                  A   393    	POP	BC
+                           A   394    ;  168					delay(50);
+0001B4 01320000            A   395    	LD	BC,50
+0001B8 C5                  A   396    	PUSH	BC
+0001B9 CD 8F 0A 00         A   397    	CALL	_delay
+0001BD C1                  A   398    	POP	BC
+0001BE DD07FA              A   399    	LD	BC,(IX+-6)
+0001C1 03                  A   400    	INC	BC
+0001C2 DD0FFA              A   401    	LD	(IX+-6),BC
+                           A   402    ;  169				}
+0001C5                     A   403    L_9:
+0001C5 01430100            A   404    	LD	BC,323
+0001C9 DD27FA              A   405    	LD	HL,(IX+-6)
+0001CC B7                  A   406    	OR	A,A
+0001CD ED42                A   407    	SBC	HL,BC
+0001CF FA D9 01 00         A   408    	JP	M,L__7
+0001D3 EA A9 01 00         A   409    	JP	PE,L_7
+0001D7 18 04               A   410    	JR	L__8
+0001D9                     A   411    L__7:
+0001D9 E2 A9 01 00         A   412    	JP	PO,L_7
+0001DD                     A   413    L__8:
+                           A   414    ;  170				lcd128_cmd(AWR_OFF);
+0001DD 01B20000            A   415    	LD	BC,178
+0001E1 C5                  A   416    	PUSH	BC
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:   9
+
+
+PC     Object              I  Line    Source lcdinit.src
+0001E2 CD 79 02 00         A   417    	CALL	_lcd128_cmd
+0001E6 C1                  A   418    	POP	BC
+0001E7 DD07FD              A   419    	LD	BC,(IX+-3)
+0001EA 03                  A   420    	INC	BC
+0001EB DD0FFD              A   421    	LD	(IX+-3),BC
+                           A   422    ;  171			}
+0001EE                     A   423    L_13:
+0001EE 01800000            A   424    	LD	BC,128
+0001F2 DD27FD              A   425    	LD	HL,(IX+-3)
+0001F5 B7                  A   426    	OR	A,A
+0001F6 ED42                A   427    	SBC	HL,BC
+0001F8 FA 02 02 00         A   428    	JP	M,L__9
+0001FC EA 78 01 00         A   429    	JP	PE,L_11
+000200 18 04               A   430    	JR	L__10
+000202                     A   431    L__9:
+000202 E2 78 01 00         A   432    	JP	PO,L_11
+000206                     A   433    L__10:
+                           A   434    ;  172		
+                           A   435    ;  173		// Write Text Blank Code 
+                           A   436    ;  174		lcd128_data_write8(0x00);	// Adre
+000206 01000000            A   437    	LD	BC,0
+00020A C5                  A   438    	PUSH	BC
+00020B CD 21 04 00         A   439    	CALL	_lcd128_data_write8
+00020F C1                  A   440    	POP	BC
+                           A   441    ;  175		lcd128_data_write8(0x00);	// Adre
+000210 01000000            A   442    	LD	BC,0
+000214 C5                  A   443    	PUSH	BC
+000215 CD 21 04 00         A   444    	CALL	_lcd128_data_write8
+000219 C1                  A   445    	POP	BC
+                           A   446    ;  176		lcd128_cmd(PTR_ADDR);
+00021A 01240000            A   447    	LD	BC,36
+00021E C5                  A   448    	PUSH	BC
+00021F CD 79 02 00         A   449    	CALL	_lcd128_cmd
+000223 C1                  A   450    	POP	BC
+                           A   451    ;  177		
+                           A   452    ;  178		lcd128_cmd(AWR_ON);
+000224 01B00000            A   453    	LD	BC,176
+000228 C5                  A   454    	PUSH	BC
+000229 CD 79 02 00         A   455    	CALL	_lcd128_cmd
+00022D C1                  A   456    	POP	BC
+                           A   457    ;  179		
+                           A   458    ;  180		// Display Clear mit Space (20H)
+                           A   459    ;  181		
+                           A   460    ;  182	
+                           A   461    ;  183		for (i=0; i < 323; i++)
+00022E 01000000            A   462    	LD	BC,0
+000232 DD0FFD              A   463    	LD	(IX+-3),BC
+000235 18 1B               A   464    	JR	L_18
+000237                     A   465    L_16:
+                           A   466    ;  184			{
+                           A   467    ;  185				lcd128_adt(0x00);
+000237 01000000            A   468    	LD	BC,0
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  10
+
+
+PC     Object              I  Line    Source lcdinit.src
+00023B C5                  A   469    	PUSH	BC
+00023C CD EF 08 00         A   470    	CALL	_lcd128_adt
+000240 C1                  A   471    	POP	BC
+                           A   472    ;  186				delay(100);
+000241 01640000            A   473    	LD	BC,100
+000245 C5                  A   474    	PUSH	BC
+000246 CD 8F 0A 00         A   475    	CALL	_delay
+00024A C1                  A   476    	POP	BC
+00024B DD07FD              A   477    	LD	BC,(IX+-3)
+00024E 03                  A   478    	INC	BC
+00024F DD0FFD              A   479    	LD	(IX+-3),BC
+                           A   480    ;  187			}
+000252                     A   481    L_18:
+000252 01430100            A   482    	LD	BC,323
+000256 DD27FD              A   483    	LD	HL,(IX+-3)
+000259 B7                  A   484    	OR	A,A
+00025A ED42                A   485    	SBC	HL,BC
+00025C FA 66 02 00         A   486    	JP	M,L__11
+000260 EA 37 02 00         A   487    	JP	PE,L_16
+000264 18 04               A   488    	JR	L__12
+000266                     A   489    L__11:
+000266 E2 37 02 00         A   490    	JP	PO,L_16
+00026A                     A   491    L__12:
+                           A   492    ;  188			
+                           A   493    ;  189		lcd128_cmd(AWR_OFF);
+00026A 01B20000            A   494    	LD	BC,178
+00026E C5                  A   495    	PUSH	BC
+00026F CD 79 02 00         A   496    	CALL	_lcd128_cmd
+000273 C1                  A   497    	POP	BC
+                           A   498    ;  190		//* mit Space Blank Display löschen
+                           A   499    ;  191		
+                           A   500    ;  192		// Weiter .....
+                           A   501    ;  193		
+                           A   502    ;  194	}
+000274 DDF9                A   503    	LD	SP,IX
+000276 DDE1                A   504    	POP	IX
+000278 C9                  A   505    	RET	
+                           A   506    
+                           A   507    
+                           A   508    ;**************************** _lcd128_init ****
+                           A   509    ;Name                         Addr/Register   S
+                           A   510    ;_lcd128_adt                         IMPORT  --
+                           A   511    ;_lcd128_cmd                         IMPORT  --
+                           A   512    ;_lcd128_data_write8                 IMPORT  --
+                           A   513    ;_delay                              IMPORT  --
+                           A   514    ;i_a                                   IX-6    
+                           A   515    ;i                                     IX-3    
+                           A   516    
+                           A   517    
+                           A   518    ; Stack Frame Size: 12 (bytes)
+                           A   519    ;       Spill Code: 0 (instruction)
+                           A   520    
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  11
+
+
+PC     Object              I  Line    Source lcdinit.src
+                           A   521    
+                           A   522    ;  195	
+                           A   523    ;  196	BOOL lcd128_cmd(char cmd)
+                           A   524    ;  197	{
+000279                     A   525    _lcd128_cmd:
+000279 21FDFFFF            A   526    	LD	HL,-3
+00027D CD 00 00 00         A   527    	CALL	__frameset
+                           A   528    ;  198	   	int __i = 0;
+000281 01000000            A   529    	LD	BC,0
+000285 DD0FFD              A   530    	LD	(IX+-3),BC
+                           A   531    ;  199		char ECB_BUS;
+                           A   532    ;  200		char result = 0;
+                           A   533    ;  201		
+                           A   534    ;  202		//ecb_bus_intern();
+                           A   535    ;  203		//lcd128_put_byte(LCD_CMD, cmd, res
+                           A   536    ;  204		lcd128_put_byte(1, cmd, result);  
+000288 ED389E              A   537    	IN0	A,(158)
+00028B CBFF                A   538    	SET	7,A
+00028D ED399E              A   539    	OUT0	(158),A
+000290 ED389E              A   540    	IN0	A,(158)
+000293 CBF7                A   541    	SET	6,A
+000295 ED399E              A   542    	OUT0	(158),A
+000298 ED389E              A   543    	IN0	A,(158)
+00029B CBEF                A   544    	SET	5,A
+00029D ED399E              A   545    	OUT0	(158),A
+0002A0 3E1D                A   546    	LD	A,29
+0002A2 32010080            A   547    	LD	(8388609),A
+0002A6 3E04                A   548    	LD	A,4
+0002A8 32000080            A   549    	LD	(8388608),A
+0002AC 3E84                A   550    	LD	A,132
+0002AE 32000080            A   551    	LD	(8388608),A
+0002B2 ED389E              A   552    	IN0	A,(158)
+0002B5 CBE7                A   553    	SET	4,A
+0002B7 ED399E              A   554    	OUT0	(158),A
+0002BA 18 3C               A   555    	JR	L_23
+0002BC                     A   556    L_24:
+0002BC ED389E              A   557    	IN0	A,(158)
+0002BF CBFF                A   558    	SET	7,A
+0002C1 ED399E              A   559    	OUT0	(158),A
+0002C4 ED389E              A   560    	IN0	A,(158)
+0002C7 01020000            A   561    	LD	BC,2
+0002CB C5                  A   562    	PUSH	BC
+0002CC CBF7                A   563    	SET	6,A
+0002CE ED399E              A   564    	OUT0	(158),A
+0002D1 ED389E              A   565    	IN0	A,(158)
+0002D4 CBEF                A   566    	SET	5,A
+0002D6 ED399E              A   567    	OUT0	(158),A
+0002D9 CD 8F 0A 00         A   568    	CALL	_delay
+0002DD C1                  A   569    	POP	BC
+0002DE ED389E              A   570    	IN0	A,(158)
+0002E1 01020000            A   571    	LD	BC,2
+0002E5 C5                  A   572    	PUSH	BC
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  12
+
+
+PC     Object              I  Line    Source lcdinit.src
+0002E6 CBB7                A   573    	RES	6,A
+0002E8 ED399E              A   574    	OUT0	(158),A
+0002EB ED389E              A   575    	IN0	A,(158)
+0002EE CBBF                A   576    	RES	7,A
+0002F0 ED399E              A   577    	OUT0	(158),A
+0002F3 CD 8F 0A 00         A   578    	CALL	_delay
+0002F7 C1                  A   579    	POP	BC
+0002F8                     A   580    L_23:
+0002F8 DD07FD              A   581    	LD	BC,(IX+-3)
+0002FB 03                  A   582    	INC	BC
+0002FC B7                  A   583    	OR	A,A
+0002FD DD27FD              A   584    	LD	HL,(IX+-3)
+000300 11E80300            A   585    	LD	DE,1000
+000304 ED52                A   586    	SBC	HL,DE
+000306 DD0FFD              A   587    	LD	(IX+-3),BC
+000309 F2 13 03 00         A   588    	JP	P,L__18
+00030D EA 93 03 00         A   589    	JP	PE,L_32
+000311 18 04               A   590    	JR	L__19
+000313                     A   591    L__18:
+000313 E2 93 03 00         A   592    	JP	PO,L_32
+000317                     A   593    L__19:
+000317 3A020080            A   594    	LD	A,(8388610)
+00031B E603                A   595    	AND	A,3
+00031D B7ED62              A   596    	UEXT	HL
+000320 6F                  A   597    	LD	L,A
+000321 B7                  A   598    	OR	A,A
+000322 01030000            A   599    	LD	BC,3
+000326 ED42                A   600    	SBC	HL,BC
+000328 20 92               A   601    	JR	NZ,L_24
+00032A 18 67               A   602    	JR	L_32
+00032C                     A   603    L_29:
+00032C ED389E              A   604    	IN0	A,(158)
+00032F CBFF                A   605    	SET	7,A
+000331 ED399E              A   606    	OUT0	(158),A
+000334 ED389E              A   607    	IN0	A,(158)
+000337 01020000            A   608    	LD	BC,2
+00033B C5                  A   609    	PUSH	BC
+00033C CBF7                A   610    	SET	6,A
+00033E ED399E              A   611    	OUT0	(158),A
+000341 ED389E              A   612    	IN0	A,(158)
+000344 CBEF                A   613    	SET	5,A
+000346 ED399E              A   614    	OUT0	(158),A
+000349 CD 8F 0A 00         A   615    	CALL	_delay
+00034D C1                  A   616    	POP	BC
+00034E ED389E              A   617    	IN0	A,(158)
+000351 01020000            A   618    	LD	BC,2
+000355 C5                  A   619    	PUSH	BC
+000356 CBB7                A   620    	RES	6,A
+000358 ED399E              A   621    	OUT0	(158),A
+00035B ED389E              A   622    	IN0	A,(158)
+00035E CBBF                A   623    	RES	7,A
+000360 ED399E              A   624    	OUT0	(158),A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  13
+
+
+PC     Object              I  Line    Source lcdinit.src
+000363 CD 8F 0A 00         A   625    	CALL	_delay
+000367 C1                  A   626    	POP	BC
+000368 DD27FD              A   627    	LD	HL,(IX+-3)
+00036B 01E80300            A   628    	LD	BC,1000
+00036F B7                  A   629    	OR	A,A
+000370 ED42                A   630    	SBC	HL,BC
+000372 F2 7C 03 00         A   631    	JP	P,L__20
+000376 EA 93 03 00         A   632    	JP	PE,L_32
+00037A 18 04               A   633    	JR	L__21
+00037C                     A   634    L__20:
+00037C E2 93 03 00         A   635    	JP	PO,L_32
+000380                     A   636    L__21:
+000380 3A020080            A   637    	LD	A,(8388610)
+000384 E608                A   638    	AND	A,8
+000386 B7ED62              A   639    	UEXT	HL
+000389 6F                  A   640    	LD	L,A
+00038A B7                  A   641    	OR	A,A
+00038B 01080000            A   642    	LD	BC,8
+00038F ED42                A   643    	SBC	HL,BC
+000391 20 99               A   644    	JR	NZ,L_29
+000393                     A   645    L_32:
+000393 3E04                A   646    	LD	A,4
+000395 32000080            A   647    	LD	(8388608),A
+000399 ED389E              A   648    	IN0	A,(158)
+00039C CBFF                A   649    	SET	7,A
+00039E ED399E              A   650    	OUT0	(158),A
+0003A1 ED389E              A   651    	IN0	A,(158)
+0003A4 CBF7                A   652    	SET	6,A
+0003A6 ED399E              A   653    	OUT0	(158),A
+0003A9 ED389E              A   654    	IN0	A,(158)
+0003AC CBEF                A   655    	SET	5,A
+0003AE ED399E              A   656    	OUT0	(158),A
+0003B1 ED389E              A   657    	IN0	A,(158)
+0003B4 CBA7                A   658    	RES	4,A
+0003B6 ED399E              A   659    	OUT0	(158),A
+0003B9 01020000            A   660    	LD	BC,2
+0003BD C5                  A   661    	PUSH	BC
+0003BE ED389E              A   662    	IN0	A,(158)
+0003C1 CBE7                A   663    	SET	4,A
+0003C3 ED399E              A   664    	OUT0	(158),A
+0003C6 CD 8F 0A 00         A   665    	CALL	_delay
+0003CA C1                  A   666    	POP	BC
+0003CB ED389E              A   667    	IN0	A,(158)
+0003CE CBAF                A   668    	RES	5,A
+0003D0 ED399E              A   669    	OUT0	(158),A
+0003D3 ED389E              A   670    	IN0	A,(158)
+0003D6 CBBF                A   671    	RES	7,A
+0003D8 ED399E              A   672    	OUT0	(158),A
+0003DB DD7E06              A   673    	LD	A,(IX+6)
+0003DE 01010000            A   674    	LD	BC,1
+0003E2 C5                  A   675    	PUSH	BC
+0003E3 32020080            A   676    	LD	(8388610),A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  14
+
+
+PC     Object              I  Line    Source lcdinit.src
+0003E7 CD 8F 0A 00         A   677    	CALL	_delay
+0003EB C1                  A   678    	POP	BC
+0003EC 3E17                A   679    	LD	A,23
+0003EE 32010080            A   680    	LD	(8388609),A
+0003F2 ED389E              A   681    	IN0	A,(158)
+0003F5 CBFF                A   682    	SET	7,A
+0003F7 ED399E              A   683    	OUT0	(158),A
+0003FA ED389E              A   684    	IN0	A,(158)
+0003FD CBEF                A   685    	SET	5,A
+0003FF ED399E              A   686    	OUT0	(158),A
+000402 01010000            A   687    	LD	BC,1
+000406 C5                  A   688    	PUSH	BC
+000407 ED389E              A   689    	IN0	A,(158)
+00040A CBF7                A   690    	SET	6,A
+00040C ED399E              A   691    	OUT0	(158),A
+00040F CD 8F 0A 00         A   692    	CALL	_delay
+000413 C1                  A   693    	POP	BC
+000414 3E1F                A   694    	LD	A,31
+000416 32010080            A   695    	LD	(8388609),A
+                           A   696    ;  205	
+                           A   697    ;  206		//PIOA_DATA = ECB_BUS;
+                           A   698    ;  207		return result;
+00041A 3E01                A   699    	LD	A,1
+                           A   700    ;  208	}
+00041C DDF9                A   701    	LD	SP,IX
+00041E DDE1                A   702    	POP	IX
+000420 C9                  A   703    	RET	
+                           A   704    
+                           A   705    
+                           A   706    ;**************************** _lcd128_cmd *****
+                           A   707    ;Name                         Addr/Register   S
+                           A   708    ;_delay                              IMPORT  --
+                           A   709    ;__i                                   IX-3    
+                           A   710    ;cmd                                   IX+6    
+                           A   711    
+                           A   712    
+                           A   713    ; Stack Frame Size: 12 (bytes)
+                           A   714    ;       Spill Code: 0 (instruction)
+                           A   715    
+                           A   716    
+                           A   717    ;  209	
+                           A   718    ;  210	BOOL lcd128_data_write8(char data)
+                           A   719    ;  211	{
+000421                     A   720    _lcd128_data_write8:
+000421 21FDFFFF            A   721    	LD	HL,-3
+000425 CD 00 00 00         A   722    	CALL	__frameset
+                           A   723    ;  212	   	int __i = 0;
+000429 01000000            A   724    	LD	BC,0
+00042D DD0FFD              A   725    	LD	(IX+-3),BC
+                           A   726    ;  213		char ECB_BUS;
+                           A   727    ;  214		char result = 0;
+                           A   728    ;  215		
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  15
+
+
+PC     Object              I  Line    Source lcdinit.src
+                           A   729    ;  216		//ecb_bus_intern();
+                           A   730    ;  217		
+                           A   731    ;  218		lcd128_put_byte(0, data, result);
+000430 ED389E              A   732    	IN0	A,(158)
+000433 CBFF                A   733    	SET	7,A
+000435 ED399E              A   734    	OUT0	(158),A
+000438 ED389E              A   735    	IN0	A,(158)
+00043B CBF7                A   736    	SET	6,A
+00043D ED399E              A   737    	OUT0	(158),A
+000440 ED389E              A   738    	IN0	A,(158)
+000443 CBEF                A   739    	SET	5,A
+000445 ED399E              A   740    	OUT0	(158),A
+000448 3E1D                A   741    	LD	A,29
+00044A 32010080            A   742    	LD	(8388609),A
+00044E 3E04                A   743    	LD	A,4
+000450 32000080            A   744    	LD	(8388608),A
+000454 3E84                A   745    	LD	A,132
+000456 32000080            A   746    	LD	(8388608),A
+00045A ED389E              A   747    	IN0	A,(158)
+00045D CBE7                A   748    	SET	4,A
+00045F ED399E              A   749    	OUT0	(158),A
+000462 18 3C               A   750    	JR	L_38
+000464                     A   751    L_39:
+000464 ED389E              A   752    	IN0	A,(158)
+000467 CBFF                A   753    	SET	7,A
+000469 ED399E              A   754    	OUT0	(158),A
+00046C ED389E              A   755    	IN0	A,(158)
+00046F 01020000            A   756    	LD	BC,2
+000473 C5                  A   757    	PUSH	BC
+000474 CBF7                A   758    	SET	6,A
+000476 ED399E              A   759    	OUT0	(158),A
+000479 ED389E              A   760    	IN0	A,(158)
+00047C CBEF                A   761    	SET	5,A
+00047E ED399E              A   762    	OUT0	(158),A
+000481 CD 8F 0A 00         A   763    	CALL	_delay
+000485 C1                  A   764    	POP	BC
+000486 ED389E              A   765    	IN0	A,(158)
+000489 01020000            A   766    	LD	BC,2
+00048D C5                  A   767    	PUSH	BC
+00048E CBB7                A   768    	RES	6,A
+000490 ED399E              A   769    	OUT0	(158),A
+000493 ED389E              A   770    	IN0	A,(158)
+000496 CBBF                A   771    	RES	7,A
+000498 ED399E              A   772    	OUT0	(158),A
+00049B CD 8F 0A 00         A   773    	CALL	_delay
+00049F C1                  A   774    	POP	BC
+0004A0                     A   775    L_38:
+0004A0 DD07FD              A   776    	LD	BC,(IX+-3)
+0004A3 03                  A   777    	INC	BC
+0004A4 B7                  A   778    	OR	A,A
+0004A5 DD27FD              A   779    	LD	HL,(IX+-3)
+0004A8 11E80300            A   780    	LD	DE,1000
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  16
+
+
+PC     Object              I  Line    Source lcdinit.src
+0004AC ED52                A   781    	SBC	HL,DE
+0004AE DD0FFD              A   782    	LD	(IX+-3),BC
+0004B1 F2 BB 04 00         A   783    	JP	P,L__27
+0004B5 EA 3B 05 00         A   784    	JP	PE,L_47
+0004B9 18 04               A   785    	JR	L__28
+0004BB                     A   786    L__27:
+0004BB E2 3B 05 00         A   787    	JP	PO,L_47
+0004BF                     A   788    L__28:
+0004BF 3A020080            A   789    	LD	A,(8388610)
+0004C3 E603                A   790    	AND	A,3
+0004C5 B7ED62              A   791    	UEXT	HL
+0004C8 6F                  A   792    	LD	L,A
+0004C9 B7                  A   793    	OR	A,A
+0004CA 01030000            A   794    	LD	BC,3
+0004CE ED42                A   795    	SBC	HL,BC
+0004D0 20 92               A   796    	JR	NZ,L_39
+0004D2 18 67               A   797    	JR	L_47
+0004D4                     A   798    L_44:
+0004D4 ED389E              A   799    	IN0	A,(158)
+0004D7 CBFF                A   800    	SET	7,A
+0004D9 ED399E              A   801    	OUT0	(158),A
+0004DC ED389E              A   802    	IN0	A,(158)
+0004DF 01020000            A   803    	LD	BC,2
+0004E3 C5                  A   804    	PUSH	BC
+0004E4 CBF7                A   805    	SET	6,A
+0004E6 ED399E              A   806    	OUT0	(158),A
+0004E9 ED389E              A   807    	IN0	A,(158)
+0004EC CBEF                A   808    	SET	5,A
+0004EE ED399E              A   809    	OUT0	(158),A
+0004F1 CD 8F 0A 00         A   810    	CALL	_delay
+0004F5 C1                  A   811    	POP	BC
+0004F6 ED389E              A   812    	IN0	A,(158)
+0004F9 01020000            A   813    	LD	BC,2
+0004FD C5                  A   814    	PUSH	BC
+0004FE CBB7                A   815    	RES	6,A
+000500 ED399E              A   816    	OUT0	(158),A
+000503 ED389E              A   817    	IN0	A,(158)
+000506 CBBF                A   818    	RES	7,A
+000508 ED399E              A   819    	OUT0	(158),A
+00050B CD 8F 0A 00         A   820    	CALL	_delay
+00050F C1                  A   821    	POP	BC
+000510 DD27FD              A   822    	LD	HL,(IX+-3)
+000513 01E80300            A   823    	LD	BC,1000
+000517 B7                  A   824    	OR	A,A
+000518 ED42                A   825    	SBC	HL,BC
+00051A F2 24 05 00         A   826    	JP	P,L__29
+00051E EA 3B 05 00         A   827    	JP	PE,L_47
+000522 18 04               A   828    	JR	L__30
+000524                     A   829    L__29:
+000524 E2 3B 05 00         A   830    	JP	PO,L_47
+000528                     A   831    L__30:
+000528 3A020080            A   832    	LD	A,(8388610)
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  17
+
+
+PC     Object              I  Line    Source lcdinit.src
+00052C E608                A   833    	AND	A,8
+00052E B7ED62              A   834    	UEXT	HL
+000531 6F                  A   835    	LD	L,A
+000532 B7                  A   836    	OR	A,A
+000533 01080000            A   837    	LD	BC,8
+000537 ED42                A   838    	SBC	HL,BC
+000539 20 99               A   839    	JR	NZ,L_44
+00053B                     A   840    L_47:
+00053B 3E04                A   841    	LD	A,4
+00053D 32000080            A   842    	LD	(8388608),A
+000541 ED389E              A   843    	IN0	A,(158)
+000544 CBFF                A   844    	SET	7,A
+000546 ED399E              A   845    	OUT0	(158),A
+000549 ED389E              A   846    	IN0	A,(158)
+00054C CBF7                A   847    	SET	6,A
+00054E ED399E              A   848    	OUT0	(158),A
+000551 ED389E              A   849    	IN0	A,(158)
+000554 CBEF                A   850    	SET	5,A
+000556 ED399E              A   851    	OUT0	(158),A
+000559 01020000            A   852    	LD	BC,2
+00055D C5                  A   853    	PUSH	BC
+00055E ED389E              A   854    	IN0	A,(158)
+000561 CBA7                A   855    	RES	4,A
+000563 ED399E              A   856    	OUT0	(158),A
+000566 CD 8F 0A 00         A   857    	CALL	_delay
+00056A C1                  A   858    	POP	BC
+00056B ED389E              A   859    	IN0	A,(158)
+00056E CBAF                A   860    	RES	5,A
+000570 ED399E              A   861    	OUT0	(158),A
+000573 ED389E              A   862    	IN0	A,(158)
+000576 CBBF                A   863    	RES	7,A
+000578 ED399E              A   864    	OUT0	(158),A
+00057B DD7E06              A   865    	LD	A,(IX+6)
+00057E 01010000            A   866    	LD	BC,1
+000582 C5                  A   867    	PUSH	BC
+000583 32020080            A   868    	LD	(8388610),A
+000587 CD 8F 0A 00         A   869    	CALL	_delay
+00058B C1                  A   870    	POP	BC
+00058C 3E17                A   871    	LD	A,23
+00058E 32010080            A   872    	LD	(8388609),A
+000592 ED389E              A   873    	IN0	A,(158)
+000595 CBFF                A   874    	SET	7,A
+000597 ED399E              A   875    	OUT0	(158),A
+00059A ED389E              A   876    	IN0	A,(158)
+00059D CBEF                A   877    	SET	5,A
+00059F ED399E              A   878    	OUT0	(158),A
+0005A2 01010000            A   879    	LD	BC,1
+0005A6 C5                  A   880    	PUSH	BC
+0005A7 ED389E              A   881    	IN0	A,(158)
+0005AA CBF7                A   882    	SET	6,A
+0005AC ED399E              A   883    	OUT0	(158),A
+0005AF CD 8F 0A 00         A   884    	CALL	_delay
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  18
+
+
+PC     Object              I  Line    Source lcdinit.src
+0005B3 C1                  A   885    	POP	BC
+0005B4 3E1F                A   886    	LD	A,31
+0005B6 32010080            A   887    	LD	(8388609),A
+                           A   888    ;  219	
+                           A   889    ;  220		//PIOA_DATA = ECB_BUS;	
+                           A   890    ;  221		return result;
+0005BA 3E01                A   891    	LD	A,1
+                           A   892    ;  222	}
+0005BC DDF9                A   893    	LD	SP,IX
+0005BE DDE1                A   894    	POP	IX
+0005C0 C9                  A   895    	RET	
+                           A   896    
+                           A   897    
+                           A   898    ;**************************** _lcd128_data_writ
+                           A   899    ;Name                         Addr/Register   S
+                           A   900    ;_delay                              IMPORT  --
+                           A   901    ;__i                                   IX-3    
+                           A   902    ;data                                  IX+6    
+                           A   903    
+                           A   904    
+                           A   905    ; Stack Frame Size: 12 (bytes)
+                           A   906    ;       Spill Code: 0 (instruction)
+                           A   907    
+                           A   908    
+                           A   909    ;  223	
+                           A   910    ;  224	BOOL lcd128_data_write16(short int data
+                           A   911    ;  225	{
+0005C1                     A   912    _lcd128_data_write16:
+0005C1 21FDFFFF            A   913    	LD	HL,-3
+0005C5 CD 00 00 00         A   914    	CALL	__frameset
+                           A   915    ;  226		int __i = 0;
+0005C9 01000000            A   916    	LD	BC,0
+0005CD DD0FFD              A   917    	LD	(IX+-3),BC
+                           A   918    ;  227		char ECB_BUS;
+                           A   919    ;  228		char result = 0;
+                           A   920    ;  229	
+                           A   921    ;  230		//ecb_bus_intern();
+                           A   922    ;  231		
+                           A   923    ;  232		lcd128_put_byte(0, (data << 4) , re
+0005D0 ED389E              A   924    	IN0	A,(158)
+0005D3 CBFF                A   925    	SET	7,A
+0005D5 ED399E              A   926    	OUT0	(158),A
+0005D8 ED389E              A   927    	IN0	A,(158)
+0005DB CBF7                A   928    	SET	6,A
+0005DD ED399E              A   929    	OUT0	(158),A
+0005E0 ED389E              A   930    	IN0	A,(158)
+0005E3 CBEF                A   931    	SET	5,A
+0005E5 ED399E              A   932    	OUT0	(158),A
+0005E8 3E1D                A   933    	LD	A,29
+0005EA 32010080            A   934    	LD	(8388609),A
+0005EE 3E04                A   935    	LD	A,4
+0005F0 32000080            A   936    	LD	(8388608),A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  19
+
+
+PC     Object              I  Line    Source lcdinit.src
+0005F4 3E84                A   937    	LD	A,132
+0005F6 32000080            A   938    	LD	(8388608),A
+0005FA ED389E              A   939    	IN0	A,(158)
+0005FD CBE7                A   940    	SET	4,A
+0005FF ED399E              A   941    	OUT0	(158),A
+000602 18 3C               A   942    	JR	L_53
+000604                     A   943    L_54:
+000604 ED389E              A   944    	IN0	A,(158)
+000607 CBFF                A   945    	SET	7,A
+000609 ED399E              A   946    	OUT0	(158),A
+00060C ED389E              A   947    	IN0	A,(158)
+00060F 01020000            A   948    	LD	BC,2
+000613 C5                  A   949    	PUSH	BC
+000614 CBF7                A   950    	SET	6,A
+000616 ED399E              A   951    	OUT0	(158),A
+000619 ED389E              A   952    	IN0	A,(158)
+00061C CBEF                A   953    	SET	5,A
+00061E ED399E              A   954    	OUT0	(158),A
+000621 CD 8F 0A 00         A   955    	CALL	_delay
+000625 C1                  A   956    	POP	BC
+000626 ED389E              A   957    	IN0	A,(158)
+000629 01020000            A   958    	LD	BC,2
+00062D C5                  A   959    	PUSH	BC
+00062E CBB7                A   960    	RES	6,A
+000630 ED399E              A   961    	OUT0	(158),A
+000633 ED389E              A   962    	IN0	A,(158)
+000636 CBBF                A   963    	RES	7,A
+000638 ED399E              A   964    	OUT0	(158),A
+00063B CD 8F 0A 00         A   965    	CALL	_delay
+00063F C1                  A   966    	POP	BC
+000640                     A   967    L_53:
+000640 DD07FD              A   968    	LD	BC,(IX+-3)
+000643 03                  A   969    	INC	BC
+000644 B7                  A   970    	OR	A,A
+000645 DD27FD              A   971    	LD	HL,(IX+-3)
+000648 11E80300            A   972    	LD	DE,1000
+00064C ED52                A   973    	SBC	HL,DE
+00064E DD0FFD              A   974    	LD	(IX+-3),BC
+000651 F2 5B 06 00         A   975    	JP	P,L__40
+000655 EA DB 06 00         A   976    	JP	PE,L_62
+000659 18 04               A   977    	JR	L__41
+00065B                     A   978    L__40:
+00065B E2 DB 06 00         A   979    	JP	PO,L_62
+00065F                     A   980    L__41:
+00065F 3A020080            A   981    	LD	A,(8388610)
+000663 E603                A   982    	AND	A,3
+000665 B7ED62              A   983    	UEXT	HL
+000668 6F                  A   984    	LD	L,A
+000669 B7                  A   985    	OR	A,A
+00066A 01030000            A   986    	LD	BC,3
+00066E ED42                A   987    	SBC	HL,BC
+000670 20 92               A   988    	JR	NZ,L_54
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  20
+
+
+PC     Object              I  Line    Source lcdinit.src
+000672 18 67               A   989    	JR	L_62
+000674                     A   990    L_59:
+000674 ED389E              A   991    	IN0	A,(158)
+000677 CBFF                A   992    	SET	7,A
+000679 ED399E              A   993    	OUT0	(158),A
+00067C ED389E              A   994    	IN0	A,(158)
+00067F 01020000            A   995    	LD	BC,2
+000683 C5                  A   996    	PUSH	BC
+000684 CBF7                A   997    	SET	6,A
+000686 ED399E              A   998    	OUT0	(158),A
+000689 ED389E              A   999    	IN0	A,(158)
+00068C CBEF                A  1000    	SET	5,A
+00068E ED399E              A  1001    	OUT0	(158),A
+000691 CD 8F 0A 00         A  1002    	CALL	_delay
+000695 C1                  A  1003    	POP	BC
+000696 ED389E              A  1004    	IN0	A,(158)
+000699 01020000            A  1005    	LD	BC,2
+00069D C5                  A  1006    	PUSH	BC
+00069E CBB7                A  1007    	RES	6,A
+0006A0 ED399E              A  1008    	OUT0	(158),A
+0006A3 ED389E              A  1009    	IN0	A,(158)
+0006A6 CBBF                A  1010    	RES	7,A
+0006A8 ED399E              A  1011    	OUT0	(158),A
+0006AB CD 8F 0A 00         A  1012    	CALL	_delay
+0006AF C1                  A  1013    	POP	BC
+0006B0 DD27FD              A  1014    	LD	HL,(IX+-3)
+0006B3 01E80300            A  1015    	LD	BC,1000
+0006B7 B7                  A  1016    	OR	A,A
+0006B8 ED42                A  1017    	SBC	HL,BC
+0006BA F2 C4 06 00         A  1018    	JP	P,L__42
+0006BE EA DB 06 00         A  1019    	JP	PE,L_62
+0006C2 18 04               A  1020    	JR	L__43
+0006C4                     A  1021    L__42:
+0006C4 E2 DB 06 00         A  1022    	JP	PO,L_62
+0006C8                     A  1023    L__43:
+0006C8 3A020080            A  1024    	LD	A,(8388610)
+0006CC E608                A  1025    	AND	A,8
+0006CE B7ED62              A  1026    	UEXT	HL
+0006D1 6F                  A  1027    	LD	L,A
+0006D2 B7                  A  1028    	OR	A,A
+0006D3 01080000            A  1029    	LD	BC,8
+0006D7 ED42                A  1030    	SBC	HL,BC
+0006D9 20 99               A  1031    	JR	NZ,L_59
+0006DB                     A  1032    L_62:
+0006DB 3E04                A  1033    	LD	A,4
+0006DD 32000080            A  1034    	LD	(8388608),A
+0006E1 ED389E              A  1035    	IN0	A,(158)
+0006E4 CBFF                A  1036    	SET	7,A
+0006E6 ED399E              A  1037    	OUT0	(158),A
+0006E9 ED389E              A  1038    	IN0	A,(158)
+0006EC CBF7                A  1039    	SET	6,A
+0006EE ED399E              A  1040    	OUT0	(158),A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  21
+
+
+PC     Object              I  Line    Source lcdinit.src
+0006F1 ED389E              A  1041    	IN0	A,(158)
+0006F4 CBEF                A  1042    	SET	5,A
+0006F6 ED399E              A  1043    	OUT0	(158),A
+0006F9 01020000            A  1044    	LD	BC,2
+0006FD C5                  A  1045    	PUSH	BC
+0006FE ED389E              A  1046    	IN0	A,(158)
+000701 CBA7                A  1047    	RES	4,A
+000703 ED399E              A  1048    	OUT0	(158),A
+000706 CD 8F 0A 00         A  1049    	CALL	_delay
+00070A C1                  A  1050    	POP	BC
+00070B ED389E              A  1051    	IN0	A,(158)
+00070E CBAF                A  1052    	RES	5,A
+000710 ED399E              A  1053    	OUT0	(158),A
+000713 ED389E              A  1054    	IN0	A,(158)
+000716 CBBF                A  1055    	RES	7,A
+000718 ED399E              A  1056    	OUT0	(158),A
+00071B DD7E06              A  1057    	LD	A,(IX+6)
+00071E 01010000            A  1058    	LD	BC,1
+000722 C5                  A  1059    	PUSH	BC
+000723 87                  A  1060    	ADD	A,A
+000724 87                  A  1061    	ADD	A,A
+000725 87                  A  1062    	ADD	A,A
+000726 87                  A  1063    	ADD	A,A
+000727 32020080            A  1064    	LD	(8388610),A
+00072B CD 8F 0A 00         A  1065    	CALL	_delay
+00072F C1                  A  1066    	POP	BC
+000730 3E17                A  1067    	LD	A,23
+000732 32010080            A  1068    	LD	(8388609),A
+000736 ED389E              A  1069    	IN0	A,(158)
+000739 CBFF                A  1070    	SET	7,A
+00073B ED399E              A  1071    	OUT0	(158),A
+00073E ED389E              A  1072    	IN0	A,(158)
+000741 CBEF                A  1073    	SET	5,A
+000743 ED399E              A  1074    	OUT0	(158),A
+000746 01010000            A  1075    	LD	BC,1
+00074A C5                  A  1076    	PUSH	BC
+00074B ED389E              A  1077    	IN0	A,(158)
+00074E CBF7                A  1078    	SET	6,A
+000750 ED399E              A  1079    	OUT0	(158),A
+000753 CD 8F 0A 00         A  1080    	CALL	_delay
+000757 C1                  A  1081    	POP	BC
+000758 3E1F                A  1082    	LD	A,31
+00075A 32010080            A  1083    	LD	(8388609),A
+                           A  1084    ;  233		lcd128_put_byte(0, data , result);
+00075E ED389E              A  1085    	IN0	A,(158)
+000761 CBFF                A  1086    	SET	7,A
+000763 ED399E              A  1087    	OUT0	(158),A
+000766 ED389E              A  1088    	IN0	A,(158)
+000769 CBF7                A  1089    	SET	6,A
+00076B ED399E              A  1090    	OUT0	(158),A
+00076E ED389E              A  1091    	IN0	A,(158)
+000771 CBEF                A  1092    	SET	5,A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  22
+
+
+PC     Object              I  Line    Source lcdinit.src
+000773 ED399E              A  1093    	OUT0	(158),A
+000776 3E1D                A  1094    	LD	A,29
+000778 32010080            A  1095    	LD	(8388609),A
+00077C 3E04                A  1096    	LD	A,4
+00077E 32000080            A  1097    	LD	(8388608),A
+000782 3E84                A  1098    	LD	A,132
+000784 32000080            A  1099    	LD	(8388608),A
+000788 ED389E              A  1100    	IN0	A,(158)
+00078B CBE7                A  1101    	SET	4,A
+00078D ED399E              A  1102    	OUT0	(158),A
+000790 18 3C               A  1103    	JR	L_67
+000792                     A  1104    L_68:
+000792 ED389E              A  1105    	IN0	A,(158)
+000795 CBFF                A  1106    	SET	7,A
+000797 ED399E              A  1107    	OUT0	(158),A
+00079A ED389E              A  1108    	IN0	A,(158)
+00079D 01020000            A  1109    	LD	BC,2
+0007A1 C5                  A  1110    	PUSH	BC
+0007A2 CBF7                A  1111    	SET	6,A
+0007A4 ED399E              A  1112    	OUT0	(158),A
+0007A7 ED389E              A  1113    	IN0	A,(158)
+0007AA CBEF                A  1114    	SET	5,A
+0007AC ED399E              A  1115    	OUT0	(158),A
+0007AF CD 8F 0A 00         A  1116    	CALL	_delay
+0007B3 C1                  A  1117    	POP	BC
+0007B4 ED389E              A  1118    	IN0	A,(158)
+0007B7 01020000            A  1119    	LD	BC,2
+0007BB C5                  A  1120    	PUSH	BC
+0007BC CBB7                A  1121    	RES	6,A
+0007BE ED399E              A  1122    	OUT0	(158),A
+0007C1 ED389E              A  1123    	IN0	A,(158)
+0007C4 CBBF                A  1124    	RES	7,A
+0007C6 ED399E              A  1125    	OUT0	(158),A
+0007C9 CD 8F 0A 00         A  1126    	CALL	_delay
+0007CD C1                  A  1127    	POP	BC
+0007CE                     A  1128    L_67:
+0007CE DD07FD              A  1129    	LD	BC,(IX+-3)
+0007D1 03                  A  1130    	INC	BC
+0007D2 B7                  A  1131    	OR	A,A
+0007D3 DD27FD              A  1132    	LD	HL,(IX+-3)
+0007D6 11E80300            A  1133    	LD	DE,1000
+0007DA ED52                A  1134    	SBC	HL,DE
+0007DC DD0FFD              A  1135    	LD	(IX+-3),BC
+0007DF F2 E9 07 00         A  1136    	JP	P,L__44
+0007E3 EA 69 08 00         A  1137    	JP	PE,L_76
+0007E7 18 04               A  1138    	JR	L__45
+0007E9                     A  1139    L__44:
+0007E9 E2 69 08 00         A  1140    	JP	PO,L_76
+0007ED                     A  1141    L__45:
+0007ED 3A020080            A  1142    	LD	A,(8388610)
+0007F1 E603                A  1143    	AND	A,3
+0007F3 B7ED62              A  1144    	UEXT	HL
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  23
+
+
+PC     Object              I  Line    Source lcdinit.src
+0007F6 6F                  A  1145    	LD	L,A
+0007F7 B7                  A  1146    	OR	A,A
+0007F8 01030000            A  1147    	LD	BC,3
+0007FC ED42                A  1148    	SBC	HL,BC
+0007FE 20 92               A  1149    	JR	NZ,L_68
+000800 18 67               A  1150    	JR	L_76
+000802                     A  1151    L_73:
+000802 ED389E              A  1152    	IN0	A,(158)
+000805 CBFF                A  1153    	SET	7,A
+000807 ED399E              A  1154    	OUT0	(158),A
+00080A ED389E              A  1155    	IN0	A,(158)
+00080D 01020000            A  1156    	LD	BC,2
+000811 C5                  A  1157    	PUSH	BC
+000812 CBF7                A  1158    	SET	6,A
+000814 ED399E              A  1159    	OUT0	(158),A
+000817 ED389E              A  1160    	IN0	A,(158)
+00081A CBEF                A  1161    	SET	5,A
+00081C ED399E              A  1162    	OUT0	(158),A
+00081F CD 8F 0A 00         A  1163    	CALL	_delay
+000823 C1                  A  1164    	POP	BC
+000824 ED389E              A  1165    	IN0	A,(158)
+000827 01020000            A  1166    	LD	BC,2
+00082B C5                  A  1167    	PUSH	BC
+00082C CBB7                A  1168    	RES	6,A
+00082E ED399E              A  1169    	OUT0	(158),A
+000831 ED389E              A  1170    	IN0	A,(158)
+000834 CBBF                A  1171    	RES	7,A
+000836 ED399E              A  1172    	OUT0	(158),A
+000839 CD 8F 0A 00         A  1173    	CALL	_delay
+00083D C1                  A  1174    	POP	BC
+00083E DD27FD              A  1175    	LD	HL,(IX+-3)
+000841 01E80300            A  1176    	LD	BC,1000
+000845 B7                  A  1177    	OR	A,A
+000846 ED42                A  1178    	SBC	HL,BC
+000848 F2 52 08 00         A  1179    	JP	P,L__46
+00084C EA 69 08 00         A  1180    	JP	PE,L_76
+000850 18 04               A  1181    	JR	L__47
+000852                     A  1182    L__46:
+000852 E2 69 08 00         A  1183    	JP	PO,L_76
+000856                     A  1184    L__47:
+000856 3A020080            A  1185    	LD	A,(8388610)
+00085A E608                A  1186    	AND	A,8
+00085C B7ED62              A  1187    	UEXT	HL
+00085F 6F                  A  1188    	LD	L,A
+000860 B7                  A  1189    	OR	A,A
+000861 01080000            A  1190    	LD	BC,8
+000865 ED42                A  1191    	SBC	HL,BC
+000867 20 99               A  1192    	JR	NZ,L_73
+000869                     A  1193    L_76:
+000869 3E04                A  1194    	LD	A,4
+00086B 32000080            A  1195    	LD	(8388608),A
+00086F ED389E              A  1196    	IN0	A,(158)
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  24
+
+
+PC     Object              I  Line    Source lcdinit.src
+000872 CBFF                A  1197    	SET	7,A
+000874 ED399E              A  1198    	OUT0	(158),A
+000877 ED389E              A  1199    	IN0	A,(158)
+00087A CBF7                A  1200    	SET	6,A
+00087C ED399E              A  1201    	OUT0	(158),A
+00087F ED389E              A  1202    	IN0	A,(158)
+000882 CBEF                A  1203    	SET	5,A
+000884 ED399E              A  1204    	OUT0	(158),A
+000887 01020000            A  1205    	LD	BC,2
+00088B C5                  A  1206    	PUSH	BC
+00088C ED389E              A  1207    	IN0	A,(158)
+00088F CBA7                A  1208    	RES	4,A
+000891 ED399E              A  1209    	OUT0	(158),A
+000894 CD 8F 0A 00         A  1210    	CALL	_delay
+000898 C1                  A  1211    	POP	BC
+000899 ED389E              A  1212    	IN0	A,(158)
+00089C CBAF                A  1213    	RES	5,A
+00089E ED399E              A  1214    	OUT0	(158),A
+0008A1 ED389E              A  1215    	IN0	A,(158)
+0008A4 CBBF                A  1216    	RES	7,A
+0008A6 ED399E              A  1217    	OUT0	(158),A
+0008A9 DD7E06              A  1218    	LD	A,(IX+6)
+0008AC 01010000            A  1219    	LD	BC,1
+0008B0 C5                  A  1220    	PUSH	BC
+0008B1 32020080            A  1221    	LD	(8388610),A
+0008B5 CD 8F 0A 00         A  1222    	CALL	_delay
+0008B9 C1                  A  1223    	POP	BC
+0008BA 3E17                A  1224    	LD	A,23
+0008BC 32010080            A  1225    	LD	(8388609),A
+0008C0 ED389E              A  1226    	IN0	A,(158)
+0008C3 CBFF                A  1227    	SET	7,A
+0008C5 ED399E              A  1228    	OUT0	(158),A
+0008C8 ED389E              A  1229    	IN0	A,(158)
+0008CB CBEF                A  1230    	SET	5,A
+0008CD ED399E              A  1231    	OUT0	(158),A
+0008D0 01010000            A  1232    	LD	BC,1
+0008D4 C5                  A  1233    	PUSH	BC
+0008D5 ED389E              A  1234    	IN0	A,(158)
+0008D8 CBF7                A  1235    	SET	6,A
+0008DA ED399E              A  1236    	OUT0	(158),A
+0008DD CD 8F 0A 00         A  1237    	CALL	_delay
+0008E1 C1                  A  1238    	POP	BC
+0008E2 3E1F                A  1239    	LD	A,31
+0008E4 32010080            A  1240    	LD	(8388609),A
+                           A  1241    ;  234		//char ECB_BUS;
+                           A  1242    ;  235		//lcd128_put_byte(LCD_DAT, (data >>
+                           A  1243    ;  236		//PIOA_DATA = ECB_BUS;	
+                           A  1244    ;  237		return result;
+0008E8 3E01                A  1245    	LD	A,1
+                           A  1246    ;  238	}
+0008EA DDF9                A  1247    	LD	SP,IX
+0008EC DDE1                A  1248    	POP	IX
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  25
+
+
+PC     Object              I  Line    Source lcdinit.src
+0008EE C9                  A  1249    	RET	
+                           A  1250    
+                           A  1251    
+                           A  1252    ;**************************** _lcd128_data_writ
+                           A  1253    ;Name                         Addr/Register   S
+                           A  1254    ;_delay                              IMPORT  --
+                           A  1255    ;__i                                   IX-3    
+                           A  1256    ;data                                  IX+6    
+                           A  1257    
+                           A  1258    
+                           A  1259    ; Stack Frame Size: 12 (bytes)
+                           A  1260    ;       Spill Code: 0 (instruction)
+                           A  1261    
+                           A  1262    
+                           A  1263    ;  239	
+                           A  1264    ;  240	BOOL lcd128_adt(char data)
+                           A  1265    ;  241	{
+0008EF                     A  1266    _lcd128_adt:
+0008EF 21FDFFFF            A  1267    	LD	HL,-3
+0008F3 CD 00 00 00         A  1268    	CALL	__frameset
+                           A  1269    ;  242		int __i = 0;
+0008F7 01000000            A  1270    	LD	BC,0
+0008FB DD0FFD              A  1271    	LD	(IX+-3),BC
+                           A  1272    ;  243		char ECB_BUS;
+                           A  1273    ;  244		char result = 0;
+                           A  1274    ;  245		
+                           A  1275    ;  246		//ecb_bus_intern();
+                           A  1276    ;  247	
+                           A  1277    ;  248		//lcd128_put_byte(LCD_DAT, data, re
+                           A  1278    ;  249		lcd128_put_byte(2, data, result); 
+0008FE ED389E              A  1279    	IN0	A,(158)
+000901 CBFF                A  1280    	SET	7,A
+000903 ED399E              A  1281    	OUT0	(158),A
+000906 ED389E              A  1282    	IN0	A,(158)
+000909 CBF7                A  1283    	SET	6,A
+00090B ED399E              A  1284    	OUT0	(158),A
+00090E ED389E              A  1285    	IN0	A,(158)
+000911 CBEF                A  1286    	SET	5,A
+000913 ED399E              A  1287    	OUT0	(158),A
+000916 3E1D                A  1288    	LD	A,29
+000918 32010080            A  1289    	LD	(8388609),A
+00091C 3E04                A  1290    	LD	A,4
+00091E 32000080            A  1291    	LD	(8388608),A
+000922 18 67               A  1292    	JR	L_89
+000924                     A  1293    L_83:
+000924 ED389E              A  1294    	IN0	A,(158)
+000927 CBFF                A  1295    	SET	7,A
+000929 ED399E              A  1296    	OUT0	(158),A
+00092C ED389E              A  1297    	IN0	A,(158)
+00092F 01020000            A  1298    	LD	BC,2
+000933 C5                  A  1299    	PUSH	BC
+000934 CBF7                A  1300    	SET	6,A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  26
+
+
+PC     Object              I  Line    Source lcdinit.src
+000936 ED399E              A  1301    	OUT0	(158),A
+000939 ED389E              A  1302    	IN0	A,(158)
+00093C CBEF                A  1303    	SET	5,A
+00093E ED399E              A  1304    	OUT0	(158),A
+000941 CD 8F 0A 00         A  1305    	CALL	_delay
+000945 C1                  A  1306    	POP	BC
+000946 ED389E              A  1307    	IN0	A,(158)
+000949 01020000            A  1308    	LD	BC,2
+00094D C5                  A  1309    	PUSH	BC
+00094E CBB7                A  1310    	RES	6,A
+000950 ED399E              A  1311    	OUT0	(158),A
+000953 ED389E              A  1312    	IN0	A,(158)
+000956 CBBF                A  1313    	RES	7,A
+000958 ED399E              A  1314    	OUT0	(158),A
+00095B CD 8F 0A 00         A  1315    	CALL	_delay
+00095F C1                  A  1316    	POP	BC
+000960 DD27FD              A  1317    	LD	HL,(IX+-3)
+000963 01E80300            A  1318    	LD	BC,1000
+000967 B7                  A  1319    	OR	A,A
+000968 ED42                A  1320    	SBC	HL,BC
+00096A F2 74 09 00         A  1321    	JP	P,L__53
+00096E EA 8B 09 00         A  1322    	JP	PE,L_89
+000972 18 04               A  1323    	JR	L__54
+000974                     A  1324    L__53:
+000974 E2 8B 09 00         A  1325    	JP	PO,L_89
+000978                     A  1326    L__54:
+000978 3A020080            A  1327    	LD	A,(8388610)
+00097C E603                A  1328    	AND	A,3
+00097E B7ED62              A  1329    	UEXT	HL
+000981 6F                  A  1330    	LD	L,A
+000982 B7                  A  1331    	OR	A,A
+000983 01030000            A  1332    	LD	BC,3
+000987 ED42                A  1333    	SBC	HL,BC
+000989 20 99               A  1334    	JR	NZ,L_83
+00098B                     A  1335    L_89:
+00098B 3E84                A  1336    	LD	A,132
+00098D 32000080            A  1337    	LD	(8388608),A
+000991 ED389E              A  1338    	IN0	A,(158)
+000994 CBE7                A  1339    	SET	4,A
+000996 ED399E              A  1340    	OUT0	(158),A
+000999 18 3C               A  1341    	JR	L_87
+00099B                     A  1342    L_88:
+00099B ED389E              A  1343    	IN0	A,(158)
+00099E CBFF                A  1344    	SET	7,A
+0009A0 ED399E              A  1345    	OUT0	(158),A
+0009A3 ED389E              A  1346    	IN0	A,(158)
+0009A6 01020000            A  1347    	LD	BC,2
+0009AA C5                  A  1348    	PUSH	BC
+0009AB CBF7                A  1349    	SET	6,A
+0009AD ED399E              A  1350    	OUT0	(158),A
+0009B0 ED389E              A  1351    	IN0	A,(158)
+0009B3 CBEF                A  1352    	SET	5,A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  27
+
+
+PC     Object              I  Line    Source lcdinit.src
+0009B5 ED399E              A  1353    	OUT0	(158),A
+0009B8 CD 8F 0A 00         A  1354    	CALL	_delay
+0009BC C1                  A  1355    	POP	BC
+0009BD ED389E              A  1356    	IN0	A,(158)
+0009C0 01020000            A  1357    	LD	BC,2
+0009C4 C5                  A  1358    	PUSH	BC
+0009C5 CBB7                A  1359    	RES	6,A
+0009C7 ED399E              A  1360    	OUT0	(158),A
+0009CA ED389E              A  1361    	IN0	A,(158)
+0009CD CBBF                A  1362    	RES	7,A
+0009CF ED399E              A  1363    	OUT0	(158),A
+0009D2 CD 8F 0A 00         A  1364    	CALL	_delay
+0009D6 C1                  A  1365    	POP	BC
+0009D7                     A  1366    L_87:
+0009D7 DD07FD              A  1367    	LD	BC,(IX+-3)
+0009DA 03                  A  1368    	INC	BC
+0009DB B7                  A  1369    	OR	A,A
+0009DC DD27FD              A  1370    	LD	HL,(IX+-3)
+0009DF 11E80300            A  1371    	LD	DE,1000
+0009E3 ED52                A  1372    	SBC	HL,DE
+0009E5 DD0FFD              A  1373    	LD	(IX+-3),BC
+0009E8 F2 F2 09 00         A  1374    	JP	P,L__55
+0009EC EA 09 0A 00         A  1375    	JP	PE,L_91
+0009F0 18 04               A  1376    	JR	L__56
+0009F2                     A  1377    L__55:
+0009F2 E2 09 0A 00         A  1378    	JP	PO,L_91
+0009F6                     A  1379    L__56:
+0009F6 3A020080            A  1380    	LD	A,(8388610)
+0009FA E608                A  1381    	AND	A,8
+0009FC B7ED62              A  1382    	UEXT	HL
+0009FF 6F                  A  1383    	LD	L,A
+000A00 B7                  A  1384    	OR	A,A
+000A01 01080000            A  1385    	LD	BC,8
+000A05 ED42                A  1386    	SBC	HL,BC
+000A07 20 92               A  1387    	JR	NZ,L_88
+000A09                     A  1388    L_91:
+000A09 3E04                A  1389    	LD	A,4
+000A0B 32000080            A  1390    	LD	(8388608),A
+000A0F ED389E              A  1391    	IN0	A,(158)
+000A12 CBFF                A  1392    	SET	7,A
+000A14 ED399E              A  1393    	OUT0	(158),A
+000A17 ED389E              A  1394    	IN0	A,(158)
+000A1A CBF7                A  1395    	SET	6,A
+000A1C ED399E              A  1396    	OUT0	(158),A
+000A1F ED389E              A  1397    	IN0	A,(158)
+000A22 CBEF                A  1398    	SET	5,A
+000A24 ED399E              A  1399    	OUT0	(158),A
+000A27 01020000            A  1400    	LD	BC,2
+000A2B C5                  A  1401    	PUSH	BC
+000A2C ED389E              A  1402    	IN0	A,(158)
+000A2F CBA7                A  1403    	RES	4,A
+000A31 ED399E              A  1404    	OUT0	(158),A
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  28
+
+
+PC     Object              I  Line    Source lcdinit.src
+000A34 CD 8F 0A 00         A  1405    	CALL	_delay
+000A38 C1                  A  1406    	POP	BC
+000A39 ED389E              A  1407    	IN0	A,(158)
+000A3C CBAF                A  1408    	RES	5,A
+000A3E ED399E              A  1409    	OUT0	(158),A
+000A41 ED389E              A  1410    	IN0	A,(158)
+000A44 CBBF                A  1411    	RES	7,A
+000A46 ED399E              A  1412    	OUT0	(158),A
+000A49 DD7E06              A  1413    	LD	A,(IX+6)
+000A4C 01010000            A  1414    	LD	BC,1
+000A50 C5                  A  1415    	PUSH	BC
+000A51 32020080            A  1416    	LD	(8388610),A
+000A55 CD 8F 0A 00         A  1417    	CALL	_delay
+000A59 C1                  A  1418    	POP	BC
+000A5A 3E17                A  1419    	LD	A,23
+000A5C 32010080            A  1420    	LD	(8388609),A
+000A60 ED389E              A  1421    	IN0	A,(158)
+000A63 CBFF                A  1422    	SET	7,A
+000A65 ED399E              A  1423    	OUT0	(158),A
+000A68 ED389E              A  1424    	IN0	A,(158)
+000A6B CBEF                A  1425    	SET	5,A
+000A6D ED399E              A  1426    	OUT0	(158),A
+000A70 01010000            A  1427    	LD	BC,1
+000A74 C5                  A  1428    	PUSH	BC
+000A75 ED389E              A  1429    	IN0	A,(158)
+000A78 CBF7                A  1430    	SET	6,A
+000A7A ED399E              A  1431    	OUT0	(158),A
+000A7D CD 8F 0A 00         A  1432    	CALL	_delay
+000A81 C1                  A  1433    	POP	BC
+000A82 3E1F                A  1434    	LD	A,31
+000A84 32010080            A  1435    	LD	(8388609),A
+                           A  1436    ;  250		
+                           A  1437    ;  251		//PIOA_DATA = ECB_BUS;
+                           A  1438    ;  252		return result;
+000A88 3E01                A  1439    	LD	A,1
+                           A  1440    ;  253	}
+000A8A DDF9                A  1441    	LD	SP,IX
+000A8C DDE1                A  1442    	POP	IX
+000A8E C9                  A  1443    	RET	
+                           A  1444    
+                           A  1445    
+                           A  1446    ;**************************** _lcd128_adt *****
+                           A  1447    ;Name                         Addr/Register   S
+                           A  1448    ;_delay                              IMPORT  --
+                           A  1449    ;__i                                   IX-3    
+                           A  1450    ;data                                  IX+6    
+                           A  1451    
+                           A  1452    
+                           A  1453    ; Stack Frame Size: 12 (bytes)
+                           A  1454    ;       Spill Code: 0 (instruction)
+                           A  1455    
+                           A  1456    
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  29
+
+
+PC     Object              I  Line    Source lcdinit.src
+                           A  1457    ;  254	
+                           A  1458    ;  255	void delay(int amount)  {
+000A8F                     A  1459    _delay:
+000A8F 21FDFFFF            A  1460    	LD	HL,-3
+000A93 CD 00 00 00         A  1461    	CALL	__frameset
+                           A  1462    ;  256		
+                           A  1463    ;  257		int i = 0;
+000A97 01000000            A  1464    	LD	BC,0
+000A9B DD0FFD              A  1465    	LD	(IX+-3),BC
+                           A  1466    ;  258		while(i++ < (amount*1000));
+000A9E                     A  1467    L_97:
+000A9E DD17FD              A  1468    	LD	DE,(IX+-3)
+000AA1 13                  A  1469    	INC	DE
+000AA2 DD07FD              A  1470    	LD	BC,(IX+-3)
+000AA5 DD1FFD              A  1471    	LD	(IX+-3),DE
+000AA8 DD2706              A  1472    	LD	HL,(IX+6)
+000AAB 29                  A  1473    	ADD	HL,HL
+000AAC 29                  A  1474    	ADD	HL,HL
+000AAD 29                  A  1475    	ADD	HL,HL
+000AAE 29                  A  1476    	ADD	HL,HL
+000AAF 29                  A  1477    	ADD	HL,HL
+000AB0 B7                  A  1478    	OR	A,A
+000AB1 DD1706              A  1479    	LD	DE,(IX+6)
+000AB4 ED52                A  1480    	SBC	HL,DE
+000AB6 29                  A  1481    	ADD	HL,HL
+000AB7 29                  A  1482    	ADD	HL,HL
+000AB8 DD1706              A  1483    	LD	DE,(IX+6)
+000ABB 19                  A  1484    	ADD	HL,DE
+000ABC 29                  A  1485    	ADD	HL,HL
+000ABD 29                  A  1486    	ADD	HL,HL
+000ABE 29                  A  1487    	ADD	HL,HL
+000ABF E5D1                A  1488    	LD	DE,HL
+000AC1 C5E1                A  1489    	LD	HL,BC
+000AC3 B7                  A  1490    	OR	A,A
+000AC4 ED52                A  1491    	SBC	HL,DE
+000AC6 FA D0 0A 00         A  1492    	JP	M,L__59
+000ACA EA 9E 0A 00         A  1493    	JP	PE,L_97
+000ACE 18 04               A  1494    	JR	L__60
+000AD0                     A  1495    L__59:
+000AD0 E2 9E 0A 00         A  1496    	JP	PO,L_97
+000AD4                     A  1497    L__60:
+                           A  1498    ;  259		}
+000AD4 DDF9                A  1499    	LD	SP,IX
+000AD6 DDE1                A  1500    	POP	IX
+000AD8 C9                  A  1501    	RET	
+                           A  1502    
+                           A  1503    
+                           A  1504    ;**************************** _delay **********
+                           A  1505    ;Name                         Addr/Register   S
+                           A  1506    ;i                                     IX-3    
+                           A  1507    ;amount                                IX+6    
+                           A  1508    
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)07-Jan-17     14:24:48     page:  30
+
+
+PC     Object              I  Line    Source lcdinit.src
+                           A  1509    
+                           A  1510    ; Stack Frame Size: 12 (bytes)
+                           A  1511    ;       Spill Code: 0 (instruction)
+                           A  1512    
+                           A  1513    
+                           A  1514    	XREF __frameset0:ROM
+                           A  1515    	XREF __frameset:ROM
+                           A  1516    	XDEF _delay
+                           A  1517    	XDEF _lcd128_adt
+                           A  1518    	XDEF _lcd128_data_write16
+                           A  1519    	XDEF _lcd128_data_write8
+                           A  1520    	XDEF _lcd128_cmd
+                           A  1521    	XDEF _lcd128_init
+                           A  1522    	XDEF _lcd128_init_driver
+                           A  1523    	END
+
+
+Errors: 0
+Warnings: 0
+Lines Assembled: 1524
