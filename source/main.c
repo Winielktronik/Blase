@@ -231,8 +231,57 @@ int main()
 
     //uart_init();
     //test();
+		while (1)
+	{
+
 	lcd128_init();
-	ch = LBA_mode_plus(10000);
+		
+	lcd128_cmd(AWR_ON);
+		
+	//* LCD Clear mit Space (20H)
+	
+	for (i=0; i < 322; i++)
+		{
+			lcd128_adt(0);
+		}
+	
+	lcd128_cmd(AWR_OFF);
+	
+	// Write Text Blank Code
+	lcd128_data_write8(0x00);
+	lcd128_data_write8(0x00);
+	lcd128_cmd(PTR_ADDR);
+	
+	lcd128_cmd(AWR_ON);
+		
+	//* LCD Clear mit Space (20H)
+	
+	for (i=0; i < 322; i++)
+		{
+			lcd128_adt(i &0x3f);
+			delay(50);
+		}
+	
+	lcd128_cmd(AWR_OFF);
+		
+	// Write externer Character Generator data
+	//*
+	lcd128_data_write8(0x00);
+	lcd128_data_write8(0x14);
+	lcd128_cmd(PTR_ADDR);	
+		
+	lcd128_cmd(AWR_ON);
+
+	//kreis();
+	
+	lcd128_cmd(AWR_OFF);
+	
+	
+	// Weiter .....
+		/* wait a half a second */
+        delay(500);
+	}
+		ch = LBA_mode_plus(10000);
 	ch = LBA_mode_minus(50000);
 	
     printf("\nUsing Uart %i\n", UART);

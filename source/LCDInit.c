@@ -133,48 +133,7 @@ void lcd128_init(void){
 	lcd128_data_write8(0x00);
 	lcd128_data_write8(0x00);
 	lcd128_cmd(PTR_ADDR);
-	
-	lcd128_cmd(AWR_ON);
-		
-	//* LCD Clear mit Space (20H)
-	
-	for (i=0; i < 322; i++)
-		{
-			lcd128_adt(0);
-		}
-	
-	lcd128_cmd(AWR_OFF);
-	
-	// Write Text Blank Code
-	lcd128_data_write8(0x00);
-	lcd128_data_write8(0x00);
-	lcd128_cmd(PTR_ADDR);
-	
-	lcd128_cmd(AWR_ON);
-		
-	//* LCD Clear mit Space (20H)
-	
-	for (i=0; i < 322; i++)
-		{
-			lcd128_adt(i &0x3f);
-			delay(50);
-		}
-	
-	lcd128_cmd(AWR_OFF);
-		
-	// Write Text Blank Code
-	lcd128_data_write8(0x00);
-	lcd128_data_write8(0x00);
-	lcd128_cmd(PTR_ADDR);
-	lcd128_cmd(AWR_ON);
 
-	lcd128_adt(0x38);
-	
-	lcd128_cmd(AWR_OFF);
-	
-	lcd128_cmd(0x97); 	// Text Mode, Cursor on blinken
-	lcd128_cmd(0xa6);	// Cursor Line 8
-	
 	// Weiter .....
 	
 }
@@ -231,13 +190,16 @@ BOOL lcd128_adt(char data)
 	int __i = 0;
 	char ECB_BUS;
 	char result = 0;
-	
+	lcd128_cmd(AWR_ON);
+
 	//ecb_bus_intern();
 	//lcd128_put_byte(LCD_DAT, (data - 0x20), result);
 	lcd128_put_byte(2, data, result);
 	
 	//PIOA_DATA = ECB_BUS;
-	return result;
+	lcd128_cmd(AWR_OFF);
+	
+return result;
 }
 
 void delay(int amount)  
@@ -246,3 +208,44 @@ void delay(int amount)
 	while(i++ < (amount*1000));
 	return;
 }
+
+/*
+void kreis(void)  
+{
+	//void rasterCircle(int x0, int y0, int radius)
+	
+	int x0,y0,radius;
+	//{
+int f = 1 - radius;
+int ddF_x = 0;
+int ddF_y = -2 * radius;
+int x = 0;
+int y = radius;
+setPixel(x0, y0 + radius);
+setPixel(x0, y0 - radius);
+setPixel(x0 + radius, y0);
+setPixel(x0 - radius, y0);
+while(x < y)
+{
+if(f >= 0)
+{
+y--;
+ddF_y += 2;
+f += ddF_y;
+}
+x++;
+ddF_x += 2;
+f += ddF_x + 1;
+setPixel(x0 + x, y0 + y);
+setPixel(x0 - x, y0 + y);
+setPixel(x0 + x, y0 - y);
+setPixel(x0 - x, y0 - y);
+setPixel(x0 + y, y0 + x);
+setPixel(x0 - y, y0 + x);
+setPixel(x0 + y, y0 - x);
+setPixel(x0 - y, y0 - x);
+}
+
+	return;
+	
+}*/

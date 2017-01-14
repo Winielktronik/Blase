@@ -110,4 +110,9 @@ BOOL lcd128_adt(char);
  */
 void delay(int);
 
+/**
+ *  Kreisberechnung
+ */
+void kreis(void);
+
 #endif // INC_LCDINIT_H
