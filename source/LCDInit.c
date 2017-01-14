@@ -91,9 +91,10 @@ void lcd128_init(void){
 	PC_ALT2 = 0x00;
 	PC_ALT1 = 0x00;
 	PC_DDR = 0x00;
+    PC_DR = 0xe2;
 	
-	CLEAR_BIT(PC_DR, 3);
-	delay(100);
+//	CLEAR_BIT(PC_DR, 3);
+	delay(500);
 	SET_BIT(PC_DR, 7);
 	SET_BIT(PC_DR, 3);
 	

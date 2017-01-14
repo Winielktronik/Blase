@@ -48,6 +48,7 @@
 #include "LCDInit.h"
 #include "BlaseSort.h"
 #include "Z84C15.h"
+#include "KernelConf.h"
 //#include "zsldevinit.asm"
 
 #define UART                 0			// change to 1 when using UART 1
@@ -106,6 +107,7 @@ void uart_init(void)
     PB_ALT2 = 0x00;
     PB_ALT1 = 0x00;
     PB_DDR = 0xBF;
+	
    #endif
  #else
     unsigned short int i;
@@ -113,10 +115,11 @@ void uart_init(void)
     brg = SysClkFreq/(16 * UART_BPS);
  
   #if (UART==1)
-    PC_ALT2 = 0x03;
+	PC_ALT2 = 0x03;
     PC_ALT1 = 0x00;
     PC_DDR = 0xEB;
     PC_DR = 0x00;
+	
   #else
     PD_ALT2 = 0x03;
     PD_ALT1 = 0x00;
