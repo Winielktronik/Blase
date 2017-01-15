@@ -59,13 +59,13 @@
         CLEAR_BIT(PC_DR, 5);\
         CLEAR_BIT(PC_DR, 7);\
         EMUL_GPIO = data;\
-        delay(1);\
+        delay(2);\
         LEDMATRIX_COLUMN = 0x17;\
        	result = 1;\
        	SET_BIT(PC_DR, 7);\
 		SET_BIT(PC_DR, 5);\
         SET_BIT(PC_DR, 6);\
-		delay(1);\
+		delay(2);\
         LEDMATRIX_COLUMN = 0x1f;\
 		
 #define ecb_bus_intern()\
@@ -93,10 +93,11 @@ void lcd128_init(void){
 	PC_DDR = 0x00;
     PC_DR = 0xe2;
 	
-//	CLEAR_BIT(PC_DR, 3);
-	delay(500);
+
 	SET_BIT(PC_DR, 7);
+	delay(250);
 	SET_BIT(PC_DR, 3);
+	delay(500);
 	
 	
 	// Set Text Home adresse
@@ -130,11 +131,8 @@ void lcd128_init(void){
 	// Display Mode (Text on, Grafik of, Cursor off)
 	lcd128_cmd(0x94);
 
-	// Write Text Blank Code
-	lcd128_data_write8(0x00);
-	lcd128_data_write8(0x00);
-	lcd128_cmd(PTR_ADDR);
-
+	delay(2);
+	
 	// Weiter .....
 	
 }
@@ -173,16 +171,14 @@ BOOL lcd128_data_write16(short int data)
 	char ECB_BUS;
 	char result = 0;
 	
-	ecb_bus_intern();
+	//ecb_bus_intern();
 	
-	lcd128_put_byte(LCD_DAT, (data), result);
-	if(result)
-		{
-		char ECB_BUS;
-		lcd128_put_byte(LCD_DAT, (data >>4), result);
-		}
-
-	PIOA_DATA = ECB_BUS;	
+	//lcd128_put_byte(LCD_DAT, (data), result);
+	//char ECB_BUS;
+	lcd128_put_byte(0, data, result);
+	lcd128_put_byte(0, (data >> 4), result);	
+	lcd128_cmd(PTR_ADDR);
+	//PIOA_DATA = ECB_BUS;	
 	return result;
 }
 
@@ -209,44 +205,3 @@ void delay(int amount)
 	while(i++ < (amount*1000));
 	return;
 }
-
-/*
-void kreis(void)  
-{
-	//void rasterCircle(int x0, int y0, int radius)
-	
-	int x0,y0,radius;
-	//{
-int f = 1 - radius;
-int ddF_x = 0;
-int ddF_y = -2 * radius;
-int x = 0;
-int y = radius;
-setPixel(x0, y0 + radius);
-setPixel(x0, y0 - radius);
-setPixel(x0 + radius, y0);
-setPixel(x0 - radius, y0);
-while(x < y)
-{
-if(f >= 0)
-{
-y--;
-ddF_y += 2;
-f += ddF_y;
-}
-x++;
-ddF_x += 2;
-f += ddF_x + 1;
-setPixel(x0 + x, y0 + y);
-setPixel(x0 - x, y0 + y);
-setPixel(x0 + x, y0 - y);
-setPixel(x0 - x, y0 - y);
-setPixel(x0 + y, y0 + x);
-setPixel(x0 - y, y0 + x);
-setPixel(x0 + y, y0 - x);
-setPixel(x0 - y, y0 - x);
-}
-
-	return;
-	
-}*/

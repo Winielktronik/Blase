@@ -11,6 +11,7 @@
 <file filter-key="">include\Display.h</file>
 <file filter-key="">source\BlaseSort.c</file>
 <file filter-key="">include\BlaseSort.h</file>
+<file filter-key="">include\kernelconf.h</file>
 </files>
 
 <!-- configuration information -->
