@@ -48,6 +48,7 @@
 #include "LCDInit.h"
 #include "BlaseSort.h"
 #include "Z84C15.h"
+#include "KernelConf.h"
 //#include "zsldevinit.asm"
 
 #define UART                 0			// change to 1 when using UART 1
