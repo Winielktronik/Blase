@@ -32,6 +32,11 @@
 *.dSYM/
 *.su
 
+# Visual Studio
+.vs
+*.db
+*.opendb
+
 Debug
 Release
 
