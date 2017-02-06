@@ -1,0 +1,641 @@
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   1
+
+
+PC     Object              I  Line    Source 
+                           A     1    ; Zilog eZ80 ANSI C Compiler Release 3.4
+                           A     2    ; -nomodsect -optspeed -noreduceopt -nopadbranc
+                           A     3    ; -globalopt -localcse -const=ROM 
+                           A     4    	FILE	"SOURCE\MAIN.C"
+                           A     5    	.assume ADL=1
+                           A     6    	SEGMENT TEXT
+000000                     A     7    _ADDR_TXT_HOME:
+000000 4000                A     8    	DW	64
+000002 00                  A     9    	DB	0
+000003                     A    10    _TXT_AREA:
+000003 4100                A    11    	DW	65
+000005 00                  A    12    	DB	0
+000006                     A    13    _ADDR_GRAPHIC_HOME:
+000006 4200                A    14    	DW	66
+000008 00                  A    15    	DB	0
+000009                     A    16    _GRAPHIC_AREA:
+000009 4300                A    17    	DW	67
+00000B 00                  A    18    	DB	0
+00000C                     A    19    _ADDR_OFFSET:
+00000C 2200                A    20    	DW	34
+00000E 00                  A    21    	DB	0
+00000F                     A    22    _PTR_ADDR:
+00000F 2400                A    23    	DW	36
+000011 00                  A    24    	DB	0
+000012                     A    25    _MODE_AUTOWRITE:
+000012 8000                A    26    	DW	128
+000014 00                  A    27    	DB	0
+                           A    28    	SEGMENT DATA
+000000                     A    29    _device_name:
+000000 65                  A    30    	DB	101
+000001 5A                  A    31    	DB	90
+000002 38                  A    32    	DB	56
+000003 30                  A    33    	DB	48
+000004 46                  A    34    	DB	70
+000005 39                  A    35    	DB	57
+000006 31                  A    36    	DB	49
+000007 00                  A    37    	DB	0
+                           A    38    	SEGMENT TEXT
+000015                     A    39    _version:
+000015 31                  A    40    	DB	49
+000016 2E                  A    41    	DB	46
+000017 30                  A    42    	DB	48
+000018 00                  A    43    	DB	0
+                           A    44    ;    1	/**************************************
+                           A    45    ;    2	 *  This program will exercise the eZ80
+                           A    46    ;    3	 *  to print a few messages and echo an
+                           A    47    ;    4	 *  Console port.  The target specific 
+                           A    48    ;    5	 *
+                           A    49    ;    6	 *  Target
+                           A    50    ;    7	 *  ===================================
+                           A    51    ;    8	 *    eZ80F91
+                           A    52    ;    9	 *    ---------------------------------
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   2
+
+
+PC     Object              I  Line    Source main.src
+                           A    53    ;   10	 *      Select Ethernet/Serial/USB in S
+                           A    54    ;   11	 *      The program output will be sent
+                           A    55    ;   12	 *
+                           A    56    ;   13	 *      UART Parameters (default):
+                           A    57    ;   14	 *        57600 bps, 8 bits per charact
+                           A    58    ;   15	 *
+                           A    59    ;   16	 *    Simulator
+                           A    60    ;   17	 *    ---------------------------------
+                           A    61    ;   18	 *      Select Simulator in Settings->D
+                           A    62    ;   19	 *      output will be displayed in the
+                           A    63    ;   20	 *
+                           A    64    ;   21	 *  Project Settings and Build Configur
+                           A    65    ;   22	 *  ===================================
+                           A    66    ;   23	 *    Debug
+                           A    67    ;   24	 *    ---------------------------------
+                           A    68    ;   25	 *      The settings in this configurat
+                           A    69    ;   26	 *      the Simulator and on the develo
+                           A    70    ;   27	 *      debug session.
+                           A    71    ;   28	 *
+                           A    72    ;   29	 *    Release
+                           A    73    ;   30	 *    ---------------------------------
+                           A    74    ;   31	 *      The settings in this configurat
+                           A    75    ;   32	 *      and execute from internal Flash
+                           A    76    ;   33	 *
+                           A    77    ;   34	 *  Example Output
+                           A    78    ;   35	 *  ===================================
+                           A    79    ;   36	 *    ZiLOG Developers Studio
+                           A    80    ;   37	 *    i = 5
+                           A    81    ;   38	 *    d = 25
+                           A    82    ;   39	 *    f = 1.260000
+                           A    83    ;   40	 *    eZ80F91 5 25 1.260000
+                           A    84    ;   41	 *
+                           A    85    ;   42	 *   Change History: 
+                           A    86    ;   43	 *   12/02/11 - Fixed UART when ZSL is 
+                           A    87    ;   44	 *
+                           A    88    ;   45	 **************************************
+                           A    89    ;   46	#include <eZ80.h>
+                           A    90    ;   47	#include <stdio.h>
+                           A    91    ;   48	#include "LCDInit.h"
+                           A    92    ;   49	#include "Z84C15.h"
+                           A    93    ;   50	#include "ez80f91/KernelConfig.h"
+                           A    94    ;   51	//#include "zsldevinit.asm"
+                           A    95    ;   52	
+                           A    96    ;   53	#ifndef INC_EZ80_KERNEL_CONFIG_H
+                           A    97    ;   54	#error Include KernelConfig.h!
+                           A    98    ;   55	#endif
+                           A    99    ;   56	
+                           A   100    ;   57	extern long SysClkFreq;
+                           A   101    ;   58	char device_name[] = DEVICE_NAME;
+                           A   102    ;   59	
+                           A   103    ;   60	const char version[] = "1.0";
+                           A   104    	SEGMENT CODE
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   3
+
+
+PC     Object              I  Line    Source main.src
+                           A   105    ;   61	
+                           A   106    ;   62	void uart_init(void) 
+                           A   107    ;   63	{ 
+000000                     A   108    _uart_init:
+                           A   109    ;   64	#ifndef _SIMULATE
+                           A   110    ;   65	 #ifdef _ZSL_UART_USED
+                           A   111    ;   66		ei();
+                           A   112    ;   67	   #ifdef ZSL_DEVICE_UART0
+                           A   113    ;   68		//enable Max3222 driver
+                           A   114    ;   69	    PB_DR = 0x40;
+                           A   115    ;   70	    PB_ALT2 = 0x00;
+                           A   116    ;   71	    PB_ALT1 = 0x00;
+                           A   117    ;   72	    PB_DDR = 0xBF;
+                           A   118    ;   73	   #endif
+                           A   119    ;   74	 #else
+                           A   120    ;   75	    unsigned short int i;
+                           A   121    ;   76	    unsigned short brg;
+                           A   122    ;   77	    brg = SysClkFreq/(16 * UART_BPS);
+                           A   123    ;   78	 
+                           A   124    ;   79	  #if (UART==1)
+                           A   125    ;   80	    PC_ALT2 = 0x03;
+                           A   126    ;   81	    PC_ALT1 = 0x00;
+                           A   127    ;   82	    PC_DDR = 0xEB;
+                           A   128    ;   83	    PC_DR = 0x00;
+                           A   129    ;   84	  #else
+                           A   130    ;   85	    PD_ALT2 = 0x03;
+                           A   131    ;   86	    PD_ALT1 = 0x00;
+                           A   132    ;   87	    PD_DDR = 0xEB;
+                           A   133    ;   88	    PD_DR = 0x00;
+                           A   134    ;   89		
+                           A   135    ;   90		//enable Max3222 driver
+                           A   136    ;   91	    PB_DR = 0x40;
+                           A   137    ;   92	    PB_ALT2 = 0x00;
+                           A   138    ;   93	    PB_ALT1 = 0x00;
+                           A   139    ;   94	    PB_DDR = 0xBF;
+                           A   140    ;   95	  #endif 
+                           A   141    ;   96	
+                           A   142    ;   97	    UART_LCTL |= LCTL_DLAB;
+                           A   143    ;   98	    UART_BRG_L = (brg & (unsigned short
+                           A   144    ;   99	    UART_BRG_H = (brg & (unsigned short
+                           A   145    ;  100	    UART_LCTL &= ~LCTL_DLAB;
+                           A   146    ;  101	    UART_FCTL = 0x07;	// eZ80F91 date
+                           A   147    ;  102	    SetLCTL(UART_DATA_BITS, UART_PARITY
+                           A   148    ;  103	 #endif
+                           A   149    ;  104	#endif 
+                           A   150    ;  105	}
+000000 C9                  A   151    	RET	
+                           A   152    
+                           A   153    
+                           A   154    ;**************************** _uart_init ******
+                           A   155    ;Name                         Addr/Register   S
+                           A   156    
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   4
+
+
+PC     Object              I  Line    Source main.src
+                           A   157    
+                           A   158    ; Stack Frame Size: 6 (bytes)
+                           A   159    ;       Spill Code: 0 (instruction)
+                           A   160    
+                           A   161    
+                           A   162    ;  106	
+                           A   163    ;  107	#if defined(_ZSL_UART_USED)
+                           A   164    ;  108	#ifdef ZSL_DEVICE_UART1
+                           A   165    ;  109	/*** Note: As default, ZSL uses UART0 f
+                           A   166    ;  110	 *         These functions were compile
+                           A   167    ;  111	 *         When using UART1, it is requ
+                           A   168    ;  112	 *         peekc if they are used in th
+                           A   169    ;  113	 */
+                           A   170    ;  114	
+                           A   171    ;  115	INT getch( VOID )
+                           A   172    ;  116	{
+                           A   173    ;  117		CHAR ch ;
+                           A   174    ;  118		UCHAR stat = UART_ERR_NONE ;
+                           A   175    ;  119		UINT nbytes = 1 ;
+                           A   176    ;  120		UART1_SPR = read_UART1( &ch, &nbyte
+                           A   177    ;  121		stat = UART1_SPR ;
+                           A   178    ;  122		nbytes = (UINT) ch ;
+                           A   179    ;  123		nbytes = (nbytes & 0x0000FF) ;
+                           A   180    ;  124		return (UART_ERR_NONE!=stat) ? EOF 
+                           A   181    ;  125	
+                           A   182    ;  126	}//! end of
+                           A   183    ;  127	
+                           A   184    ;  128	INT putch( INT ich )
+                           A   185    ;  129	{
+                           A   186    ;  130		CHAR ch[ 2 ] ;
+                           A   187    ;  131		CHAR cnt = 1 ;
+                           A   188    ;  132		UCHAR stat = UART_ERR_NONE ;
+                           A   189    ;  133		ch[ 0 ] = ich ;						
+                           A   190    ;  134		if( '\n' == ch[ 0 ] )				
+                           A   191    ;  135		{									
+                           A   192    ;  136			ch[ 1 ] = '\r' ;				
+                           A   193    ;  137			cnt++ ;							
+                           A   194    ;  138		}
+                           A   195    ;  139		stat = write_UART1( ch, cnt ) ;		
+                           A   196    ;  140		return stat ;
+                           A   197    ;  141	}
+                           A   198    ;  142	#endif
+                           A   199    ;  143	#else
+                           A   200    ;  144	#if defined(_SIMULATE)
+                           A   201    ;  145	int putch(int ch)
+                           A   202    ;  146	{
+000001                     A   203    _putch:
+000001 CD 00 00 00         A   204    	CALL	__frameset0
+                           A   205    ;  147	    UART_THR = ch;
+000005 DD7E06              A   206    	LD	A,(IX+6)
+000008 ED39C0              A   207    	OUT0	(192),A
+                           A   208    ;  148	    return (ch);
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   5
+
+
+PC     Object              I  Line    Source main.src
+00000B DD2706              A   209    	LD	HL,(IX+6)
+                           A   210    ;  149	}
+00000E DDF9                A   211    	LD	SP,IX
+000010 DDE1                A   212    	POP	IX
+000012 C9                  A   213    	RET	
+                           A   214    
+                           A   215    
+                           A   216    ;**************************** _putch **********
+                           A   217    ;Name                         Addr/Register   S
+                           A   218    ;ch                                    IX+6    
+                           A   219    
+                           A   220    
+                           A   221    ; Stack Frame Size: 9 (bytes)
+                           A   222    ;       Spill Code: 0 (instruction)
+                           A   223    
+                           A   224    
+                           A   225    ;  150	#else
+                           A   226    ;  151	int putch(int ch)
+                           A   227    ;  152	{
+                           A   228    ;  153	    while ((UART_LSR & LSR_THRE) == (un
+                           A   229    ;  154	    UART_THR = ch;
+                           A   230    ;  155	    if (ch == LF)
+                           A   231    ;  156	    {
+                           A   232    ;  157	        while ((UART_LSR & LSR_THRE) ==
+                           A   233    ;  158	        UART_THR = CR;
+                           A   234    ;  159	    }
+                           A   235    ;  160	    return (ch);
+                           A   236    ;  161	}
+                           A   237    ;  162	#endif
+                           A   238    ;  163	
+                           A   239    ;  164	int getch(void)
+                           A   240    ;  165	{
+000013                     A   241    _getch:
+                           A   242    ;  166	    while ((UART_LSR & LSR_DR) == (unsi
+000013                     A   243    L_3:
+000013 ED38C5              A   244    	IN0	A,(197)
+000016 E601                A   245    	AND	A,1
+000018 28 F9               A   246    	JR	Z,L_3
+                           A   247    ;  167	    return (UART_RBR);
+00001A ED38C0              A   248    	IN0	A,(192)
+00001D B7ED62              A   249    	UEXT	HL
+000020 6F                  A   250    	LD	L,A
+                           A   251    ;  168	}
+000021 C9                  A   252    	RET	
+                           A   253    
+                           A   254    
+                           A   255    ;**************************** _getch **********
+                           A   256    ;Name                         Addr/Register   S
+                           A   257    
+                           A   258    
+                           A   259    ; Stack Frame Size: 6 (bytes)
+                           A   260    ;       Spill Code: 0 (instruction)
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   6
+
+
+PC     Object              I  Line    Source main.src
+                           A   261    
+                           A   262    
+                           A   263    ;  169	#endif 
+                           A   264    ;  170	
+                           A   265    ;  171	void test(void)
+                           A   266    ;  172	{
+000022                     A   267    _test:
+                           A   268    ;  173	    int a = 1;
+                           A   269    ;  174	    int b = 2;
+                           A   270    ;  175	    int c = 3;
+                           A   271    ;  176	    c = b + a + 2;
+                           A   272    ;  177	    c++;
+                           A   273    ;  178	    c++;
+                           A   274    ;  179	}
+000022 C9                  A   275    	RET	
+                           A   276    
+                           A   277    
+                           A   278    ;**************************** _test ***********
+                           A   279    ;Name                         Addr/Register   S
+                           A   280    
+                           A   281    
+                           A   282    ; Stack Frame Size: 6 (bytes)
+                           A   283    ;       Spill Code: 0 (instruction)
+                           A   284    
+                           A   285    
+                           A   286    ;  180	
+                           A   287    ;  181		
+                           A   288    ;  182	int main()
+                           A   289    ;  183	{
+000023                     A   290    _main:
+000023 21FDFFFF            A   291    	LD	HL,-3
+000027 CD 00 00 00         A   292    	CALL	__frameset
+                           A   293    ;  184	    int i, ch;
+                           A   294    ;  185		//i = 0;
+                           A   295    ;  186	    static char zds[] = "ZiLOG Develope
+                           A   296    ;  187	
+                           A   297    ;  188	    //uart_init();
+                           A   298    ;  189	    //test();
+                           A   299    ;  190		lcd128_init();
+00002B CD 00 00 00         A   300    	CALL	_lcd128_init
+                           A   301    ;  191	
+                           A   302    ;  192		
+                           A   303    ;  193	    printf("\nUsing Uart %i\n", UART);
+00002F 01 00 00 00         A   304    	LD	BC,L__5
+000033 C5                  A   305    	PUSH	BC
+000034 01 00 00 00         A   306    	LD	BC,___print_uputch
+000038 ED43 00 00 00       A   307    	LD	(___print_xputch),BC
+00003D CD 00 00 00         A   308    	CALL	___print_sendstring
+000041 C1                  A   309    	POP	BC
+000042 01000000            A   310    	LD	BC,0
+000046 C5                  A   311    	PUSH	BC
+000047 C5                  A   312    	PUSH	BC
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   7
+
+
+PC     Object              I  Line    Source main.src
+000048 CD 00 00 00         A   313    	CALL	__u_itoa
+00004C C1                  A   314    	POP	BC
+00004D C1                  A   315    	POP	BC
+00004E 010A0000            A   316    	LD	BC,10
+000052 C5                  A   317    	PUSH	BC
+000053 CD 00 00 00         A   318    	CALL	___print_uputch
+000057 C1                  A   319    	POP	BC
+                           A   320    ;  194	    printf("-----------------------\n")
+000058 01 0D 00 00         A   321    	LD	BC,L__6
+00005C C5                  A   322    	PUSH	BC
+00005D 01 00 00 00         A   323    	LD	BC,___print_uputch
+000061 ED43 00 00 00       A   324    	LD	(___print_xputch),BC
+000066 CD 00 00 00         A   325    	CALL	___print_sendstring
+00006A C1                  A   326    	POP	BC
+                           A   327    ;  195	    printf("%s\n", zds);
+00006B 01 08 00 00         A   328    	LD	BC,_0zds
+00006F C5                  A   329    	PUSH	BC
+000070 01 00 00 00         A   330    	LD	BC,___print_uputch
+000074 ED43 00 00 00       A   331    	LD	(___print_xputch),BC
+000079 CD 00 00 00         A   332    	CALL	___print_sendstring
+00007D C1                  A   333    	POP	BC
+00007E 010A0000            A   334    	LD	BC,10
+000082 C5                  A   335    	PUSH	BC
+000083 CD 00 00 00         A   336    	CALL	___print_uputch
+000087 C1                  A   337    	POP	BC
+                           A   338    ;  196	    printf("-----------------------\n")
+000088 01 26 00 00         A   339    	LD	BC,L__7
+00008C C5                  A   340    	PUSH	BC
+00008D 01 00 00 00         A   341    	LD	BC,___print_uputch
+000091 ED43 00 00 00       A   342    	LD	(___print_xputch),BC
+000096 CD 00 00 00         A   343    	CALL	___print_sendstring
+00009A C1                  A   344    	POP	BC
+                           A   345    ;  197	    printf("i = %i\n", 5);
+00009B 01 3F 00 00         A   346    	LD	BC,L__8
+00009F C5                  A   347    	PUSH	BC
+0000A0 01 00 00 00         A   348    	LD	BC,___print_uputch
+0000A4 ED43 00 00 00       A   349    	LD	(___print_xputch),BC
+0000A9 CD 00 00 00         A   350    	CALL	___print_sendstring
+0000AD C1                  A   351    	POP	BC
+0000AE 01000000            A   352    	LD	BC,0
+0000B2 C5                  A   353    	PUSH	BC
+0000B3 01050000            A   354    	LD	BC,5
+0000B7 C5                  A   355    	PUSH	BC
+0000B8 CD 00 00 00         A   356    	CALL	__u_itoa
+0000BC C1                  A   357    	POP	BC
+0000BD C1                  A   358    	POP	BC
+0000BE 010A0000            A   359    	LD	BC,10
+0000C2 C5                  A   360    	PUSH	BC
+0000C3 CD 00 00 00         A   361    	CALL	___print_uputch
+0000C7 C1                  A   362    	POP	BC
+                           A   363    ;  198	    printf("d = %d\n", 25);
+0000C8 01 44 00 00         A   364    	LD	BC,L__9
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   8
+
+
+PC     Object              I  Line    Source main.src
+0000CC C5                  A   365    	PUSH	BC
+0000CD 01 00 00 00         A   366    	LD	BC,___print_uputch
+0000D1 ED43 00 00 00       A   367    	LD	(___print_xputch),BC
+0000D6 CD 00 00 00         A   368    	CALL	___print_sendstring
+0000DA C1                  A   369    	POP	BC
+0000DB 01000000            A   370    	LD	BC,0
+0000DF C5                  A   371    	PUSH	BC
+0000E0 01190000            A   372    	LD	BC,25
+0000E4 C5                  A   373    	PUSH	BC
+0000E5 CD 00 00 00         A   374    	CALL	__u_itoa
+0000E9 C1                  A   375    	POP	BC
+0000EA C1                  A   376    	POP	BC
+0000EB 010A0000            A   377    	LD	BC,10
+0000EF C5                  A   378    	PUSH	BC
+0000F0 CD 00 00 00         A   379    	CALL	___print_uputch
+0000F4 C1                  A   380    	POP	BC
+                           A   381    ;  199	    printf("f = %f\n", 1.26);
+0000F5 01 49 00 00         A   382    	LD	BC,L__10
+0000F9 C5                  A   383    	PUSH	BC
+0000FA 01 00 00 00         A   384    	LD	BC,___print_uputch
+0000FE ED43 00 00 00       A   385    	LD	(___print_xputch),BC
+000103 CD 00 00 00         A   386    	CALL	___print_sendstring
+000107 C1                  A   387    	POP	BC
+000108 0E3F                A   388    	LD	C,63
+00010A 0600                A   389    	LD	B,0
+00010C C5                  A   390    	PUSH	BC
+00010D 01AE47A1            A   391    	LD	BC,10569646
+000111 C5                  A   392    	PUSH	BC
+000112 3E06                A   393    	LD	A,6
+000114 32 06 00 00         A   394    	LD	(___print_fmt+6),A
+000118 3E66                A   395    	LD	A,102
+00011A 32 04 00 00         A   396    	LD	(___print_fmt+4),A
+00011E CD 00 00 00         A   397    	CALL	__u_dtof
+000122 C1                  A   398    	POP	BC
+000123 C1                  A   399    	POP	BC
+000124 010A0000            A   400    	LD	BC,10
+000128 C5                  A   401    	PUSH	BC
+000129 CD 00 00 00         A   402    	CALL	___print_uputch
+00012D C1                  A   403    	POP	BC
+                           A   404    ;  200	    printf("%s %i %d %f\n", device_name
+00012E 01 00 00 00         A   405    	LD	BC,_device_name
+000132 C5                  A   406    	PUSH	BC
+000133 01 00 00 00         A   407    	LD	BC,___print_uputch
+000137 ED43 00 00 00       A   408    	LD	(___print_xputch),BC
+00013C CD 00 00 00         A   409    	CALL	___print_sendstring
+000140 C1                  A   410    	POP	BC
+000141 01200000            A   411    	LD	BC,32
+000145 C5                  A   412    	PUSH	BC
+000146 CD 00 00 00         A   413    	CALL	___print_uputch
+00014A C1                  A   414    	POP	BC
+00014B 01000000            A   415    	LD	BC,0
+00014F C5                  A   416    	PUSH	BC
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:   9
+
+
+PC     Object              I  Line    Source main.src
+000150 01050000            A   417    	LD	BC,5
+000154 C5                  A   418    	PUSH	BC
+000155 CD 00 00 00         A   419    	CALL	__u_itoa
+000159 C1                  A   420    	POP	BC
+00015A C1                  A   421    	POP	BC
+00015B 01200000            A   422    	LD	BC,32
+00015F C5                  A   423    	PUSH	BC
+000160 CD 00 00 00         A   424    	CALL	___print_uputch
+000164 C1                  A   425    	POP	BC
+000165 01000000            A   426    	LD	BC,0
+000169 C5                  A   427    	PUSH	BC
+00016A 01190000            A   428    	LD	BC,25
+00016E C5                  A   429    	PUSH	BC
+00016F CD 00 00 00         A   430    	CALL	__u_itoa
+000173 C1                  A   431    	POP	BC
+000174 C1                  A   432    	POP	BC
+000175 01200000            A   433    	LD	BC,32
+000179 C5                  A   434    	PUSH	BC
+00017A CD 00 00 00         A   435    	CALL	___print_uputch
+00017E C1                  A   436    	POP	BC
+00017F 0E3F                A   437    	LD	C,63
+000181 0600                A   438    	LD	B,0
+000183 C5                  A   439    	PUSH	BC
+000184 01AE47A1            A   440    	LD	BC,10569646
+000188 C5                  A   441    	PUSH	BC
+000189 3E06                A   442    	LD	A,6
+00018B 32 06 00 00         A   443    	LD	(___print_fmt+6),A
+00018F 3E66                A   444    	LD	A,102
+000191 32 04 00 00         A   445    	LD	(___print_fmt+4),A
+000195 CD 00 00 00         A   446    	CALL	__u_dtof
+000199 C1                  A   447    	POP	BC
+00019A C1                  A   448    	POP	BC
+00019B 010A0000            A   449    	LD	BC,10
+00019F C5                  A   450    	PUSH	BC
+0001A0 CD 00 00 00         A   451    	CALL	___print_uputch
+0001A4 C1                  A   452    	POP	BC
+                           A   453    ;  201	    printf("-----------------------\n")
+0001A5 01 4E 00 00         A   454    	LD	BC,L__11
+0001A9 C5                  A   455    	PUSH	BC
+0001AA 01 00 00 00         A   456    	LD	BC,___print_uputch
+0001AE ED43 00 00 00       A   457    	LD	(___print_xputch),BC
+0001B3 CD 00 00 00         A   458    	CALL	___print_sendstring
+0001B7 C1                  A   459    	POP	BC
+0001B8 01 00 00 00         A   460    	LD	BC,___print_sputch
+0001BC ED43 00 00 00       A   461    	LD	(___print_xputch),BC
+                           A   462    ;  202	 
+                           A   463    ;  203	    while (1)
+0001C1                     A   464    L_11:
+                           A   465    ;  204	    {   ch = getchar();
+0001C1 CD 00 00 00         A   466    	CALL	_getchar
+0001C5 DD2FFD              A   467    	LD	(IX+-3),HL
+                           A   468    ;  205	        putchar(ch);
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:  10
+
+
+PC     Object              I  Line    Source main.src
+0001C8 E5C1                A   469    	LD	BC,HL
+0001CA C5                  A   470    	PUSH	BC
+0001CB CD 00 00 00         A   471    	CALL	_putchar
+0001CF C1                  A   472    	POP	BC
+                           A   473    ;  206	        if( '\r' == ch )
+0001D0 DD27FD              A   474    	LD	HL,(IX+-3)
+0001D3 010D0000            A   475    	LD	BC,13
+0001D7 B7                  A   476    	OR	A,A
+0001D8 ED42                A   477    	SBC	HL,BC
+0001DA 20 E5               A   478    	JR	NZ,L_11
+                           A   479    ;  207	        {
+                           A   480    ;  208				putchar( '\n' ) ;
+0001DC 010A0000            A   481    	LD	BC,10
+0001E0 C5                  A   482    	PUSH	BC
+0001E1 CD 00 00 00         A   483    	CALL	_putchar
+0001E5 C1                  A   484    	POP	BC
+0001E6 18 D9               A   485    	JR	L_11
+                           A   486    
+                           A   487    
+                           A   488    ;**************************** _main ***********
+                           A   489    ;Name                         Addr/Register   S
+                           A   490    ;_putchar                            IMPORT  --
+                           A   491    ;_getchar                            IMPORT  --
+                           A   492    ;___print_sputch                     IMPORT  --
+                           A   493    ;_device_name                        STATIC    
+                           A   494    ;__u_dtof                            IMPORT  --
+                           A   495    ;___print_fmt                        IMPORT    
+                           A   496    ;_0zds                               STATIC    
+                           A   497    ;__u_itoa                            IMPORT  --
+                           A   498    ;___print_sendstring                 IMPORT  --
+                           A   499    ;___print_xputch                     IMPORT    
+                           A   500    ;___print_uputch                     IMPORT  --
+                           A   501    ;_lcd128_init                        IMPORT  --
+                           A   502    ;ch                                    IX-3    
+                           A   503    
+                           A   504    
+                           A   505    ; Stack Frame Size: 9 (bytes)
+                           A   506    ;       Spill Code: 0 (instruction)
+                           A   507    
+                           A   508    
+                           A   509    	SEGMENT STRSECT
+000000                     A   510    L__5:
+000000 0A                  A   511    	DB	10
+000001 5573696E 67205561   A   512    	DB	"Using Uart "
+000009 727420 
+00000C 00                  A   513    	DB	0
+00000D                     A   514    L__6:
+00000D 2D2D2D2D 2D2D2D2D   A   515    	DB	"-----------------------"
+000015 2D2D2D2D 2D2D2D2D 
+00001D 2D2D2D2D 2D2D2D 
+000024 0A00                A   516    	DB	10,0
+000026                     A   517    L__7:
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:  11
+
+
+PC     Object              I  Line    Source main.src
+000026 2D2D2D2D 2D2D2D2D   A   518    	DB	"-----------------------"
+00002E 2D2D2D2D 2D2D2D2D 
+000036 2D2D2D2D 2D2D2D 
+00003D 0A00                A   519    	DB	10,0
+00003F                     A   520    L__8:
+00003F 69203D20            A   521    	DB	"i = "
+000043 00                  A   522    	DB	0
+000044                     A   523    L__9:
+000044 64203D20            A   524    	DB	"d = "
+000048 00                  A   525    	DB	0
+000049                     A   526    L__10:
+000049 66203D20            A   527    	DB	"f = "
+00004D 00                  A   528    	DB	0
+00004E                     A   529    L__11:
+00004E 2D2D2D2D 2D2D2D2D   A   530    	DB	"-----------------------"
+000056 2D2D2D2D 2D2D2D2D 
+00005E 2D2D2D2D 2D2D2D 
+000065 0A00                A   531    	DB	10,0
+                           A   532    	SEGMENT DATA
+000008                     A   533    _0zds:
+000008 5A                  A   534    	DB	90
+000009 69                  A   535    	DB	105
+00000A 4C                  A   536    	DB	76
+00000B 4F                  A   537    	DB	79
+00000C 47                  A   538    	DB	71
+00000D 20                  A   539    	DB	32
+00000E 44                  A   540    	DB	68
+00000F 65                  A   541    	DB	101
+000010 76                  A   542    	DB	118
+000011 65                  A   543    	DB	101
+000012 6C                  A   544    	DB	108
+000013 6F                  A   545    	DB	111
+000014 70                  A   546    	DB	112
+000015 65                  A   547    	DB	101
+000016 72                  A   548    	DB	114
+000017 73                  A   549    	DB	115
+000018 20                  A   550    	DB	32
+000019 53                  A   551    	DB	83
+00001A 74                  A   552    	DB	116
+00001B 75                  A   553    	DB	117
+00001C 64                  A   554    	DB	100
+00001D 69                  A   555    	DB	105
+00001E 6F                  A   556    	DB	111
+00001F 00                  A   557    	DB	0
+                           A   558    	XREF _lcd128_init:ROM
+                           A   559    	XREF _putchar:ROM
+                           A   560    	XREF _getchar:ROM
+                           A   561    	XREF __u_dtof:ROM
+                           A   562    	XREF __u_itoa:ROM
+                           A   563    	XREF ___print_sendstring:ROM
+                           A   564    	XREF ___print_xputch:ROM
+                           A   565    	XREF ___print_sputch:ROM
+Zilog eZ80 Macro Assembler Version 4.2 (11121401)06-Feb-17     22:27:54     page:  12
+
+
+PC     Object              I  Line    Source main.src
+                           A   566    	XREF ___print_uputch:ROM
+                           A   567    	XREF ___print_fmt:ROM
+                           A   568    	XREF __frameset0:ROM
+                           A   569    	XREF __frameset:ROM
+                           A   570    	XDEF _main
+                           A   571    	XDEF _test
+                           A   572    	XDEF _getch
+                           A   573    	XDEF _putch
+                           A   574    	XDEF _uart_init
+                           A   575    	XDEF _version
+                           A   576    	XDEF _device_name
+                           A   577    ;  209	        }
+                           A   578    ;  210	    }
+                           A   579    ;  211	    return 0;
+                           A   580    ;  212	}
+                           A   581    	END
+
+
+Errors: 0
+Warnings: 0
+Lines Assembled: 582

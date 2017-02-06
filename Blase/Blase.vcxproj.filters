@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Quelldateien">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headerdateien">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Ressourcendateien">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Headerdateien\std">
+      <UniqueIdentifier>{96bf2fcf-a91d-4413-8ef0-31b9e771f795}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\zilog">
+      <UniqueIdentifier>{86824f5c-35e7-4dfe-a04f-0be97369a7d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\win32">
+      <UniqueIdentifier>{48028bf2-bddc-4fa9-921d-4d9ff856bf30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\test">
+      <UniqueIdentifier>{e9274e3d-e26d-4324-8d07-f363035b0e41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\ez80f91">
+      <UniqueIdentifier>{f0a45d2c-09a1-450e-b09f-1f09f73bf8dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\z84c15">
+      <UniqueIdentifier>{8c4c3751-b4b0-49c4-a3fe-40373772f3a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\ez80f91\display">
+      <UniqueIdentifier>{17dd4830-5a4e-4477-8dfc-1cc3bf748c6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\ez80f91">
+      <UniqueIdentifier>{3e00bf1b-a05b-4302-ab07-0a267aade8ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\ez80f91\display">
+      <UniqueIdentifier>{e632aad2-d6d7-4f0f-a07b-643390b4c0a5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\zilog\cio.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\defines.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\ez80.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\eZ80F91.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\eZ80F92.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\eZ80F93.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\eZ80L92.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\eZ80190.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\ez80190A.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\ez80190B.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\gpio.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\uart.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zilog\uartdefs.h">
+      <Filter>Headerdateien\zilog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\ASSERT.H">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\CTYPE.H">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\ERRNO.H">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\FLOAT.H">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\Format.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\LIMITS.H">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\Math.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\Setjmp.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\Stdarg.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\Stddef.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\Stdio.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\Stdlib.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\std\String.h">
+      <Filter>Headerdateien\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Display.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="include\LCDInit.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Z84C15.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="include\test\KernelConfig.h">
+      <Filter>Headerdateien\test</Filter>
+    </ClInclude>
+    <ClInclude Include="include\z85c15\KernelConfig.h">
+      <Filter>Headerdateien\z84c15</Filter>
+    </ClInclude>
+    <ClInclude Include="include\win32\KernelConfig.h">
+      <Filter>Headerdateien\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ez80f91\display\ST7735.h">
+      <Filter>Headerdateien\ez80f91\display</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ez80f91\KernelConfig.h">
+      <Filter>Headerdateien\ez80f91</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\zilog\ez80F91.inc">
+      <Filter>Headerdateien\zilog</Filter>
+    </None>
+    <None Include="include\zilog\ez80F92.inc">
+      <Filter>Headerdateien\zilog</Filter>
+    </None>
+    <None Include="include\zilog\ez80F93.inc">
+      <Filter>Headerdateien\zilog</Filter>
+    </None>
+    <None Include="include\zilog\ez80l92.inc">
+      <Filter>Headerdateien\zilog</Filter>
+    </None>
+    <None Include="include\zilog\ez80190.inc">
+      <Filter>Headerdateien\zilog</Filter>
+    </None>
+    <None Include="include\zilog\intvect.inc">
+      <Filter>Headerdateien\zilog</Filter>
+    </None>
+    <None Include="Makefile.linkcmd">
+      <Filter>Ressourcendateien</Filter>
+    </None>
+    <None Include="Makefile.mak">
+      <Filter>Ressourcendateien</Filter>
+    </None>
+    <None Include="Release\blase_Release.mak">
+      <Filter>Ressourcendateien</Filter>
+    </None>
+    <None Include="build-ez80f91.bat">
+      <Filter>Ressourcendateien</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\LCDInit.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="source\main.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ez80f91\display\ST7735.c">
+      <Filter>Quelldateien\ez80f91\display</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Makefile.txt">
+      <Filter>Ressourcendateien</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
