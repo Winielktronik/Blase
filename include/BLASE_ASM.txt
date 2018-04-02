@@ -13,10 +13,9 @@
                                         ;  AUTOR : Hansj|rg Winterhalter
                                         ;  VERs. 1.0 VOM                        16.06.2003
                                         ;  SD-KARTE  1.0                        19.11.2006
-                                        ;  LW IDE-HD: IDE CONTROLLER-KARTE      21.06.2009
-                                        ; ERWEITERUNG FUER HDD LBA-MODEN 16BIT  14.09.2016
+                                       ;  LW IDE-HD: IDE CONTROLLER-KARTE      21.06.2009
+                                       ; ERWEITERUNG FUER HDD LBA-MODEN 16BIT  14.09.2016
                                        ; NACHTRAG ERROR WRITE EXTERN           30.12.2016
-									   ; keys query
                                        ;
                                        ;  SD-KARTE ADRESSE IN B\CKE AUFGETEILT NICHT MEHR SEQUENZIAL 30.05.08
                                        ;  SEKTOR, TRACK AUS 16BIT UMSTELLEN  05.06.2016
