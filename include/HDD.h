@@ -12,9 +12,6 @@
 #define SET_BIT(val, bit) (val |= (1<<bit))
 #define CLEAR_BIT(val, bit) (val &= (~(1<<bit)))
 
-/* LED anode and cathode external I/O pointers */
-#define LEDMATRIX_ROW      (*(unsigned char*)0x800000)  //Anode
-#define LEDMATRIX_COLUMN   (*(unsigned char*)0x800001)  //Cathode
 
 /* emulated GPIO port */
 #define EMUL_GPIO       (*(volatile unsigned char*)0x800002)
@@ -74,62 +71,11 @@ static const int AWR_OFF = 0xb2;
 //----- API ----------------------------------------------
 // eZ80 development board led matrix functions
 
-/**
- * Registers the lcd128 interface in the given driver instance.
- */
-void lcd128_init_driver(Display* interface);
-
-/**
- * Initializes the lcd hardware with the default settings
- */
-void lcd128_init(void);
-
-/**
- * Sends a command directly to the lcd interface.
- * 
- * @param The command byte to send to the lcd interface
- */
-BOOL lcd128_cmd(char);
 
 /**
  * Sends a Track, Sector and addiere.
  * 
  * @param The LBA trk, sec
  */
-INT16 lba0(trk,sec);
+int lba0(INT16 trk, int sec);
 
-/**
- * Sends data directly to the lcd interface
- * 
- * @param The data to send to the lcd interface
- */
-BOOL lcd128_data_write8(char);
-
-/**
- * Sends data directly to the lcd interface
- * 
- * @param The data to send to the lcd interface
- */
-BOOL lcd128_data_write16(short int);
-
-/**
- * 
- */
-BOOL lcd128_adt(char); 
-
-/**
- * 
- */
-int lcd128_ard(); 
-
-/**
- *  Pause
- */
-void delay(int);
-
-/**
- *  Kreisberechnung
- */
-void kreis(void);
-
-#endif // INC_LCDINIT_H

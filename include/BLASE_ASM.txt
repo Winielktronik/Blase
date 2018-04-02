@@ -1,0 +1,2599 @@
+        MACRO-80 3.43   27-Jul-81       PAGE    1
+
+
+                                       ;-------------------------------------
+                                       ; Winterhalter CPU-System neu
+                                       ; Entwicklungssystem
+                                       ;-------------------------
+                                       ;  BIOS F]R HW-CPU
+                                       ;  PROZESSOR 84C015
+                                       ;  MIT 128k RAM 32k EPROM 2K I/O RAM UHR
+                                       ;  FDC, IDE, ECB-BUS
+                                       ;
+                                        ;  AUTOR : Hansj|rg Winterhalter
+                                        ;  VERs. 1.0 VOM                        16.06.2003
+                                        ;  SD-KARTE  1.0                        19.11.2006
+                                        ;  LW IDE-HD: IDE CONTROLLER-KARTE      21.06.2009
+                                        ; ERWEITERUNG FUER HDD LBA-MODEN 16BIT  14.09.2016
+                                       ; NACHTRAG ERROR WRITE EXTERN           30.12.2016
+									   ; keys query
+                                       ;
+                                       ;  SD-KARTE ADRESSE IN B\CKE AUFGETEILT NICHT MEHR SEQUENZIAL 30.05.08
+                                       ;  SEKTOR, TRACK AUS 16BIT UMSTELLEN  05.06.2016
+                                        ; MMC SEC/TRK BERECHNUNG LINEAR 1,2,3,4,5 AUFSTEIGEND 30.09.2017
+                                       ;-------------------------------
+                                      
+  0000'                         ASEG
+                                
+                                .Z80
+                                
+                                ;.SFCOND
+                                
+                                ORG 0H
+                                
+                                ;DISPLAY EQU 1          ; 1= MIT DISPLAY
+                                
+  0000                          RAMSTART EQU 0000H
+                                
+                                ;  SET CP/M LOW MEMORY DATA, VECTOR AND BUFFER ADDRESS
+                                
+  0003                          IOBYTE  EQU RAMSTART + 03H
+  0004                          USRDRV  EQU RAMSTART + 04H
+  0005                          BDOSEN  EQU RAMSTART + 05H
+  005C                          TPAFCB  EQU RAMSTART + 5CH
+  0080                          TPABUF  EQU RAMSTART + 80H
+                                
+  8000                          RAM     EQU RAMSTART + 8000H
+                                
+                                ;--------------------------
+                                ; PERIPFERIE I/O ADDRESS
+  0010                          CTC     EQU 10H         ; CTC   84C30A
+  0018                          SIOA    EQU 18H         ; SIO A 84C43
+  001A                          SIOB    EQU 1AH         ; SIO B
+  001C                          PIOA    EQU 1CH         ; PIO A 84C20A
+  001E                          PIOB    EQU 1EH         ; PIO B
+  00F0                          WDTCR   EQU 0F0H        ; WATCH DOG TIMER
+  00F1                          WDTER   EQU 0F1H
+  00F4                          DCI     EQU 0F4H        ; DAISY-CAINE-INTERRUPT
+  00F5                          LATCH   EQU 0F5H        ; I/O ADRESSE A8-A15 EXTERN
+                                
+  0020                          FDC     EQU 20H         ; SD-KARTE
+        MACRO-80 3.43   27-Jul-81       PAGE    1-1
+
+
+  0060                          LCD     EQU 60H         ; LCD-DISPLAY
+  0080                          URCS    EQU 80H         ; 2K IO-RAM MIT UHR
+                                
+  00F0                          IDE     EQU 0F0H        ; FESTPLATTE
+  00F6                          IDEDOR  EQU IDE+6       ; DIGITAL OUTPUT REGISTER
+  00F8                          IDEDAT  EQU IDE+8       ; DATA REGISTER
+  00F9                          IDEERR  EQU IDE+9       ; ERROR REGISTER
+  00FA                          IDESCNT EQU IDE+0AH     ; SEKTOR COUNT
+  00FB                          IDESNUM EQU IDE+0BH     ; SEKTOR NUMBER
+  00FC                          IDECLO  EQU IDE+0CH     ; CYLINDER LOW
+  00FD                          IDECHI  EQU IDE+0DH     ; CYLINDER HIGH
+  00FE                          IDESDH  EQU IDE+0EH     ; DRIVE AND HEAD
+  00FF                          IDECMD  EQU IDE+0FH     ; COMMAND
+  00FF                          IDESTAT EQU IDECMD      ; STATUS
+                                        
+  0028                          EOFF    EQU 40          ; BIT 6=1 PORT A EPROM AUS RAM <32K AKTIV
+  0000                          EON     EQU 0           ; BIT 6=0 PORT A EPROM EIN RAM <32K WRITE 
+  0061                          RAMH    EQU 61H         ; BIT1,5 AN PIO A BANK 1 + EPROM AUS / INTERN
+  0040                          RAML    EQU 40H         ; BIT1,5 AN PIO A BANK 0 + EPROM AUS / INTERN
+                                
+                                        ;-------------------------
+                                        ; IDE COMMANDOS
+                                
+  0020                          CMD_READSEC     EQU 20H
+  0030                          CMD_WRITESEC    EQU 30H
+  0070                          CMD_SEEK        EQU 70H
+  0090                          CMD_DIAGN       EQU 90H
+  0091                          CMD_INITIA      EQU 91H
+  00EC                          CMD_IDENT       EQU 0ECH
+                                        ;-----------------------------
+                                        ; MMC INTERFACE INIT
+                                
+  0040                          GO_IDLE_STATE   EQU 40H
+  0041                          SEND_OP_COND    EQU 41H
+  0050                          SDBLOCK         EQU 50H
+  0051                          READ_SINGLE_BLOCK       EQU 51H
+  0058                          WRITE_BLOCK     EQU 58H
+                                            ;------------------------
+                                            ;    CTC-COMMANDOS
+                                            ;------------------------
+                                
+  0047                          BAUD1   EQU 47H         ; 9600
+  0004                          TIME1   EQU 04H         ; TIME CONSTANTE
+                                
+  0047                          BAUD2   EQU 47H         ; TGOUT 1: 2
+  0004                          TIME2   EQU 04H         ;
+                                
+  0047                          BAUD3   EQU 47H         ; TGOUT 1: 2
+  0004                          TIME3   EQU 04H         ;
+                                
+  0047                          BAUD4   EQU 47H         ; MIT INT =0E7H TGOUT 
+  00FF                          TIME4   EQU 0FFH        ;
+                                
+  0080                          MSTIME  EQU 80H         ; 416,6667us * MSTIME
+  0060                          EXOFF   EQU 60H         ; OFFSET SIO, CTC EXTEN
+                                
+        MACRO-80 3.43   27-Jul-81       PAGE    1-2
+
+
+                                            ;------------------------
+                                            ;    SIO-COMMANDOS
+                                            ;------------------------
+                                
+  0018                          SIORES  EQU 18H         ; SIO RESET
+  0004                          KANAL4  EQU 04H         ; REG 4
+  0044                          REG4    EQU 44H         ; X16 CLOCK,8,SYNC
+  0003                          KANAL3  EQU 03H         ; REG 3
+  00C1                          REG3    EQU 0C1H        ; 8 BIT, RxENABLE
+  0005                          KANAL5  EQU 05H         ; REG 5
+  00EA                          REG5    EQU 0EAH        ; DTR, Tx8BIT, TxENABLE
+  0001                          KANAL1  EQU 01H         ; REG 1
+  0000                          REG1    EQU 00H         ; NO INT
+  0000                          KANAL0  EQU 00H         ; REG 0
+                                            ;----------------
+                                            ; PORT A BIT 0 - 7 SELEKT
+                                            ;----------------
+                                
+  0007                          QA7     EQU 7H          ; IORQ =0 INT., 1= EXT.
+  0006                          ELATCH  EQU 6H          ; EPROM=0, RAM=1
+  0005                          TA16    EQU 5H          ; RAM 64K BANK 0=LOW, >64K 1=HIGH
+  0004                          FREI    EQU 4H          ; FREI  DA KEIN -> SCSI RESRI
+  0003                          RFDC    EQU 3H          ; FLOPPY RESET
+  0002                          RT      EQU 2H          ; AN PAL PIN 9
+  0001                          NC      EQU 1H          ; NC
+  0000                          TAS     EQU 0H          ; ZU 64K BANKUNSCHALTUNG
+                                
+                                ;------------------------
+                                ;      START
+                                ;------------------------
+                                ; TESTPROGRAMM F]R 84C015 CPU
+                                ;------------------------
+                                
+  0000    F3                            DI
+  0001    C3 015A                       JP LOS
+  0004    00                            NOP
+                                ;---------------------------------
+                                ; EIGENE BIOS SPRUNGTABELLE 0005H
+                                
+                                 
+                                ;INCLUDE CONSOLE.MAC    
+  0060                          SIOEX   EQU 60H         ; OFSET ZU SIO INTERN = EXTERN  
+                                
+                                ;-----------------------------
+                                ; SIOA, SIOB ADRESSE TASK HIGH
+                                        ; SIO A 
+                                
+  0005    ED 73 FDB9            SIOX:   LD      (STACK),SP
+  0009    ED 5E                         IM 2
+                                ;INT    EI
+                                        REPT 5
+                                        NOP
+                                        ENDM
+  000B    00              +             NOP
+  000C    00              +             NOP
+  000D    00              +             NOP
+        MACRO-80 3.43   27-Jul-81       PAGE    1-3
+
+
+  000E    00              +             NOP
+  000F    00              +             NOP
+  0010    F3                            DI
+  0011    DD 2A FDB9                    LD      IX,(STACK)
+  0015    DD F9                         LD      SP,IX
+  0017    DB 1C                         IN      A,(PIOA)
+  0019    CB 6F                         BIT     TA16,A          ; BANK0=LX, BANK1=HX
+  001B    20 03                         JR      NZ,SIOX1        ; EXTERN ->
+  001D    0E 18                         LD      C,SIOA          ; FUER INTERN
+  001F    C9                            RET
+                                        ;------------------
+                                
+  0020    0E 78                 SIOX1:  LD      C,SIOA+SIOEX    ; FUER EXTERN
+  0022    18 1D                         JR      SIOX2
+                                        ;--------------
+                                        ; SIO B
+  0024    ED 73 FDB9            SIOY:   LD      (STACK),SP
+  0028    ED 5E                         IM 2
+                                ;INT    EI
+                                        REPT 5
+                                        NOP
+                                        ENDM
+  002A    00              +             NOP
+  002B    00              +             NOP
+  002C    00              +             NOP
+  002D    00              +             NOP
+  002E    00              +             NOP
+  002F    F3                            DI
+  0030    DD 2A FDB9                    LD      IX,(STACK)
+  0034    DD F9                         LD      SP,IX
+  0036    DB 1C                         IN      A,(PIOA)
+  0038    CB 6F                         BIT     TA16,A
+  003A    20 03                         JR      NZ,SIOY1        ; EXTERN ->
+  003C    0E 1A                         LD      C,SIOB          ; FUER INTERN
+  003E    C9                            RET
+                                        ;---------
+                                        ; EXTERN UNSCHALTEN
+  003F    0E 7A                 SIOY1:  LD      C,SIOB+SIOEX    ; FUER EXTERN
+  0041    CB FF                 SIOX2:  SET     7,A             ; SET EXTERN
+  0043    D3 1C                         OUT     (PIOA),A
+  0045    3E 02                         LD      A,02H           ; SIO KARTE 2
+  0047    D3 F5                         OUT     (LATCH),A
+  0049    C9                            RET
+                                
+                                ;-----------------------------
+                                ; TX BUFFER LEER PR]FEN
+                                ; ZEICHEN IN C AUSGEBEN
+                                
+  004A    C5                    OUT0:   PUSH BC
+  004B    CD 0054                       CALL KEYRD
+  004E    7B                            LD      A,E
+  004F    0D                            DEC     C
+  0050    ED 79                         OUT     (C),A           ; ZEICHEN AUSGEBEN
+  0052    C1                            POP     BC
+  0053    C9                            RET
+                                
+        MACRO-80 3.43   27-Jul-81       PAGE    1-4
+
+
+                                ;--------------------------------
+                                ; KEYREADY
+                                
+  0054    CD 0005               KEYRD:  CALL    SIOX
+  0057    0C                            INC     C
+  0058    3E 05                         LD      A,KANAL5
+  005A    ED 79                         OUT     (C),A
+  005C    3E EA                         LD      A,REG5
+  005E    CB BF                         RES     7,A             ; DTR LOW
+  0060    ED 79                         OUT     (C),A
+                                ;----------------
+                                ; PR]FE OB ZEICHEN ]BERTRAGEN UND BUFFER LEER IST
+                                
+  0062    ED 78                 TX2:    IN      A,(C)
+  0064    CB 57                         BIT     2,A             ; TRANSMISSION BUFFER EMPTY
+  0066    28 FA                         JR      Z,TX2
+  0068    C9                            RET
+                                
+                                ;--------------------------------
+                                ; RX BUFFER LEER PR]FEN
+                                
+  0069    C5                    INP0:   PUSH BC
+  006A    CD 0054               INP1:   CALL KEYRD
+  006D    CB 47                         BIT 0,A         ; AUS TX2:
+  006F    28 18                         JR Z,INP2       ; PRUEFE OB ZEICHEN DA ->NEIN
+  0071    0D                            DEC C
+  0072    ED 78                         IN A,(C)        ; SIOA ZEICHEN HOLEN
+  0074    4F                            LD C,A
+  0075    C5                            PUSH BC
+  0076    CD 0005                       CALL SIOX
+  0079    0C                            INC C
+  007A    3E 05                         LD A,KANAL5
+  007C    ED 79                         OUT (C),A
+  007E    3E EA                         LD A,REG5
+  0080    CB BF                         RES 7,A         ; DTR HIGH
+  0082    ED 79                         OUT (C),A
+  0084    C1                            POP BC
+  0085    79                            LD A,C
+  0086    C1                            POP BC
+  0087    4F                            LD C,A
+  0088    C9                            RET             
+                                        ;----------
+  0089    3E 05                 INP2:   LD      A,KANAL5
+  008B    ED 79                         OUT     (C),A
+  008D    3E EA                         LD      A,REG5
+  008F    CB FF                         SET     7,A             ; DTR HIGH
+  0091    ED 79                         OUT     (C),A
+  0093    18 D5                         JR INP1
+                                
+                                ;--------------------------------
+                                ;  PR]FE OB TESTE GEDR]CKT
+                                ;  JA: A=0FFH NEIN: A:00H
+                                
+  0095    C5                    PKEY:   PUSH BC
+  0096    CD 0005                       CALL SIOX
+  0099    0C                            INC C
+        MACRO-80 3.43   27-Jul-81       PAGE    1-5
+
+
+  009A    06 04                         LD B,04
+  009C    CD 0062               CONW:   CALL TX2
+  009F    F5                            PUSH AF
+  00A0    3E 05                         LD      A,KANAL5
+  00A2    ED 79                         OUT     (C),A
+  00A4    3E EA                         LD      A,REG5
+  00A6    CB FF                         SET     7,A             ; DTR HIGH
+  00A8    ED 79                         OUT     (C),A
+  00AA    F1                            POP AF
+  00AB    CB 47                         BIT 0,A
+  00AD    3E FF                         LD A,0FFH
+  00AF    20 03                         JR NZ,CONW1             ; -> TASTE GEDRUECKT
+  00B1    10 E9                         DJNZ CONW
+  00B3    AF                            XOR A                   ; KEINE TASTE
+  00B4    F5                    CONW1:  PUSH AF
+  00B5    3E 05                         LD      A,KANAL5
+  00B7    ED 79                         OUT     (C),A
+  00B9    3E EA                         LD      A,REG5
+  00BB    CB BF                         RES     7,A             ; DTR HIGH
+  00BD    ED 79                         OUT     (C),A
+  00BF    F1                            POP AF
+  00C0    C1                            POP BC
+  00C1    FE 00                         CP 0            ; AUS A
+  00C3    4F                            LD C,A
+  00C4    C9                            RET
+                                
+                                ;--------------------------------
+                                ;  LIST DRUCKERPROGRAMM
+                                ; GIBT ZEICHEN IN C AUF DRUCKER AUS
+                                ; WENN NICHT BEREIT , ABBRUCH MIT TASTE
+                                
+  00C5    C5                    PRINT:  PUSH    BC
+  00C6    CD 00D5               LISTA:  CALL    W00
+  00C9    C1                            POP BC
+  00CA    41                            LD B,C                  ; C = ZEICHEN ZUM DRUCKEN
+  00CB    C5                            PUSH BC
+  00CC    CD 0024                       CALL    SIOY
+  00CF    78                            LD      A,B
+  00D0    ED 79                         OUT     (C),A           ; ZEICHEN DRUCKEN
+  00D2    C1                            POP     BC
+  00D3    AF                            XOR     A               ; Z=0 OK.
+  00D4    C9                            RET
+                                        ;-------------------
+  00D5    D5                    W00:    PUSH    DE
+  00D6    E5                            PUSH    HL
+  00D7    CD 0024               W0:     CALL SIOY
+  00DA    0C                            INC C
+  00DB    11 0000                       LD      DE,0000H        ; TIMEOUT
+  00DE    3E 10                 W1:     LD      A,10H           ; SET SIO REG. FUER DCD, CTS
+  00E0    ED 79                         OUT     (C),A   
+  00E2    CD 0062                       CALL    TX2             ; READ SIO REG. 0
+  00E5    CB 5F                         BIT     3,A             ; DCD
+  00E7    20 28                         JR      NZ,W3           ; -> DRUCKER ONLINE
+  00E9    1D                            DEC     E
+  00EA    20 F2                         JR      NZ,W1
+  00EC    15                            DEC     D
+        MACRO-80 3.43   27-Jul-81       PAGE    1-6
+
+
+  00ED    20 EF                         JR      NZ,W1
+  00EF    CD 0095                       CALL PKEY
+  00F2    28 E3                         JR Z,W0                 ; KEINE TASTE
+  00F4    CD 0069                       CALL INP0               ; ZEICHEN READ
+  00F7    FE 1B                         CP 1BH                  ; ESC
+  00F9    20 DC                         JR NZ,W0
+  00FB    21 0114                       LD HL,ERRTEX
+  00FE    5E                    W4:     LD E,(HL)
+  00FF    7B                            LD A,E
+  0100    FE FF                         CP 0FFH
+  0102    28 06                         JR Z,W5
+  0104    CD 004A                       CALL OUT0
+  0107    23                            INC HL
+  0108    18 F4                         JR W4
+                                        ;------------
+  010A    E1                    W5:     POP     HL
+  010B    D1                            POP     DE
+  010C    C1                            POP     BC
+  010D    3E 01                         LD A,01
+  010F    3C                            INC A           ; Z=1
+  0110    C9                            RET
+                                        ;-----------
+  0111    E1                    W3:     POP HL
+  0112    D1                            POP DE
+  0113    C9                            RET             ; ZEICHEN AUSGEBEN
+                                        ;------------
+                                
+  0114    0A 0D 07 07           ERRTEX: DEFB    0AH,0DH,7,7,7           ; CR,LF,BELL
+  0118    07                    
+  0119    44 72 75 63                   DEFM    'Drucker nicht bereit oder Fehler!'
+  011D    6B 65 72 20           
+  0121    6E 69 63 68           
+  0125    74 20 62 65           
+  0129    72 65 69 74           
+  012D    20 6F 64 65           
+  0131    72 20 46 65           
+  0135    68 6C 65 72           
+  0139    21                    
+  013A    0A 0D 07 07                   DEFB    0AH,0DH,7,7,7,0FFH,0FFH
+  013E    07 FF FF              
+                                
+  0141    C5                    PLISTST: PUSH    BC
+  0142    CD 0024                       CALL SIOY
+  0145    0C                            INC C
+  0146    3E 10                         LD A,10H        ; SIO HANDSHAKE RESET DCD, CTS
+  0148    ED 79                         OUT (C),A
+  014A    CD 0062                       CALL TX2
+  014D    0E 00                         LD      C,0
+  014F    CB 5F                         BIT     3,A
+  0151    28 04                         JR      Z,NOT
+  0153    3E FF                         LD      A,0FFH
+  0155    C1                            POP     BC
+  0156    C9                            RET
+                                
+  0157    AF                    NOT:    XOR     A
+  0158    C1                            POP     BC
+        MACRO-80 3.43   27-Jul-81       PAGE    1-7
+
+
+  0159    C9                            RET
+                                
+                                ;---------------------------------
+                                ; PIO INIT PORT A 
+                                ; PA0,BAI1,RT,/RFDC,RSCS,TA16,LATCH,QA7
+                                ; PIO INIT PORT B
+                                ; PCU,U1,U2,U3,U4,U5,ND, (NC)
+                                
+  015A    31 B000               LOS:    LD SP,0B000H
+  015D    ED 5E                         IM 2
+                                        ;---------------
+                                        ; PORT A
+  015F    3E 0F                         LD      A,0FH           ; MODE 0 ALS AUSGANG
+  0161    D3 1D                         OUT     (PIOA+1),A
+  0163    3E 07                         LD      A,07H           ; KEIN INTERRUPT
+  0165    D3 1D                         OUT     (PIOA+1),A
+  0167    AF                            XOR     A
+  0168    D3 1C                         OUT     (PIOA),A        ; PIOA = 00H, EPROM ON
+                                
+                                        ; PORT B
+  016A    3E 0F                         LD      A,0FH           ; MODE 0 ALS AUSGANG
+  016C    D3 1F                         OUT     (PIOB+1),A
+  016E    3E 07                         LD      A,07H           ; KEIN INTERRUPT
+  0170    D3 1F                         OUT     (PIOB+1),A
+  0172    3E 1F                         LD      A,1FH           ; FUER UHR SRAM
+  0174    D3 1E                         OUT     (PIOB),A        ; PIOB =00H
+  0176    3E 80                         LD      A,MSTIME        ; SET INT INTERVAL H<-> L
+  0178    D3 9F                         OUT     (URCS+1FH),A
+  017A    AF                            XOR     A
+  017B    D3 1E                         OUT     (PIOB),A        ;  PIO B =00H
+                                
+                                ;-------------------------------
+                                ; NOCH IM EPROM
+                                ;   EPROM NACH SRAM BANK1 KOPIEREN 1:1
+                                
+  017D    21 0000                       LD HL,0000H             ; PROG.ADR. QUELLE EPROM
+  0180    11 0000                       LD DE,0000H             ; ZIEL RAM
+  0183    01 8000                       LD BC,08000H            ; PROG. L[NGE 32K
+  0186    ED B0                         LDIR                    ; ]BERTRGEN IN RAM BANK0
+                                
+  0188    DB 1C                         IN A,(PIOA)
+  018A    CB C7                         SET TAS,A
+  018C    D3 1C                         OUT (PIOA),A            ; SET SRAM WR=BANK1
+                                
+                                ;   EPROM NACH SRAM BANK2 KOPIEREN 1:1
+                                
+  018E    21 0000                       LD HL,0000H             ; PROG.ADR. QUELLE EPROM
+  0191    11 0000                       LD DE,0000H             ; ZIEL RAM
+  0194    01 8000                       LD BC,08000H            ; PROG. L[NGE 32K
+  0197    ED B0                         LDIR                    ; ]BERTRGEN IN RAM BANK1
+                                
+                                ;-------------------------------
+                                ;   EPROM AUSSCHALTEN , AB HIER IM RAM
+                                
+  0199    AF                            XOR A
+  019A    D3 1C                         OUT (PIOA),A            ; BANK0 
+        MACRO-80 3.43   27-Jul-81       PAGE    1-8
+
+
+                                
+                                ;****************
+                                ; AB HIER IM SRAM
+                                ;---------------------------------
+                                ; CTC0 INIT :16=6,51us
+                                
+  019C    3E 47                         LD A,BAUD1
+  019E    D3 10                         OUT (CTC),A     ; REG 0
+  01A0    3E 04                         LD A,TIME1
+  01A2    D3 10                         OUT (CTC),A
+                                 
+                                ;---------------------------------
+                                ;  LCD SET
+                                
+  01A4    3E 80                 LCDS:   LD A,80H        ; COMMAND MODE=OR-MODE & INTERNAL
+  01A6    CD 02D1                       CALL LCD1       ; COMMAND MODE = OR-MODE & INTERNAL CG-ROM
+                                
+                                        ; GRAPHIC HOME ADRESS
+                                
+  01A9    3E 00                         LD A,00
+  01AB    CD 02CD                       CALL LCD0
+  01AE    3E 00                         LD A,00H
+  01B0    CD 02CD                       CALL LCD0
+                                
+                                        ; GRAPHIC HOME AREA
+  01B3    3E 42                         LD A,42H
+  01B5    CD 02D1                       CALL LCD1
+  01B8    3E 1E                         LD A,1EH
+  01BA    CD 02CD                       CALL LCD0
+  01BD    3E 00                         LD A,00H
+  01BF    CD 02CD                       CALL LCD0
+                                
+                                        ; TEXT HOME ADRESSE
+  01C2    3E 43                         LD A,43H
+  01C4    CD 02D1                       CALL LCD1
+  01C7    3E 00                         LD A,00H
+  01C9    CD 02CD                       CALL LCD0
+  01CC    3E 0F                         LD A,0FH
+  01CE    CD 02CD                       CALL LCD0
+                                        
+                                        ; TEXT AREA
+  01D1    3E 40                         LD A,40H
+  01D3    CD 02D1                       CALL LCD1
+  01D6    3E 1E                         LD A,1EH
+  01D8    CD 02CD                       CALL LCD0
+  01DB    3E 00                         LD A,00H
+  01DD    CD 02CD                       CALL LCD0
+                                
+  01E0    3E 41                         LD A,41H
+  01E2    CD 02D1                       CALL LCD1
+                                
+  01E5    3E 94                         LD A,94H
+  01E7    CD 02D1                       CALL LCD1
+                                
+                                ;-------------------------
+                                ;  WATCHDOG INIT
+        MACRO-80 3.43   27-Jul-81       PAGE    1-9
+
+
+                                  
+  01EA    3E DB                         LD A,0DBH       ; TC= 2^22
+                                ;       OUT (WDTCR),A
+  01EC    3E FB                         LD A,0FBH
+                                ;       OUT (WDTER),A
+                                
+                                ;------------------------
+                                ; CTC 84C30 INIT
+                                ;       KANAL 1
+                                
+  01EE                          SIOS:
+                                ;       KANAL 2
+  01EE    3E 47                         LD A,BAUD2
+  01F0    D3 11                         OUT (CTC+1),A
+  01F2    3E 04                         LD A,TIME2
+  01F4    D3 11                         OUT (CTC+1),A
+                                
+                                ;       KANAL 3
+  01F6    3E 47                         LD A,BAUD3
+  01F8    D3 12                         OUT (CTC+2),A
+  01FA    3E 04                         LD A,TIME3
+  01FC    D3 12                         OUT (CTC+2),A
+                                
+                                ;   SIO 84C40 - 43  INIT
+  01FE    3E 18                         LD A,SIORES
+  0200    D3 19                         OUT (SIOA+1),A          ; RESER SIO A
+  0202    D3 1B                         OUT (SIOB+1),A          ; RESET SIO B
+                                
+  0204    3E 04                         LD A,KANAL4             ; REG 4
+  0206    D3 19                         OUT (SIOA+1),A          ; REG.SELECT SIO A
+  0208    D3 1B                         OUT (SIOB+1),A          ; REG.SELECT SIO B
+                                
+  020A    3E 44                         LD A,REG4
+  020C    D3 19                         OUT (SIOA+1),A          ; DATA SIO A
+  020E    D3 1B                         OUT (SIOB+1),A          ; DATA SIO B
+                                
+  0210    3E 03                         LD A,KANAL3             ; REG 3
+  0212    D3 19                         OUT (SIOA+1),A          ; REG.SELECT SIO A
+  0214    D3 1B                         OUT (SIOB+1),A          ; REG.SELECT SIO B
+                                
+  0216    3E C1                         LD A,REG3
+  0218    D3 19                         OUT (SIOA+1),A          ; DATA SIO A
+  021A    D3 1B                         OUT (SIOB+1),A          ; DATA SIO B
+                                
+  021C    3E 05                         LD A,KANAL5             ; REG 5
+  021E    D3 19                         OUT (SIOA+1),A          ; REG.SELECT SIO A
+  0220    D3 1B                         OUT (SIOB+1),A          ; REG.SELECT SIO B
+                                
+  0222    3E EA                         LD A,REG5
+  0224    D3 19                         OUT (SIOA+1),A          ; DATA SIO A
+  0226    D3 1B                         OUT (SIOB+1),A          ; DATA SIO B
+                                
+  0228    3E 01                         LD A,KANAL1             ; REG 1
+  022A    D3 19                         OUT (SIOA+1),A          ; REG.SELECT SIO A
+  022C    D3 1B                         OUT (SIOB+1),A          ; REG.SELECT SIO B
+                                
+        MACRO-80 3.43   27-Jul-81       PAGE    1-10
+
+
+  022E    3E 00                         LD A,REG1
+  0230    D3 19                         OUT (SIOA+1),A          ; DATA SIO A
+  0232    D3 1B                         OUT (SIOB+1),A          ; DATA SIO B
+                                
+  0234    3E 00                         LD A,00H
+  0236    D3 19                         OUT (SIOA+1),A
+  0238    D3 1B                         OUT (SIOB+1),A
+                                
+                                ;------------------------
+                                ; CTC 84C30 EXTERN
+                                ;       KANAL 1
+                                
+  023A    DB 1C                         IN A,(PIOA)
+  023C    CB FF                         SET QA7,A
+  023E    D3 1C                         OUT (PIOA),A            ; EXTERN I/O
+  0240    3E 02                         LD A,02H
+  0242    D3 F5                         OUT (LATCH),A   ; KARTE 02 FREISCHALTEN
+                                
+                                ;---------------------
+  0244    3E 47                         LD A,BAUD1
+  0246    D3 70                         OUT (CTC+EXOFF),A     ; REG 0
+  0248    3E 04                         LD A,TIME1
+  024A    D3 70                         OUT (CTC+EXOFF),A
+                                 
+                                ;       KANAL 2
+  024C    3E 47                         LD A,BAUD2
+  024E    D3 71                         OUT (CTC+EXOFF+1),A
+  0250    3E 04                         LD A,TIME2
+  0252    D3 71                         OUT (CTC+EXOFF+1),A
+                                
+                                ;       KANAL 3
+  0254    3E 47                         LD A,BAUD3
+  0256    D3 72                         OUT (CTC+EXOFF+2),A
+  0258    3E 04                         LD A,TIME3
+  025A    D3 72                         OUT (CTC+EXOFF+2),A
+                                
+                                ;   SIO 84C40 - 43  EXTERN
+  025C    3E 18                         LD A,SIORES
+  025E    D3 79                         OUT (SIOA+EXOFF+1),A          ; RESER SIO A
+  0260    D3 7B                         OUT (SIOB+EXOFF+1),A          ; RESET SIO B
+                                
+  0262    3E 04                         LD A,KANAL4             ; REG 4
+  0264    D3 79                         OUT (SIOA+EXOFF+1),A          ; REG.SELECT SIO A
+  0266    D3 7B                         OUT (SIOB+EXOFF+1),A          ; REG.SELECT SIO B
+                                
+  0268    3E 44                         LD A,REG4
+  026A    D3 79                         OUT (SIOA+EXOFF+1),A          ; DATA SIO A
+  026C    D3 7B                         OUT (SIOB+EXOFF+1),A          ; DATA SIO B
+                                
+  026E    3E 03                         LD A,KANAL3             ; REG 3
+  0270    D3 79                         OUT (SIOA+EXOFF+1),A          ; REG.SELECT SIO A
+  0272    D3 7B                         OUT (SIOB+EXOFF+1),A          ; REG.SELECT SIO B
+                                
+  0274    3E C1                         LD A,REG3
+  0276    D3 79                         OUT (SIOA+EXOFF+1),A          ; DATA SIO A
+  0278    D3 7B                         OUT (SIOB+EXOFF+1),A          ; DATA SIO B
+        MACRO-80 3.43   27-Jul-81       PAGE    1-11
+
+
+                                
+  027A    3E 05                         LD A,KANAL5             ; REG 5
+  027C    D3 79                         OUT (SIOA+EXOFF+1),A          ; REG.SELECT SIO A
+  027E    D3 7B                         OUT (SIOB+EXOFF+1),A          ; REG.SELECT SIO B
+                                
+  0280    3E EA                         LD A,REG5
+  0282    D3 79                         OUT (SIOA+EXOFF+1),A          ; DATA SIO A
+  0284    D3 7B                         OUT (SIOB+EXOFF+1),A          ; DATA SIO B
+                                
+  0286    3E 01                         LD A,KANAL1             ; REG 1
+  0288    D3 79                         OUT (SIOA+EXOFF+1),A          ; REG.SELECT SIO A
+  028A    D3 7B                         OUT (SIOB+EXOFF+1),A          ; REG.SELECT SIO B
+                                
+  028C    3E 00                         LD A,REG1
+  028E    D3 79                         OUT (SIOA+EXOFF+1),A          ; DATA SIO A
+  0290    D3 7B                         OUT (SIOB+EXOFF+1),A          ; DATA SIO B
+                                
+  0292    3E 00                         LD A,00H
+  0294    D3 79                         OUT (SIOA+EXOFF+1),A
+  0296    D3 7B                         OUT (SIOB+EXOFF+1),A
+                                
+  0298    3E 49                         LD A,49H
+  029A    D3 78                         OUT (SIOA+EXOFF),A
+  029C    D3 7A                         OUT (SIOB+EXOFF),A
+                                
+  029E    AF                            XOR A
+  029F    D3 1C                         OUT (PIOA),A            ; BANK0
+                                
+                                ;---------------------------------
+                                
+  02A1    CD 02E7                       CALL LCR        ; CLEAD LCD
+                                
+                                        ; SETZE CURSOR HOME X, Y
+  02A4    3E 1E                         LD A,1EH
+  02A6    CD 02CD                       CALL LCD0
+  02A9    3E 0F                         LD A,0FH
+  02AB    CD 02CD                       CALL LCD0
+  02AE    3E 24                         LD A,24H
+  02B0    CD 02D1                       CALL LCD1
+                                
+  02B3    06 14                         LD B,TXL
+  02B5    21 034B                       LD HL,TEX
+  02B8    CD 02BE                       CALL LCD00
+                                
+  02BB    C3 03C1                       JP BIOS         
+                                
+                                ;-------------------------------
+                                ; STARTTEXT AUF LCD AUSGEBEN
+                                ;-------------------------------
+                                
+  02BE    7E                    LCD00:  LD A,(HL)
+  02BF    D6 20                         SUB 20H
+  02C1    CD 02CD                       CALL LCD0
+  02C4    3E C0                         LD A,0C0H
+  02C6    CD 02D1                       CALL LCD1
+  02C9    23                            INC HL
+        MACRO-80 3.43   27-Jul-81       PAGE    1-12
+
+
+  02CA    10 F2                         DJNZ LCD00
+  02CC    C9                            RET
+                                
+                                ;------------------------------
+                                ; LCD READY
+                                
+  02CD    D3 60                 LCD0:   OUT (LCD),A
+  02CF    18 02                         JR LCDRY
+                                
+  02D1    D3 61                 LCD1:   OUT (LCD+1),A
+                                
+  02D3    C5                    LCDRY:  PUSH BC
+  02D4    06 10                         LD B,10H
+  02D6    DB 10                 LCDRY0: IN A,(CTC)
+  02D8    B9                            CP C
+  02D9    28 FB                         JR Z,LCDRY0
+  02DB    4F                            LD C,A
+  02DC    DB 61                 LCDRY1: IN A,(LCD+1)    ; READ COMMAND
+  02DE    FE 80                         CP 80H
+  02E0    28 03                         JR Z,LCDRY2
+  02E2    10 F2                         DJNZ LCDRY0
+  02E4    37                            SCF             ; ERROR SET CARRY
+  02E5    C1                    LCDRY2: POP BC
+  02E6    C9                            RET
+                                        ;-------------
+                                
+  02E7    06 03                 LCR:    LD B,03H
+  02E9    0E 40                         LD C,40H
+  02EB    3E 00                         LD A,00H
+  02ED    CD 02CD                       CALL LCD0
+  02F0    3E 0F                         LD A,0FH
+  02F2    CD 02CD                       CALL LCD0
+  02F5    3E 24                         LD A,24H
+  02F7    CD 02D1                       CALL LCD1
+  02FA    3E 00                 CR1:    LD A,00H
+  02FC    CD 02CD                       CALL LCD0
+  02FF    3E C0                         LD A,0C0H
+  0301    CD 02D1                       CALL LCD1
+  0304    0D                            DEC C
+  0305    20 F3                         JR NZ,CR1
+  0307    10 F1                         DJNZ CR1
+  0309    C9                            RET
+                                
+                                ;-------------------------------
+                                ; TEXTAUSGABE AUF LCD
+                                ; SETZE CURSOR HOME X, Y
+                                
+  030A                          LPOS:   ;LD A,5AH
+  030A    CD 02CD                       CALL LCD0
+  030D    3E 0F                         LD A,0FH
+  030F    CD 02CD                       CALL LCD0
+  0312    3E 24                         LD A,24H
+  0314    CD 02D1                       CALL LCD1
+                                
+  0317    06 06                         LD B,TDRV
+  0319    21 035F                       LD HL,TEXDR     ; TEST AUSGEBEN
+        MACRO-80 3.43   27-Jul-81       PAGE    1-13
+
+
+  031C    18 A0                         JR LCD00
+                                
+                                ;--------------------------
+                                
+  031E    F5                    LHEX:   PUSH AF
+  031F    C5                            PUSH BC
+  0320    E5                            PUSH HL
+  0321    47                            LD B,A
+  0322    1F                            RRA
+  0323    1F                            RRA
+  0324    1F                            RRA
+  0325    1F                            RRA
+  0326    CD 0336                       CALL LHEX1
+  0329    78                            LD A,B
+  032A    CD 0336                       CALL LHEX1
+  032D    3E 2E                         LD A,2EH
+  032F    CD 0340                       CALL LHEX2
+  0332    E1                            POP HL
+  0333    C1                            POP BC
+  0334    F1                            POP AF
+  0335    C9                            RET
+                                
+                                ;-------------------------
+  0336    E6 0F                 LHEX1:  AND 0FH
+  0338    C6 30                         ADD A,30H
+  033A    FE 3A                         CP 3AH
+  033C    38 02                         JR C,LHEX2
+  033E    C6 07                         ADD A,07H
+  0340    D6 20                 LHEX2:  SUB 20H
+  0342    CD 02CD                       CALL LCD0
+  0345    3E C0                         LD A,0C0H
+  0347    CD 02D1                       CALL LCD1
+  034A    C9                            RET
+                                
+                                ;--------------------------
+                                
+  034B    31 32 38 78           TEX:    DEFM '128x128 LCD-DISPLAY '
+  034F    31 32 38 20           
+  0353    4C 43 44 2D           
+  0357    44 49 53 50           
+  035B    4C 41 59 20           
+  0014                          TXL     EQU $-TEX
+                                
+  035F    53 45 43 3D           TEXDR:  DEFM 'SEC= 0'
+  0363    20 30                 
+  0006                          TDRV    EQU $-TEXDR
+  0365    FF                            DEFB 0FFH
+                                
+                                ;-------------------------------
+                                ; 
+                                
+  0366    42 69 6F 73           STEX:   DEFM 'Bios Start 16.06.07 -> 28.09.15'
+  036A    20 53 74 61           
+  036E    72 74 20 31           
+  0372    36 2E 30 36           
+  0376    2E 30 37 20           
+        MACRO-80 3.43   27-Jul-81       PAGE    1-14
+
+
+  037A    2D 3E 20 32           
+  037E    38 2E 30 39           
+  0382    2E 31 35              
+  001F                          LSTEX   EQU $-STEX
+                                
+  0385    45 6E 64 65           ETEX:   DEFM 'Ende Uebertragung!  '
+  0389    20 55 65 62           
+  038D    65 72 74 72           
+  0391    61 67 75 6E           
+  0395    67 21 20 20           
+  0014                          LETEX   EQU $-ETEX
+                                
+  0399    4D 4D 43 2D           SDNEU:  DEFM 'MMC-Karte Reset     '
+  039D    4B 61 72 74           
+  03A1    65 20 52 65           
+  03A5    73 65 74 20           
+  03A9    20 20 20 20           
+  03AD    4D 4D 43 20           SDOK:   DEFM 'MMC ON              '
+  03B1    4F 4E 20 20           
+  03B5    20 20 20 20           
+  03B9    20 20 20 20           
+  03BD    20 20 20 20           
+  0014                          LSDOK   EQU $-SDOK
+                                
+                                ;--------------------------------
+                                ; NOCH PR]FEN
+                                
+  FFA0                          TSP     EQU 0FFA0H      ; TASK STACK
+  FFA2                          TASKSP  EQU TSP+2
+  FFA4                          TRACKL  EQU TASKSP+2    ; 0FFA4H
+  FFA5                          TRACKH  EQU TRACKL+1    ; ERWEITERUNG F]R MMC - KARTE > 33MB
+  FFA6                          HSTDMA  EQU TRACKH+1    ; BUFFER PORT A (PAL)
+  FFA8                          HSTSEC  EQU HSTDMA+2
+  FFAA                          HSTTRK  EQU HSTSEC+2
+  FFAC                          HSTDSK  EQU HSTTRK+2
+  FFAD                          DRIVE   EQU HSTDSK+1
+  FFAE                          TRACKN  EQU DRIVE+1
+  FFAF                          STATUS  EQU TRACKN+1
+  FFB0                          NBUF    EQU STATUS+1
+  FFB6                          SECBUF  EQU NBUF+6
+  FFB8                          SEKTORLL        EQU SECBUF+2
+  FFB9                          SEKTORLH        EQU SEKTORLL+1
+  FFBA                          SEKTORHL        EQU SEKTORLH+1
+  FFBB                          SEKTORHH        EQU SEKTORHL+1
+                                
+                                ;----------------------
+                                ; BIOS EPROM SP
+                                
+  FFEF                          BIOSSP  EQU 0FFEFH      ; BEI SPRUNG AUS BIOS INS EPROM
+                                
+                                ;----------------------
+                                ; BOOT PARAMETER
+                                
+  FFF0                          FIRST   EQU 0FFF0H      ; 0FFF0H ERSTE SPUR
+  FFF1                          SA      EQU FIRST+1     ; 0FFF1H ERSTER SECTOR
+  FFF2                          SM      EQU SA+1        ; 0FFF2H SEKT/TR
+        MACRO-80 3.43   27-Jul-81       PAGE    1-15
+
+
+  FFF3                          DMA     EQU SM+1        ; 0FFF3H ANFANGSADR.
+  FFF5                          ENA     EQU DMA+2       ; 0FFF5H ENDADR.
+  FFF7                          STARTA  EQU ENA+2       ; 0FFF7H STARTADR.
+  FFF9                          SECL    EQU STARTA+2    ; 0FFF9H SEKTORL[NGE
+                                
+  0007                          DRVS    EQU 07H         ; ANZAHL DER LAUFWERKE
+  0200                          SECSIZE EQU 0200H       ; 512B  C=LOW , B=HIGH
+                                
+                                ;*********************************
+                                ; EPROM ]BERTRAGEN IN RAM (F800H=
+                                
+                                        ; KOPIERE NACH RAM LH BANK1
+  03C1    21 0593               BIOS:   LD HL,START             ; PROG.ADR. QUELLE
+  03C4    11 F814                       LD DE,B1                ; ZIEL RAM
+  03C7    01 07EB                       LD BC,07EBH             ; PROG. L[NGE FFFFH - START(F814)
+  03CA    ED B0                         LDIR                    ; ]BERTRGEN NACH LOW BANK0
+                                
+                                        ;-----------------------
+                                        ; IN BANK1 HIGH SCHREIBEN
+  03CC    DB 1C                         IN A,(PIOA)             ; SRAM UMSCHALTEN AUF HH WRITE
+  03CE    CB 87                         RES TAS,A
+  03D0    CB EF                         SET TA16,A
+  03D2    D3 1C                         OUT (PIOA),A            ; BANK1 HIGH WR EIN
+                                
+                                        ;KOPIERE VOM LL NACH RAM HH BANK2
+  03D4    21 0593                       LD HL,START             ; PROG.ADR. QUELLE
+  03D7    11 F814                       LD DE,B1                ; ZIEL RAM
+  03DA    01 07EB                       LD BC,07EBH             ; PROG. L[NGE
+  03DD    ED B0                         LDIR                    ; ]BERTRGEN NACH HIGH BANK2
+                                
+                                        ;--------------------------
+                                        ; ZUR]CK NACH BANK0 LOW
+                                        ; STACK AUF BANK HIGH SICHERN
+                                        ; R]CKSPRUNGDATEN AUS HIGH INT. 
+                                
+  03DF    31 9000                       LD SP,9000H
+  03E2    21 F83B                       LD HL,BOOT1
+  03E5    E5                            PUSH HL         ; RETI R]CKSPRUNGADRESSE
+  03E6    DD E5                         PUSH IX         ; INHALT RETTEN
+  03E8    ED 73 FFA0                    LD (TSP),SP     ; RETI R]CKSPRUNGADRESSE BANK HH
+  03EC    31 FFA0                       LD SP,TSP
+                                        ;-------------
+                                        ; AKTUELLE CPU SICHERN
+  03EF    F5                            PUSH AF
+  03F0    DB 1C                         IN A,(PIOA)
+  03F2    F5                            PUSH AF
+                                        ;-------------
+                                        ; KARTEN LATCH RETTEN
+  03F3    6F                            LD L,A          ; ZUM ZURUECKSETZEN
+  03F4    CB FF                         SET 7,A
+  03F6    D3 1C                         OUT (PIOA),A
+  03F8    DB F5                         IN A,(LATCH)    ; LETZTE KATRENNUMMER
+  03FA    F5                            PUSH AF
+  03FB    7D                            LD A,L
+  03FC    D3 1C                         OUT (PIOA),A
+                                        ;-------------
+        MACRO-80 3.43   27-Jul-81       PAGE    1-16
+
+
+  03FE    DB 1E                         IN A,(PIOB)
+  0400    F5                            PUSH AF
+                                        ;--------------
+  0401    C5                            PUSH BC
+  0402    D5                            PUSH DE
+  0403    E5                            PUSH HL
+  0404    FD E5                         PUSH IY
+  0406    08                            EX AF,AF'
+  0407    D9                            EXX
+  0408    F5                            PUSH AF
+  0409    C5                            PUSH BC
+  040A    D5                            PUSH DE
+  040B    E5                            PUSH HL
+                                
+                                        ;---------------
+                                        ; CTC 3 MIT INTERRUPT STARTEN
+                                
+  040C    21 FD93                       LD HL,TASK
+  040F    22 F806                       LD (0F806H),HL  ; INT ADRESSE FUER BANK HH
+                                
+  0412    3E 28                         LD A,EOFF       ; BANK0 LL
+  0414    D3 1C                         OUT (PIOA),A
+                                
+  0416    31 9000                       LD SP,9000H
+  0419    22 F806                       LD (0F806H),HL  ; INT ADRESSE FUER BANK LL
+                                
+                                        ;-----------------
+                                        ; CTC3 INTERRUPT INIT
+                                
+  041C    21 F800                       LD HL,0F800H
+  041F    7C                            LD A,H
+  0420    ED 47                         LD I,A
+  0422    3E 47                         LD A,BAUD4
+  0424    D3 13                         OUT (CTC+3),A
+  0426    3E FF                         LD A,TIME4
+  0428    D3 13                         OUT (CTC+3),A
+  042A    7D                            LD A,L
+  042B    D3 10                         OUT (CTC),A
+                                
+  042D    AF                            XOR A
+  042E    CB F7                         SET ELATCH,A
+  0430    D3 1C                         OUT (PIOA),A
+  0432    C3 F83B                       JP BOOT1                ; START BOOT
+                                
+                                ;--------------------------
+                                ; INT CTC3 * COUNT IN I/O SRAM
+                                
+  0435    DB 1E                 TASKEP: IN A,(PIOB)
+  0437    F5                            PUSH AF
+  0438    3E 1F                         LD A,1FH
+  043A    D3 1E                         OUT (PIOB),A            ; I/O SRAM BANK SETZEN
+  043C    DB 9E                         IN A,(URCS+1EH)
+  043E    3D                            DEC A
+  043F    28 04                         JR Z,TAS01
+  0441    D3 80                         OUT (URCS),A
+  0443    18 2A                         JR TASK14
+        MACRO-80 3.43   27-Jul-81       PAGE    1-17
+
+
+                                        ;-------------------
+                                        ; >1ms DANN AUSFUEHREN
+                                
+  0445    DB 9E                 TAS01:  IN A,(URCS+1EH)
+  0447    D3 9E                         OUT (URCS+1EH),A        ; TIMER NEU STARTEN
+  0449    C5                            PUSH BC
+  044A    D5                            PUSH DE
+  044B    E5                            PUSH HL
+  044C    FD E5                         PUSH IY
+  044E    08                            EX AF,AF'
+  044F    D9                            EXX
+  0450    F5                            PUSH AF
+  0451    C5                            PUSH BC
+  0452    D5                            PUSH DE
+  0453    E5                            PUSH HL
+                                        ;-------------
+                                
+  0454    DB 1C                         IN A,(PIOA)
+  0456    CB 6F                         BIT TA16,A
+  0458    20 04                         JR NZ,TAS12
+  045A    CB EF                         SET TA16,A
+  045C    18 02                         JR TAS13
+  045E    CB AF                 TAS12:  RES TA16,A
+  0460    CB 87                 TAS13:  RES TAS,A
+  0462    D3 1C                         OUT (PIOA),A
+                                        ;--------------
+                                
+  0464    E5                            PUSH HL
+  0465    D5                            PUSH DE
+  0466    C5                            PUSH BC
+  0467    F5                            PUSH AF
+  0468    D9                            EXX
+  0469    08                            EX AF,AF'
+  046A    FD E1                         POP IY
+  046C    E1                            POP HL
+  046D    D1                            POP DE
+  046E    C1                            POP BC
+  046F    F1                    TASK14: POP AF
+  0470    D3 1E                         OUT (PIOB),A
+  0472    C3 FDAB                       JP TASK1
+                                
+                                ;--------------------------------
+                                ; FDC STARTINITIALISIERUNG DD DRIVE A
+                                ;------------------------
+                                        ; FDC RESET HARDWAR
+  0475    CD 055C               INITIA: CALL RY01               ; FDC HARTWARE RESET
+  0478    06 0A                         LD B,0AH                ; 10*8=80 MAL FFH TAKTEN
+  047A    DB 21                         IN A,(FDC+1)            ; ERST SD_CS AUF 1 SETZEN DISABLE
+  047C    CB 47                         BIT 0,A                 ; MMC-KARTEN SELEKT
+  047E    28 2E                         JR Z,SDERR
+                                ;
+                                ; SENDE MINDESTENS 74 CLOCK-SIGNALE
+                                ;
+  0480    3E FF                 SD_INI: LD A,0FFH
+  0482    D3 21                         OUT (FDC+1),A           ; NUMBER OF DUMMY CLOCK
+  0484    10 FA                         DJNZ SD_INI
+        MACRO-80 3.43   27-Jul-81       PAGE    1-18
+
+
+                                ;
+                                ; SEND COMD0 GO_IDLE_STATA
+                                ;
+  0486    01 0000                       LD BC,0000H
+  0489    CD FB37                       CALL SETTRK
+  048C    CD FB4A                       CALL SETSEC
+  048F    21 FDCA                       LD HL,SDRES             ; MMC-KARTE RESET GO_IDLE_STATA COMMAND
+  0492    CD F9FF                       CALL COMUP              ; NUR COMMAND LADEN
+  0495    CD F978                       CALL COMMAND
+  0498    21 FF4A                       LD HL,STAT0
+  049B    CD FD7F                       CALL TEXTOUT
+  049E    CD F99B                       CALL GETBYTE            ; MMC STATUS READ
+  04A1    CD FD21                       CALL STFDC              ; SEND DISPLAY
+  04A4    21 FF63                       LD HL,STAT0E
+  04A7    CD FD7F                       CALL TEXTOUT
+  04AA    CB 47                         BIT 0,A
+  04AC    20 08                         JR NZ,SDINI1            ; CHECK BIT 0= 1 ->
+                                        ;--------
+  04AE    21 FF1A               SDERR:  LD HL,RESNEU
+  04B1    CD FD7F                       CALL TEXTOUT
+  04B4    18 BF                         JR INITIA               ; INIT MMC NEW START
+                                ;
+                                ; SEND CMD1
+                                ; CART FROM IDLE-MODE ON BETRIEBSMODE SET
+                                ;
+                                
+  04B6    21 FF4A               SDINI1: LD HL,STAT0
+  04B9    CD FD7F                       CALL TEXTOUT
+  04BC    21 FDD0                       LD HL,SDCMD1    ; CMD1 KARTE READ X
+  04BF    CD F9FF                       CALL COMUP      ; NUR COMMAND LADEN
+  04C2    CD F978                       CALL COMMAND
+  04C5    CD F99B                       CALL GETBYTE
+  04C8    CD FD21                       CALL STFDC
+  04CB    21 FF63                       LD HL,STAT0E
+  04CE    CD FD7F                       CALL TEXTOUT
+  04D1    E6 FF                         AND 0FFH
+  04D3    20 E1                         JR NZ,SDINI1    ; STATUS NOT 00 ->
+                                ;
+                                ; SEND CMD16 DATENBLOCK 512BYTE
+                                ; SET BLOCKGOESSE AUF 512BYTE
+                                ;
+                                ;       LD HL,STAT0
+                                ;       CALL TEXTOUT
+  04D5    21 FDE2                       LD HL,SDBL
+  04D8    CD F9FF                       CALL COMUP      ; NUR COMMAND LADEN
+  04DB    CD F978                       CALL COMMAND
+  04DE    06 FF                         LD B,0FFH
+  04E0    10 FE                         DJNZ $
+  04E2    CD F99B                       CALL GETBYTE
+  04E5    CD FD21                       CALL STFDC
+                                ;       LD HL,STAT0E
+                                ;       CALL TEXTOUT
+  04E8    E6 FF                         AND 0FFH
+  04EA    20 C2                         JR NZ,SDERR
+                                ;----------------------
+  04EC    21 FF4A                       LD HL,STAT0
+        MACRO-80 3.43   27-Jul-81       PAGE    1-19
+
+
+  04EF    CD FD7F                       CALL TEXTOUT
+  04F2    21 FDD6                       LD HL,SDID
+  04F5    CD F9FF                       CALL COMUP      ; NUR COMMAND LADEN
+  04F8    CD F978                       CALL COMMAND
+  04FB    06 FF                         LD B,0FFH
+  04FD    10 FE                         DJNZ $
+  04FF    CD F99B                       CALL GETBYTE
+  0502    CD FD21                       CALL STFDC
+  0505    21 FF63                       LD HL,STAT0E
+  0508    CD FD7F                       CALL TEXTOUT
+  050B    E6 FF                         AND 0FFH
+  050D    20 9F                         JR NZ,SDERR
+                                
+                                ;---------------------------
+                                ; KARTEN ID-NUMMER LESEN
+                                
+  050F    21 FF69                       LD HL,STAT3
+  0512    CD FD7F                       CALL TEXTOUT
+  0515    06 14                         LD B,14H
+  0517    CD F99B               SDRDID: CALL GETBYTE
+  051A    CD FD54                       CALL HEX
+  051D    10 F8                         DJNZ SDRDID
+  051F    21 FF7C                       LD HL,STAT3E
+  0522    CD FD7F                       CALL TEXTOUT
+                                ;----------------------------
+                                
+  0525    21 FF4A                       LD HL,STAT0
+  0528    CD FD7F                       CALL TEXTOUT
+  052B    21 FDDC                       LD HL,SDCSD     ; MMC-KARTE SPEZIFISCHE DATEN
+  052E    CD F9FF                       CALL COMUP
+  0531    CD F978                       CALL COMMAND
+  0534    CD F99B                       CALL GETBYTE
+  0537    CD FD21                       CALL STFDC
+  053A    21 FF63                       LD HL,STAT0E
+  053D    CD FD7F                       CALL TEXTOUT
+  0540    CB 47                         BIT 0,A
+  0542    C2 04AE                       JP NZ,SDERR
+                                ;---------------------------
+                                ; MMC-KARTE SPEZIFISCHE DATEN LESEN
+                                
+  0545    21 FF69                       LD HL,STAT3
+  0548    CD FD7F                       CALL TEXTOUT
+  054B    06 14                         LD B,14H
+  054D    CD F99B               SDCSD0: CALL GETBYTE
+  0550    CD FD54                       CALL    HEX
+  0553    10 F8                         DJNZ    SDCSD0
+  0555    21 FF7C                       LD      HL,STAT3E
+  0558    CD FD7F                       CALL    TEXTOUT
+                                ;       CALL    HOME0
+  055B    C9                            RET
+                                
+                                ;---------------------------
+                                ;       FDC READY MASTE STATUS BIT 7
+                                
+  055C    F5                    RY01:   PUSH    AF
+  055D    3E 0F                         LD      A,0FH
+        MACRO-80 3.43   27-Jul-81       PAGE    1-20
+
+
+  055F    CD FD0D                       CALL    FDCHRES
+  0562    3E 1F                         LD      A,1FH
+  0564    CD 0569                       CALL    PAUS
+  0567    F1                            POP     AF
+  0568    C9                            RET
+                                ;----------------------------------
+                                ; PAUSE
+                                
+  0569    00                    PAUS:   NOP
+  056A    C5                    F08FB:  PUSH BC
+  056B    D5                            PUSH DE
+  056C    F5                    PAUS01: PUSH AF
+  056D    0E CF                         LD C,0CFH
+  056F    06 40                 FDCP2:  LD B,40H
+  0571    DB 13                 FDCP1:  IN A,(CTC+3)
+  0573    B9                            CP C
+  0574    28 FB                         JR Z,FDCP1
+  0576    4F                            LD C,A
+  0577    10 F8                         DJNZ FDCP1
+  0579    1D                            DEC E
+  057A    C2 056F                       JP NZ,FDCP2
+  057D    F1                            POP AF
+  057E    3D                            DEC A
+  057F    20 EB                         JR NZ,PAUS01
+  0581    D1                            POP DE
+  0582    C1                            POP BC
+  0583    C9                            RET
+                                
+                                ;------------------------------
+                                ; STATUSTEXT IN A,(C) ALS BIN[R AUSGEBEN
+                                
+  0584    21 FEEC               MSTAT:  LD      HL,MSGTF        ; STATUSTEXT 1.H[LFTE   CALL    TEXTOUT         ; TEXT VOR REST ENDE AUSG.
+  0587    ED 78                         IN      A,(C)           ; DANACH STATUS LESEN
+  0589    CD FD21                       CALL    STFDC           ; AKKU IN BCD AUSGEBEN AB CURSOR
+  058C    21 FF0B                       LD      HL,MSGTE        ; STATUSTEST 2. H[LFTE
+  058F    CD FD7F                       CALL    TEXTOUT         ; AUSGEBEN
+  0592    C9                            RET
+                                ;------------------------------
+                                
+  0593                          START: 
+                                
+                                .PHASE 0F814H
+                                
+                                ;----------------------------------
+                                ; SPRUNGTABELLE F]R DISK-COMMAND
+                                ;----------------------------------
+                                
+  F814    C3 FA4E               B1:     JP READ         ; F814H
+  F817    C3 FACF               B2:     JP WRITE        ; F817H
+  F81A    C3 F99E               B3:     JP HOME         ; F81AH
+  F81D    C3 FCA3               B4:     JP CONOUT       ; F81DH
+  F820    C3 FCC0               B5:     JP CONIN        ; F820H
+  F823    C3 FCDA               B6:     JP CONST        ; F823H
+  F826    C3 FC7E               B7:     JP LIST         ; F826H
+  F829    C3 FC78               B8:     JP LISTST       ; F829H
+  F82C    C3 FD92               B9:     JP LCDOUT       ; F82CH 
+        MACRO-80 3.43   27-Jul-81       PAGE    1-21
+
+
+  F82F    C3 FB3C               B10:    JP SETDMA       ; F82FH
+  F832    C3 FB37               B11:    JP SETTRK       ; F832H
+  F835    C3 FB4A               B12:    JP SETSEC       ; F835H
+  F838    C3 FB32               B13:    JP SELDSK       ; F838H
+                                
+                                ;----------------------------
+                                
+  F83B    F3                    BOOT1:  DI
+  F83C    31 9000                       LD SP,09000H
+  F83F    21 FDF4                       LD HL,MSGTS             ; TEXT
+  F842    CD FD7F                       CALL TEXTOUT            ; TEXT AUSGEBEN
+  F845    21 0000                       LD HL,0000H             ; CLEAR I/O & DRIVE BYTES
+  F848    22 0003                       LD (IOBYTE),HL
+  F84B    CD 0475                       CALL INITIA
+  F84E    38 EB                         JR C,BOOT1
+                                
+  F850    21 03AD                       LD HL,SDOK
+  F853    CD FC31                       CALL IDERES
+  F856    0E 01                         LD C,01H
+  F858    06 00                         LD B,00H
+  F85A    CD FB4A               BOOTN:  CALL SETSEC             ; START SEKTOR
+  F85D    01 0200                       LD BC,SECSIZE      ; SEKTORL[NGE
+  F860    ED 43 FFF9                    LD (SECL),BC
+  F864    01 FFF0                       LD BC,FIRST     ; 
+  F867    CD FB3C                       CALL SETDMA             ; ERSTE SPUR
+  F86A    01 0000                       LD BC,0000H
+  F86D    CD FB37                       CALL SETTRK             ; ERSTER SEKTOR
+  F870    CD FB32                       CALL SELDSK             ; AUS LAUFWERK A: SETZEN
+  F873    ED 43 FFA4                    LD (TRACKL),BC
+  F877    CD FA4E                       CALL READ               ; TRK,SEK 0,1 LESEN =DISK DATEN
+  F87A    38 BF                         JR C,BOOT1              ; FEHLER ->
+                                ;       LD A,(FIRST)
+                                ;       CALL HEX
+                                ;       LD BC,(HSTSEC)
+                                ;       INC BC
+                                ;       LD A,(FIRST)
+                                ;       CP 0E5H
+                                ;       JR Z,BOOTN
+                                ;       LD A,C
+                                ;       LD (SA),A
+  F87C    21 FF82                       LD HL,CRLF
+  F87F    CD FD7F                       CALL TEXTOUT
+                                ;_ TEST
+  F882    3A FFB0                       LD A,(NBUF)
+  F885    CD FD54                       CALL HEX
+  F888    3A FFB1                       LD A,(NBUF+1)
+  F88B    CD FD54                       CALL HEX
+  F88E    3A FFB2                       LD A,(NBUF+2)
+  F891    CD FD54                       CALL HEX
+  F894    3A FFB3                       LD A,(NBUF+3)
+  F897    CD FD54                       CALL HEX
+  F89A    3A FFB4                       LD A,(NBUF+4)
+  F89D    CD FD54                       CALL HEX
+  F8A0    3A FFB5                       LD A,(NBUF+5)
+  F8A3    CD FD54                       CALL HEX
+                                        ;-------------
+        MACRO-80 3.43   27-Jul-81       PAGE    1-22
+
+
+                                        ; STARTSEQUENZ VON KARTE GELADEN
+                                        ; FIRST:00, SA:02, SM:1F, DMA:00D4
+                                        ; ENA:FFF2, STARTA:00EA, SECL:0002
+                                
+  F8A6    21 FFF0               DBOOT:  LD HL,FIRST
+  F8A9    06 0D                         LD B,0DH
+  F8AB    7E                    DTEST:  LD A,(HL)
+  F8AC    CD FD54                       CALL HEX
+  F8AF    23                            INC HL
+  F8B0    10 F9                         DJNZ DTEST
+                                        ;-----------
+  F8B2    21 FF82                       LD      HL,CRLF
+  F8B5    CD FD7F                       CALL    TEXTOUT
+  F8B8    2A FFF5                       LD      HL,(ENA)        ; ENDADRESSE
+  F8BB    ED 5B FFF3                    LD      DE,(DMA)        ; ANFANGSADRESSE
+  F8BF    ED 52                         SBC     HL,DE           ; SPEICHERBEDARF IN HL
+  F8C1    CA F942                       JP      Z,NOSYS         ; AUSGANG OHNE SYSTEM
+  F8C4    ED 5B FFF9                    LD      DE,(SECL)       ; SEKTORL[NGE
+  F8C8    ED 4B FFF3                    LD BC,(DMA)
+  F8CC    CD FB3C                       CALL SETDMA
+  F8CF    01 0000                       LD BC,0000H             ; SEKTORENZ[HLER
+  F8D2    CD FB37                       CALL SETTRK
+  F8D5    CD FB32                       CALL SELDSK
+  F8D8    ED 52                 DIVI:   SBC     HL,DE
+  F8DA    04                            INC     B               ; SEKTOR -> SPEICHERBEDARFSZ[HLER
+  F8DB    38 04                         JR      C,DIV
+  F8DD    28 02                         JR      Z,DIV
+  F8DF    18 F7                         JR      DIVI
+                                        ;-------------
+  F8E1    3A FFF1               DIV:    LD      A,(SA)           ;SEKTOR VON BOOT DISK/MMC
+  F8E4    57                            LD      D,A
+  F8E5                          DB01:
+  F8E5    4A                            LD      C,D
+  F8E6    CD FB41                       CALL    SETSEC8         ; SET 8BIT LOW 
+  F8E9    C5                            PUSH BC
+  F8EA    CD FA4E                       CALL READ
+  F8ED    DA F83B                       JP C,BOOT1              ; FEHLER -> NEUSTART
+  F8F0    21 FF82                       LD      HL,CRLF
+  F8F3    CD FD7F                       CALL    TEXTOUT
+  F8F6    2A FFA6                       LD      HL,(HSTDMA)
+                                ;       JR DB04
+                                        ;----------
+                                        ; ZUM TEST AUSGABE  BOOTSEKTOREB
+  F8F9    7C                            LD A,H          ; HIGH DMA ADR.
+  F8FA    CD FD54                       CALL HEX
+  F8FD    7E                            LD A,(HL)       ; INHALT DMA ADR.
+  F8FE    CD FD54                       CALL HEX
+  F901    7A                            LD A,D          ; SEKTOR LOW 8BIT
+  F902    CD FD54                       CALL HEX
+                                        ; MMC ADR. 32BIT SEC+TRK SHIFT 512
+  F905    3A FFB1                       LD A,(NBUF+1)
+  F908    CD FD54                       CALL HEX
+  F90B    3A FFB2                       LD A,(NBUF+2)
+  F90E    CD FD54                       CALL HEX
+  F911    3A FFB3                       LD A,(NBUF+3)
+  F914    CD FD54                       CALL HEX
+        MACRO-80 3.43   27-Jul-81       PAGE    1-23
+
+
+  F917    3A FFB4                       LD A,(NBUF+4)
+  F91A    CD FD54                       CALL HEX
+                                        ;-----------
+  F91D    ED 4B FFF9            DB04:   LD      BC,(SECL)
+  F921    09                            ADD     HL,BC           ; ADR. AKTUELL
+  F922    22 FFA6                       LD      (HSTDMA),HL
+  F925    C1                            POP     BC
+                                ;       JR      NZ,DBOOT
+  F926    05                            DEC     B
+  F927    28 22                         JR      Z,DB02          ; ERFOLGREICH SYSTEM GELADEN
+  F929    14                            INC     D
+  F92A    3A FFF2                       LD      A,(SM)
+  F92D    BA                            CP      D               ; SPURENDE
+  F92E    38 02                         JR      C,DB03
+  F930    18 B3                         JR      DB01
+                                        ;-------------
+  F932    16 01                 DB03:   LD      D,1
+  F934    C5                            PUSH    BC
+  F935    ED 4B FFAA                    LD      BC,(HSTTRK)
+  F939    0C                            INC     C
+  F93A    06 00                         LD      B,0
+  F93C    CD FB37                       CALL    SETTRK
+  F93F    C1                            POP     BC
+  F940    18 A3                         JR      DB01
+                                        ;-------------
+  F942    21 FF31               NOSYS:  LD      HL,SYSERR
+  F945    CD FD7F                       CALL    TEXTOUT
+  F948    C3 F83B                       JP      BOOT1           ; FEHLER -> NEUSTART
+                                
+  F94B    21 FF82               DB02:   LD HL,CRLF
+  F94E    CD FD7F                       CALL TEXTOUT
+  F951    CD FCFC                       CALL MEPROM             ; EPROM AUS
+  F954    2A FFF7                       LD HL,(STARTA)
+  F957    E9                            JP (HL)
+                                ;--------------------------------
+                                ;_ TEST
+  F958    CD FD54               GROUP:  CALL HEX
+  F95B    F5                            PUSH AF
+  F95C    78                            LD A,B
+  F95D    CD FD54                       CALL HEX
+  F960    79                            LD A,C
+  F961    CD FD54                       CALL HEX
+  F964    7A                            LD A,D
+  F965    CD FD54                       CALL HEX
+  F968    7B                            LD A,E
+  F969    CD FD54                       CALL HEX
+  F96C    0E 0A                         LD C,0AH
+  F96E    CD FCA3                       CALL CONOUT
+  F971    0E 0D                         LD C,0DH
+  F973    CD FCA3                       CALL CONOUT
+  F976    F1                            POP AF
+  F977    C9                            RET
+                                ;-
+                                ;--------------------------------
+                                ; **** COMMAND ****
+                                ; COMMANDO AUF TABELLE IN HL AUSGEBEN
+        MACRO-80 3.43   27-Jul-81       PAGE    1-24
+
+
+                                
+  F978    C5                    COMMAND:PUSH    BC
+  F979    E5                            PUSH    HL
+  F97A    DB 20                         IN A,(FDC)
+  F97C    CD F98D                       CALL CARDDELAY          ;SD-CS AUF 0 SETZEN
+                                
+  F97F    21 FFB0                       LD      HL,NBUF
+  F982    06 06                         LD      B,06H
+  F984    7E                    SDCOM:  LD      A,(HL)          ; KARTEN ERKENNEN
+  F985    D3 20                         OUT (FDC),A             ; WAIT IN HARDWARE
+  F987    23                            INC     HL
+  F988    00                            NOP
+  F989    10 F9                         DJNZ    SDCOM
+  F98B    E1                            POP     HL
+  F98C    C1                            POP     BC
+                                        ;----------------
+  F98D    3E FF                 CARDDELAY: LD A,0FFH
+  F98F    D3 20                 SENDBYTE: OUT (FDC),A
+                                
+  F991    C9                            RET
+                                        ;-----------------
+  F992    F5                    SD_STATUS: PUSH AF
+  F993    DB 20                 SS1:    IN A,(FDC)
+  F995    FE 00                         CP 0            ;BIT 0,A
+  F997    20 FA                         JR NZ,SS1
+  F999    F1                            POP AF
+  F99A    C9                            RET
+                                        ;-----------------
+  F99B    DB 20                 GETBYTE: IN A,(FDC)
+  F99D    C9                            RET
+                                ;--------------------------------
+                                ;        *** HOME ***
+                                ;  KOPF AUF SPUR NULL MIT VERIFY
+                                
+  F99E    3A FFAD               HOME:   LD      A,(DRIVE)
+  F9A1    E6 0F                         AND     0FH             ; NUR DRIVE SELEKT
+  F9A3    FE 00                         CP      0
+  F9A5    20 1B                         JR      NZ,HOMHD
+  F9A7    18 19                         JR      HOMHD
+  F9A9    C5                            PUSH    BC
+  F9AA    D5                            PUSH    DE
+  F9AB    E5                            PUSH    HL
+  F9AC    01 0000                       LD      BC,0000H            ;
+  F9AF    CD FB37                       CALL    SETTRK
+  F9B2    01 0000                       LD      BC,0000H
+  F9B5    CD FB4A                       CALL    SETSEC
+  F9B8    AF                            XOR     A
+  F9B9    32 FFA4                       LD      (TRACKL),A
+  F9BC    32 FFA5                       LD      (TRACKH),A
+  F9BF    E1                            POP     HL
+  F9C0    D1                            POP     DE
+  F9C1    C1                            POP     BC
+  F9C2    AF                    HOMHD:  XOR     A
+  F9C3    C9                            RET
+                                
+                                ;--------------------------------
+        MACRO-80 3.43   27-Jul-81       PAGE    1-25
+
+
+                                ; **** MOVE HEAD ****
+                                ; KOPFBEWEGUNG HOMEBZW.AUF AUSGEW. SPUR
+                                
+  F9C4    C5                    HOME0:  PUSH    BC
+  F9C5    E5                            PUSH    HL
+  F9C6    01 0000                       LD      BC,0000H
+                                
+  F9C9    21 FDD0               TI1:    LD      HL,SDCMD1       ; CMD1 KARTE READY?
+  F9CC    CD F9FF                       CALL    COMUP           ; IN BUFFER LADEN
+  F9CF    CD F978                       CALL    COMMAND
+  F9D2    DB 20                         IN      A,(FDC)
+  F9D4    32 FFAF                       LD      (STATUS),A
+  F9D7    CB 47                         BIT     0,A
+  F9D9    28 20                         JR      Z,HOK0         ; PR]FE OB SD-KARTE READY
+  F9DB    10 EC                         DJNZ    TI1
+  F9DD    21 FDCA                       LD      HL,SDRES        ;MMC-KARTE RESET COMMAND
+  F9E0    CD F9FF                       CALL    COMUP
+  F9E3    CD F978                       CALL    COMMAND
+  F9E6    06 0F                         LD      B,0FH           ; PAUSE ZEIT
+  F9E8    10 FE                         DJNZ $
+  F9EA    DB 20                         IN      A,(FDC)
+  F9EC    CB 47                         BIT     0,A
+  F9EE    28 0B                         JR      Z,HOK0
+  F9F0    0D                            DEC     C
+  F9F1    28 02                         JR      Z,HOKE0
+  F9F3    18 D4                         JR      TI1
+                                
+  F9F5    E1                    HOKE0:  POP     HL
+  F9F6    C1                            POP     BC
+  F9F7    AF                    HOKE:   XOR     A
+  F9F8    3C                            INC     A               ; DAMIT Z-FLAG =1
+  F9F9    37                            SCF                     ; SET C-FLAG =1 FEHLER
+  F9FA    C9                            RET
+                                
+  F9FB    E1                    HOK0:   POP     HL
+  F9FC    C1                            POP     BC
+  F9FD    AF                    HOK:    XOR     A               ; L\SCHE Z, C-FLAG =0
+  F9FE    C9                            RET
+                                ;-------------------------------
+                                ; EPROM AUS?  COMMAND AUS (HL) -> (DE) NBUF LADEN
+                                ; ??? DIREKT AUS COMMAND LADEN ???
+                                
+  F9FF    D5                    COMUP:  PUSH    DE
+  FA00    C5                            PUSH    BC
+  FA01    11 FFB0                       LD      DE,NBUF
+  FA04    01 0006                       LD      BC,0006H
+  FA07    ED B0                         LDIR
+  FA09    C1                            POP     BC
+  FA0A    D1                            POP     DE
+  FA0B    C9                            RET
+                                
+                                ;--------------------------------
+                                ; **** SEC ****
+                                
+  FA0C    EB                    SECTRAN:EX     DE,HL
+  FA0D    09                            ADD     HL,BC
+        MACRO-80 3.43   27-Jul-81       PAGE    1-26
+
+
+  FA0E    6E                            LD      L,(HL)
+  FA0F    26 00                         LD      H,0
+  FA11    C9                            RET
+                                
+                                ;--------------------------------
+                                ; ***** READ *****
+                                ; SEKTOR LESEN
+                                ; IDE HD
+                                
+  FA12                          READHST:
+  FA12    DB 1C                         IN A,(PIOA)
+  FA14    CB FF                         SET 7,A         ; BIT 7 EXT/INT
+  FA16    D3 1C                         OUT (PIOA),A    ; EXTERN UNSCHALTEN
+  FA18    C5                            PUSH BC
+  FA19    D5                            PUSH DE
+  FA1A    ED 4B FFAA                    LD BC,(HSTTRK)
+  FA1E    ED 5B FFA8                    LD DE,(HSTSEC)          ; B= HS3-HS0 LOGICAL HEAD SELECT BITS
+  FA22    CD FBC3                       CALL IDE_SET_LBA        ; SET UP TASK FILE
+  FA25    D1                            POP DE
+  FA26    C1                            POP BC
+  FA27    3E 20                         LD A,CMD_READSEC
+  FA29    D3 FF                         OUT (IDECMD),A
+  FA2B    CD FBF0                       CALL WAITDRQ
+  FA2E    38 15                         JR C,READH2
+  FA30    2A FFA6                       LD HL,(HSTDMA)
+  FA33    0E F8                         LD C,IDEDAT
+  FA35    06 00                         LD B,0          ; 1x256BYTE
+  FA37    ED B2                         INIR            ; 8BIT 256 BYTE LESEN VON HD
+  FA39    06 00                         LD B,0          ; AGAIN 2x256BYTE = 512BYTE
+  FA3B    ED B2                         INIR            ; 8BIT 256 BYTE LESEN VON HD
+                                
+  FA3D    F1                    CHKERR: POP AF          ; PIOA HOLEN
+  FA3E    E1                            POP HL          ; ZURUECK AUS READ: PUSH
+  FA3F    D1                            POP DE
+  FA40    C1                            POP BC
+  FA41    F5                            PUSH AF         ; PIOA NOCH MAL RETTEN
+  FA42    C3 FC11                       JP WAITRDY
+                                        ;---------------
+  FA45    F1                    READH2: POP AF
+  FA46    D3 1C                         OUT (PIOA),A    ; PIOA AUF ZURUECKSET.
+  FA48    E1                            POP HL          ; ZURUECK AUS READ: PUSH
+  FA49    D1                            POP DE
+  FA4A    C1                            POP BC
+  FA4B    C3 F9F7                       JP HOKE         ; AUSGANG ERROR
+                                
+                                        ;-----------------
+                                        ; MMC-KARTE READ
+                                
+  FA4E    C5                    READ:   PUSH    BC
+  FA4F    D5                            PUSH    DE
+  FA50    E5                            PUSH    HL
+  FA51    DB 1C                         IN A,(PIOA)
+  FA53    F5                            PUSH AF
+  FA54    CD FC45                       CALL SELDR
+  FA57    3A FFAD                       LD A,(DRIVE)
+  FA5A    CB 7F                         BIT 7,A
+        MACRO-80 3.43   27-Jul-81       PAGE    1-27
+
+
+  FA5C    20 B4                         JR NZ,READHST   ; -> ZU IDE FESTPLATTE
+                                        ;----------------------
+                                        ; MMC-KARTE 
+  FA5E    DB 1C                         IN A,(PIOA)
+  FA60    CB BF                         RES 7,A
+  FA62    D3 1C                         OUT (PIOA),A 
+  FA64    21 FDEE                       LD  HL,SDREAD               ;MMC-KARTE READCOMMAND LESEN
+  FA67    CD F9FF                       CALL COMUP
+  FA6A    CD FB8A                       CALL RWSETUP    
+  FA6D    CD FB4F                       CALL SL32               ; SHIFT 9BIT LINKS =512BIT SECTOR
+  FA70    CD F978                       CALL COMMAND
+  FA73    DB 20                         IN A,(FDC)
+  FA75    FE 00                         CP 0
+  FA77    28 02                         JR Z,RD01
+  FA79    18 CA                 RD00:   JR READH2
+                                
+                                ;-------------------------
+                                ;  MMC-KARTE 512 BYTE DATEN LESEN
+                                
+  FA7B    DB 20                 RD01:   IN A,(FDC)
+  FA7D    FE FE                         CP 0FEH
+  FA7F    20 FA                         JR NZ,RD01
+  FA81    2A FFA6                       LD HL,(HSTDMA)
+  FA84    ED 4B FFF9                    LD BC,(SECL)
+  FA88    DB 20                 SDRD02: IN A,(FDC)
+  FA8A    77                            LD (HL),A
+  FA8B    23                            INC HL
+  FA8C    0D                            DEC C
+  FA8D    20 F9                         JR NZ,SDRD02
+  FA8F    10 F7                         DJNZ SDRD02
+  FA91    CD F98D                       CALL CARDDELAY
+  FA94    CD F98D                       CALL CARDDELAY
+                                        ;----------------
+  FA97    F1                    SDRD03: POP AF
+  FA98    D3 1C                         OUT (PIOA),A
+  FA9A    E1                            POP     HL
+  FA9B    D1                            POP     DE
+  FA9C    C1                            POP     BC
+  FA9D    C3 F9FD                       JP      HOK
+                                
+                                ;------------------------
+                                ; **** WRITE ****
+                                        
+                                        ;IDE HD
+  FAA0                          WRITEHST:
+  FAA0    DB 1C                         IN A,(PIOA)
+  FAA2    CB FF                         SET 7,A         ; BIT 7 EXT/INT
+  FAA4    D3 1C                         OUT (PIOA),A    ; TASK UNSCHALTEN
+  FAA6    C5                            PUSH BC
+  FAA7    D5                            PUSH DE
+  FAA8    ED 4B FFAA                    LD BC,(HSTTRK)
+  FAAC    ED 5B FFA8                    LD DE,(HSTSEC)          ; B= HS3-HS0 LOGICAL HEAD SELECT BITS
+  FAB0    CD FBC3                       CALL IDE_SET_LBA        ; SET UP TASK FILE
+  FAB3    D1                            POP DE
+  FAB4    C1                            POP BC
+  FAB5    3E 30                         LD A,CMD_WRITESEC
+        MACRO-80 3.43   27-Jul-81       PAGE    1-28
+
+
+  FAB7    D3 FF                         OUT (IDECMD),A
+  FAB9    CD FBF0                       CALL WAITDRQ
+  FABC    DA FA45                       JP C,READH2
+  FABF    2A FFA6                       LD HL,(HSTDMA)
+  FAC2    0E F8                         LD C,IDEDAT
+  FAC4    06 00                         LD B,0          ; 1x256BYTE
+  FAC6    ED B3                         OTIR            ; 8BIT 256 BYTE SCHREIBEN VON SRAM
+  FAC8    06 00                         LD B,0          ; AGAIN 2x256BYTE = 512BYTE
+  FACA    ED B3                         OTIR
+  FACC    C3 FA3D                       JP CHKERR       
+                                ;----------------------
+                                        ; MMC-KARTE
+  FACF    C5                    WRITE:  PUSH    BC
+  FAD0    D5                            PUSH    DE
+  FAD1    E5                            PUSH    HL
+  FAD2    DB 1C                         IN A,(PIOA)
+  FAD4    F5                            PUSH AF
+  FAD5    CD FC45                       CALL SELDR      
+  FAD8    3A FFAD                       LD      A,(DRIVE)
+  FADB    CB 7F                         BIT     7,A
+  FADD    20 C1                         JR      NZ,WRITEHST
+                                        ;----------------
+  FADF    DB 1C                         IN A,(PIOA)
+  FAE1    CB BF                         RES 7,A
+  FAE3    D3 1C                         OUT (PIOA),A 
+                                ;       CALL SELTR
+                                ;       JR C,WR00
+  FAE5    21 FDE8                       LD HL,SDWRITE           ;MMC-KARTE DATEN LEDEN
+  FAE8    CD F9FF                       CALL COMUP
+  FAEB    CD FB8A                       CALL RWSETUP            ;STARTADRESSE VORBEREITEN
+  FAEE    CD FB4F                       CALL SL32
+  FAF1    CD F978                       CALL COMMAND
+  FAF4    DB 20                         IN A,(FDC)
+  FAF6    FE 00                         CP 0
+  FAF8    28 03                         JR Z,WR01
+  FAFA    C3 FA45               WR00:   JP READH2
+                                
+                                ;-------------------------
+                                ;  MMC-KARTE 512 BYTE DATEN SCHREIBEN
+                                
+  FAFD    CD F98D               WR01:   CALL CARDDELAY
+  FB00    CD F98D                       CALL CARDDELAY         ; AM ENDE 2 BYTE OHNE BEDEUTUNG
+  FB03    3E FE                         LD A,0FEH               ; START BYTE WRITE
+  FB05    CD F98F                       CALL SENDBYTE
+                                        ;--------------
+  FB08    2A FFA6                       LD HL,(HSTDMA)
+  FB0B    ED 4B FFF9                    LD BC,(SECL)
+  FB0F    7E                    SDWR01: LD A,(HL)
+  FB10    D3 20                         OUT (FDC),A
+  FB12    23                            INC HL
+  FB13    0D                            DEC C
+  FB14    20 F9                         JR NZ,SDWR01
+  FB16    10 F7                         DJNZ SDWR01
+  FB18    CD F98D                       CALL CARDDELAY
+  FB1B    CD F98D                       CALL CARDDELAY         ; AM ENDE 2 BYTE OHNE BEDEUTUNG
+  FB1E    DB 20                 SDWR02: IN      A,(FDC)
+        MACRO-80 3.43   27-Jul-81       PAGE    1-29
+
+
+  FB20    E6 1F                         AND     1FH
+  FB22    FE 05                         CP      05H
+  FB24    20 D4                         JR      NZ,WR00         ; FEHLER
+  FB26    CD F98D               SDWR03: CALL CARDDELAY
+  FB29    DB 20                         IN      A,(FDC)
+  FB2B    FE FF                         CP      0FFH
+  FB2D    20 F7                         JR      NZ,SDWR03
+  FB2F    C3 FA97                       JP SDRD03               ; ENDE
+                                
+                                ;-------------------------------
+                                ; ***** SETDSKL *****
+                                ; EINGANG C=LAUFWERKNUMMER
+                                ; AUSGANG (NDRIVE)=LAUFWERKNUMMER
+                                
+  FB32    79                    SELDSK: LD      A,C
+  FB33    32 FFAC                       LD      (HSTDSK),A      ;PHYSIK.NUMMER
+  FB36    C9                            RET
+                                ;--------------------------------
+                                ; NEUER TRACK
+                                
+  FB37    ED 43 FFAA            SETTRK: LD      (HSTTRK),BC
+  FB3B    C9                            RET
+                                ;--------------------------------
+                                ;  SETZE DMA
+                                
+  FB3C    ED 43 FFA6            SETDMA: LD      (HSTDMA),BC
+  FB40    C9                            RET
+                                ;------------------------------
+                                ; SEKTORNUMMER SETZEN
+                                
+  FB41    C5                    SETSEC8: PUSH BC
+  FB42    06 00                         LD B,0          ; HEAD SELECT
+  FB44    ED 43 FFA8                    LD (HSTSEC),BC
+  FB48    C1                            POP BC
+  FB49    C9                            RET
+                                ;---------------------------
+                                ; C= SECTOR, B= HEAD SELECT
+                                
+  FB4A    ED 43 FFA8            SETSEC: LD (HSTSEC),BC
+  FB4E    C9                            RET
+                                ;-------------------------------
+                                ; READ/WRITE SETUP ROUTINE
+                                ; CREATES AN MMC COMPATIBLE BUFFER ADDRESS FOR THE TRACK AND
+                                ; SECTOR NUMBER PASSEG FROM CP/M
+                                ;--------------------------------
+                                ; ADRESSE >512 MMC BLOCK 9BIT SHIFT BERECHNEN
+                                
+  FB4F    DD E5                 SL32:   PUSH IX
+  FB51    C5                            PUSH BC
+  FB52    D5                            PUSH DE
+  FB53    E5                            PUSH HL
+  FB54    06 09                         LD B,09H        ; SHIFT 32 BIT
+  FB56    DD 21 FFB0                    LD IX,NBUF
+  FB5A    DD CB 01 26           SL321:  SLA (IX+1)
+  FB5E    DD CB 02 26                   SLA (IX+2)
+  FB62    38 02                         JR C,SL01
+        MACRO-80 3.43   27-Jul-81       PAGE    1-30
+
+
+  FB64    18 04                         JR SL322
+  FB66    DD CB 01 C6           SL01:   SET 0,(IX+1)
+  FB6A    DD CB 03 26           SL322:  SLA (IX+3)
+  FB6E    38 02                         JR C,SL02
+  FB70    18 04                         JR SL323
+  FB72    DD CB 02 C6           SL02:   SET 0,(IX+2)
+  FB76    DD CB 04 26           SL323:  SLA (IX+4)
+  FB7A    38 02                         JR C,SL03
+  FB7C    18 04                         JR SL324
+  FB7E    DD CB 03 C6           SL03:   SET 0,(IX+3)
+  FB82    10 D6                 SL324:  DJNZ SL321
+  FB84    E1                            POP HL
+  FB85    D1                            POP DE
+  FB86    C1                            POP BC
+  FB87    DD E1                         POP IX
+  FB89    C9                            RET
+                                ;----------------------------------
+                                ; 3 BIT SHIFT LEFT. (=8D)
+                                ; ENTRY: N/A
+                                ; EXIT:  N/A
+                                ; DESTROYS: AF, B, IX
+                                
+  FB8A                          RWSETUP:
+  FB8A    DD E5                         PUSH IX
+  FB8C    C5                            PUSH BC
+  FB8D    D5                            PUSH DE
+  FB8E    E5                            PUSH HL
+  FB8F    01 0000                       LD BC,0000H
+  FB92    2A FFAA                       LD HL,(HSTTRK)
+  FB95    3A FFF2                       LD A,(SM)       ; ZUM SHIF ZUBSTIMMEN
+  FB98    B7                            OR A
+  FB99    1F                    RW02:   RRA             ; A * FAKTOR HL*2 RECHTS
+  FB9A    B7                            OR A
+  FB9B    28 06                         JR Z,RW03
+  FB9D    29                            ADD HL,HL       ; *2 SHIFT LINKS
+  FB9E    DC FBC1                       CALL C,RW01
+  FBA1    18 F6                         JR RW02
+                                        ;-----------
+  FBA3    ED 5B FFA8            RW03:   LD DE,(HSTSEC)
+  FBA7    19                            ADD HL,DE       ; ADD TRACK + SECTOR
+  FBA8    DC FBC1                       CALL C,RW01
+                                        ;----------------
+                                        ; FUER IDE HDD
+  FBAB    DD 21 FFB0                    LD IX,NBUF      ; 4 BYTE OF MEMORY
+                                ; KOEPFE IN B VON SECTOR NOCH SELECT = AND 7FH
+                                ; BC FUER GROESSEREN SPEICHER
+  FBAF    DD 70 01                      LD (IX+1),B
+  FBB2    DD 71 02                      LD (IX+2),C
+  FBB5    DD 74 03                      LD (IX+3),H
+  FBB8    DD 75 04                      LD (IX+4),L
+  FBBB    E1                            POP HL
+  FBBC    D1                            POP DE
+  FBBD    C1                            POP BC
+  FBBE    DD E1                         POP IX
+  FBC0    C9                            RET
+  FBC1    03                    RW01:   INC BC          ; BEI UEBERLAUF
+        MACRO-80 3.43   27-Jul-81       PAGE    1-31
+
+
+  FBC2    C9                            RET
+                                
+                                ;-------------------------------
+                                ; ### IDE ROUTINES ###
+                                ;-------------------------------
+                                ; SET SEKTOR COUNT AND LBA REGISTER OF THE DRIVE.
+                                ; REGISTER BC = TRACK AND DE=SECTOR  CONTAIN THE SECTOR ADDRESS
+                                ; (LBA 3, 2, 1 AND 0).
+                                
+  FBC3                          IDE_SET_LBA:
+  FBC3    DB FF                         IN A,(IDESTAT)
+  FBC5    17                            RLA
+  FBC6    38 FB                         JR C,IDE_SET_LBA
+                                        ;-------
+  FBC8    F5                            PUSH AF
+  FBC9    18 05                         JR IDE_SET01
+  FBCB    3E 49                         LD A,'I'
+  FBCD    CD F958                       CALL GROUP
+                                
+  FBD0                          IDE_SET01:
+  FBD0    3E 01                         LD A,1
+  FBD2    D3 FA                         OUT (IDESCNT),A
+  FBD4    78                            LD A,B
+  FBD5    D3 FD                         OUT (IDECHI),A          ; TRACK HIGH
+  FBD7    79                            LD A,C
+  FBD8    D3 FC                         OUT (IDECLO),A          ; TRACK LOW
+  FBDA    7B                            LD A,E
+  FBDB    D3 FB                         OUT (IDESNUM),A         ; SECTOR
+                                ;       LD A,D
+                                ;       AND 0FH         
+                                ;       LD D,A
+  FBDD    3A FFAD                       LD A,(DRIVE)
+  FBE0    E6 0F                         AND 0FH         ; HS0 - HS3 SELECT
+  FBE2    3D                            DEC A
+                                        
+                                ;       OR D            ; LBA + HEAD 
+  FBE3    57                            LD D,A          ; 4BIT LOW
+  FBE4    3A FFAD                       LD A,(DRIVE)
+  FBE7    E6 F0                         AND 0F0H        ; LBA, SLAVE/MASTER 
+  FBE9    B2                            OR D            ; 4BIT HIGH
+  FBEA    CB FF                         SET 7,A
+  FBEC    D3 FE                         OUT (IDESDH),A
+  FBEE    F1                            POP AF
+  FBEF    C9                            RET
+                                        
+                                ;------------------------------
+                                ; WAIT READY FOR DATA
+                                ; BIT 3 IS SET WHEN IT IS
+                                
+  FBF0                          WAITDRQ:
+  FBF0    0E C8                         LD C,200
+  FBF2    06 C8                         LD B,200
+  FBF4    AF                            XOR A           ; CARRY  C= 0
+  FBF5    DB FF                 WAITDR1:IN A,(IDECMD)
+  FBF7    CB 5F                         BIT 3,A
+  FBF9    C0                            RET NZ          ;,WAITEND
+        MACRO-80 3.43   27-Jul-81       PAGE    1-32
+
+
+                                        ;
+                                        ;
+  FBFA    10 F9                         DJNZ WAITDR1
+  FBFC    0D                            DEC C
+  FBFD    20 F6                         JR NZ,WAITDR1
+  FBFF    37                            SCF             ; CARRY C=1
+  FC00    C9                            RET
+                                        
+                                ;------------------------------
+                                ; WAIT FOR THE CONTROLLER TO NOT BE BUSY WITH A COMMAND
+                                ; IF BIT 7 IS SET, THE CONTROLLER IS BUSY
+                                
+  FC01                          WAITBSY:
+  FC01    0E C8                         LD C,200        ; DELAY VALUE FOR MILISECONDS
+  FC03    06 C8                         LD B,200                ; TENTHS OF SECONDS
+  FC05    DB FF                 WAITBS1:IN A,(IDECMD)
+  FC07    CB 7F                         BIT 7,A         ; BUSY BIT SET
+  FC09    C8                            RET Z           ; NOT BUSY -> JUMP ON OUT
+  FC0A    10 F9                         DJNZ WAITBS1
+  FC0C    0D                            DEC C
+  FC0D    20 F6                         JR NZ,WAITBS1
+  FC0F    0C                            INC C           ; Z=1
+  FC10    C9                            RET
+                                
+                                ;------------------------------
+                                ; WAIT FOR THE CONTROLLER TO BE RADY FOR A COMMAND
+                                ; BIT 6 IS SET WHEN THE DRIVE IS READY
+                                
+  FC11    CD FC01               WAITRDY:CALL WAITBSY
+  FC14    20 0F                         JR NZ,WAITERR
+  FC16    0E C8                         LD C,200        ; DELAY VALUE FOR MILISECONDS
+  FC18    06 C8                         LD B,200                ; TENTHS OF SECONDS
+  FC1A    DB FF                 WAITRD1:IN A,(IDECMD)
+  FC1C    CB 77                         BIT 6,A         
+  FC1E    20 0B                         JR NZ,WAITEND   
+  FC20    10 F8                         DJNZ WAITRD1
+  FC22    0D                            DEC C
+  FC23    20 F5                         JR NZ,WAITRD1
+                                        ;------------
+  FC25                          WAITERR:
+  FC25    F1                            POP AF
+  FC26    D3 1C                         OUT (PIOA),A
+  FC28    C3 F9F7                       JP HOKE         ; AUSGANG ERROR
+                                        ;------------
+  FC2B                          WAITEND:
+  FC2B    F1                            POP AF
+  FC2C    D3 1C                         OUT (PIOA),A
+  FC2E    C3 F9FD                       JP HOK
+                                
+                                ;-------------------------------
+                                ; IDE-FESTPLATTE RESET
+                                
+  FC31    CD FC36               IDERES: CALL IDERES1
+  FC34    18 CB                         JR WAITBSY
+                                
+  FC36    C5                    IDERES1:PUSH BC
+        MACRO-80 3.43   27-Jul-81       PAGE    1-33
+
+
+  FC37    3E 06                         LD A,06
+  FC39    D3 F6                         OUT (IDEDOR),A
+  FC3B    06 00                         LD B,0
+  FC3D    10 FE                         DJNZ $
+  FC3F    3E 02                         LD A,02
+  FC41    D3 F6                         OUT (IDEDOR),A
+  FC43    C1                            POP BC
+  FC44    C9                            RET
+                                
+                                ;-------------------------------
+                                ;  LAUFWERK FESTLEGEN
+                                
+  FC45    D5                    SELDR:  PUSH    DE
+  FC46    E5                            PUSH    HL
+  FC47    21 FFAC                       LD      HL,HSTDSK       ; NEW DRIVE
+  FC4A    3A FFAD                       LD      A,(DRIVE)       ; DRIVE CURRENT
+  FC4D    E6 0F                         AND     0FH
+  FC4F    57                            LD      D,A             ; MAX 16 DRIVE
+  FC50    7E                            LD      A,(HL)          ; CP/M DRIVE
+  FC51    E6 0F                         AND     0FH
+  FC53    5F                            LD      E,A
+  FC54    BA                            CP      D
+  FC55    28 1E                         JR      Z,SELRET        ; DRIVE SCHON SELECT
+  FC57    16 00                         LD      D,0
+  FC59    21 FDC2                       LD      HL,TABLE
+  FC5C    19                            ADD     HL,DE           ; DRIVE SELECT
+  FC5D    7E                            LD      A,(HL)
+  FC5E    E6 F0                         AND 0F0H
+  FC60    B3                            OR E                    ; IN E = DRIVE CP/M
+  FC61    32 FFAD                       LD      (DRIVE),A       ; NEW DRIVE SET LBA, SLAVE/MASTER
+  FC64    E6 80                         AND     80H             ; SET = EXTERN BUS
+  FC66    57                            LD      D,A
+  FC67    DB 1C                         IN      A,(PIOA)
+  FC69    CB BF                         RES     7,A             ; BIT 7 EXT/INT
+  FC6B    B2                            OR      D       
+  FC6C    D3 1C                         OUT     (PIOA),A        ; TASK UNSCHALTEN
+  FC6E    E6 80                         AND     80H
+  FC70    28 03                         JR      Z,SELRET
+  FC72    CD FC36                       CALL    IDERES1         ; DRIVE EXTERN RESET
+  FC75    E1                    SELRET: POP     HL
+  FC76    D1                            POP     DE
+  FC77    C9                            RET
+                                
+                                ;----------------
+                                ; ZEICHEN IN C DRUCKEN
+                                
+  FC78    0E 24                 LISTST: LD C,'$'
+  FC7A    CD FCA3                       CALL CONOUT
+  FC7D    C9                            RET  ;?
+  FC7E    E5                    LIST:   PUSH HL
+  FC7F    DD E5                         PUSH IX
+  FC81    DD 21 0000                    LD IX,0
+  FC85    DD 39                         ADD IX,SP       
+  FC87    31 EA00                       LD SP,0EA00H            ; NEUER STACK >8000
+  FC8A    DD E5                         PUSH IX
+  FC8C    DB 1C                         IN A,(PIOA)
+        MACRO-80 3.43   27-Jul-81       PAGE    1-34
+
+
+  FC8E    F5                            PUSH AF
+  FC8F    CB B7                         RES ELATCH,A            ; EPROM EIN
+  FC91    D3 1C                         OUT (PIOA),A
+  FC93    D5                            PUSH DE
+  FC94    59                            LD E,C                  ; ZEICHEN C NACH E RETTEN
+  FC95    CD 00C5                       CALL PRINT              ; ZEICHEN IN E AUSGEBEN
+  FC98    D1                            POP DE
+  FC99    20 57                         JR NZ,CONST0
+  FC9B    F1                            POP AF
+  FC9C    CB F7                         SET ELATCH,A            ; EPROM SICHER AUS
+  FC9E    D3 1C                         OUT (PIOA),A
+  FCA0    C3 0000                       JP 0H                   ; WARMSTART 
+                                ;----------------
+                                ; ZEICHEN IN C AUSGEBEN
+                                
+  FCA3    E5                    CONOUT: PUSH HL
+  FCA4    DD E5                         PUSH IX
+  FCA6    DD 21 0000                    LD IX,0
+  FCAA    DD 39                         ADD IX,SP       
+  FCAC    31 EA00                       LD SP,0EA00H            ; NEUER STACK >8000
+  FCAF    DD E5                         PUSH IX
+  FCB1    DB 1C                         IN A,(PIOA)
+  FCB3    F5                            PUSH AF
+  FCB4    CB B7                         RES ELATCH,A            ; EPROM EIN
+  FCB6    D3 1C                         OUT (PIOA),A
+  FCB8    D5                            PUSH DE
+  FCB9    59                            LD E,C                  ; ZEICHEN C NACH E RETTEN
+  FCBA    CD 004A                       CALL OUT0               ; ZEICHEN IN E AUSGEBEN
+  FCBD    D1                            POP DE
+  FCBE    18 32                         JR CONST0
+                                
+                                ;----------------
+                                ; INPUT NEUES ZEICHEN
+                                
+  FCC0    E5                    CONIN:  PUSH HL
+  FCC1    DD E5                         PUSH IX
+  FCC3    DD 21 0000                    LD IX,00
+  FCC7    DD 39                         ADD IX,SP
+  FCC9    31 EA00                       LD SP,0EA00H    ; NEUER STACK >8000
+  FCCC    DD E5                         PUSH IX
+  FCCE    DB 1C                         IN A,(PIOA)
+  FCD0    F5                            PUSH AF
+  FCD1    CB B7                         RES ELATCH,A            ; EPROM EIN
+  FCD3    D3 1C                         OUT (PIOA),A
+  FCD5    CD 0069                       CALL INP0               ; ZEICHEN IN C EINLESEN
+  FCD8    18 18                         JR CONST0
+                                
+                                ;----------------
+                                ; PRUEFE OB TASTE GEDRUECKT WURDE
+                                
+  FCDA    E5                    CONST:  PUSH HL
+  FCDB    DD E5                         PUSH IX
+  FCDD    DD 21 0000                    LD IX,00
+  FCE1    DD 39                         ADD IX,SP
+  FCE3    31 EA00                       LD SP,0EA00H    ; NEUER STACK >8000
+  FCE6    DD E5                         PUSH IX
+        MACRO-80 3.43   27-Jul-81       PAGE    1-35
+
+
+  FCE8    DB 1C                         IN A,(PIOA)
+  FCEA    F5                            PUSH AF
+  FCEB    CB B7                         RES ELATCH,A            ; EPROM EIN
+  FCED    D3 1C                         OUT (PIOA),A
+  FCEF    CD 0095                       CALL PKEY       
+  FCF2    F1                    CONST0: POP AF
+  FCF3    D3 1C                         OUT (PIOA),A
+  FCF5    E1                            POP HL                  ; IX NACH HL LADEN
+  FCF6    F9                            LD SP,HL
+  FCF7    DD E1                         POP IX
+  FCF9    E1                            POP HL
+  FCFA    79                            LD A,C                  ; ZEICHEN IN A ZURUECK
+  FCFB    C9                            RET
+                                
+                                ;--------------------------------
+                                ; EPROM / RAM 0-32k UMSCHALTUNG
+                                ; PIOA = PA6
+                                
+  FCFC    DB 1C                 MEPROM: IN A,(PIOA)
+  FCFE    18 08                         JR EPR2
+                                
+  FD00    CB 47                 EPROM:  BIT 0,A                 ; EPROM SELEKT
+  FD02    DB 1C                         IN A,(PIOA)
+  FD04    CB B7                         RES ELATCH,A            ; EPROM EIN
+  FD06    28 02                         JR Z,EPR1
+  FD08    CB F7                 EPR2:   SET ELATCH,A            ; EPROM OFF / SRAM ON
+  FD0A    D3 1C                 EPR1:   OUT (PIOA),A
+  FD0C    C9                            RET
+                                 
+                                ;--------------------------------
+                                ; FDC HARTWARE RESET
+                                ;--------------------------------
+                                
+  FD0D                          FDCHRES:
+  FD0D    F5                            PUSH AF
+  FD0E    3E 47                         LD A,47H                ; WATCHDOG RESET
+                                ;       OUT (WDTCR),A
+  FD10    DB 1C                         IN A,(PIOA)             ; AUF PIOA ALTER WERT
+  FD12    CB 9F                         RES 3,A                 ; FDC RESET BIT AKTIV
+  FD14    D3 1C                         OUT (PIOA),A            ; WIEDER AUSGEBEN AN PIOA
+  FD16    00                            NOP                     ; MIN 250NS RESET
+  FD17    00                            NOP
+  FD18    00                            NOP
+  FD19    DB 1C                         IN A,(PIOA)
+  FD1B    CB DF                         SET 3,A                 ; RESET BIT ZUR]CKSETZEN ENDE
+  FD1D    D3 1C                         OUT (PIOA),A            ; AUSGEBEN AN PIOA
+  FD1F    F1                            POP AF
+  FD20    C9                            RET
+                                ;--------------------------------
+                                ; STATUS AUSGABE IN BIN[R
+                                ;--------------------------------
+  FD21    E5                    STFDC:  PUSH HL
+  FD22    D5                            PUSH DE
+  FD23    C5                            PUSH BC
+  FD24    F5                            PUSH AF
+  FD25    57                            LD D,A          ;RETTEN
+        MACRO-80 3.43   27-Jul-81       PAGE    1-36
+
+
+  FD26    1E 08                         LD E,8H         ; BITANZAHL ZUM DARSTELLEN
+  FD28    CB 7A                 STA0:   BIT 7,D
+  FD2A    28 04                         JR Z,STA1
+  FD2C    3E 31                         LD A,31H        ; ASCII =1
+  FD2E    18 02                         JR STA2
+  FD30    3E 30                 STA1:   LD A,30H        ; ASCII =0
+  FD32    D5                    STA2:   PUSH DE
+  FD33    4F                            LD C,A
+  FD34    CD FCA3                       CALL CONOUT
+  FD37    D1                            POP DE
+  FD38    CB 02                         RLC D
+  FD3A    1D                            DEC E
+  FD3B    20 EB                         JR NZ,STA0
+  FD3D    0E 2E                         LD C,2EH        ; ABSCHLUSS MIT PUNKT
+  FD3F    CD FCA3                       CALL CONOUT
+  FD42    F1                            POP AF
+  FD43    C1                            POP BC
+  FD44    D1                            POP DE
+  FD45    E1                            POP HL
+  FD46    C9                            RET
+                                
+                                ;--------------------------------
+                                ; ASCII / MELDUNG AUSGEBEN
+                                
+  FD47    7E                    MSTX:   LD      A,(HL)
+  FD48    FE FF                         CP      0FFH
+  FD4A    C8                            RET     Z
+  FD4B    E5                            PUSH    HL
+  FD4C    4F                            LD      C,A
+  FD4D    CD FCA3                       CALL CONOUT
+  FD50    E1                            POP     HL
+  FD51    23                            INC     HL
+  FD52    18 F3                         JR      MSTX
+                                ;--------------------------------
+                                ; TEXTAUSGABE AUF SIO A
+                                
+  FD54    F5                    HEX:    PUSH    AF
+  FD55    C5                            PUSH    BC
+  FD56    D5                            PUSH    DE
+  FD57    E5                            PUSH    HL
+  FD58    47                            LD      B,A
+  FD59    1F                            RRA
+  FD5A    1F                            RRA
+  FD5B    1F                            RRA
+  FD5C    1F                            RRA
+  FD5D    CD FD6E                       CALL    HEX1
+  FD60    78                            LD      A,B
+  FD61    CD FD6E                       CALL    HEX1
+  FD64    0E 2E                         LD      C,2EH
+  FD66    CD FCA3                       CALL CONOUT
+  FD69    E1                            POP     HL
+  FD6A    D1                            POP     DE
+  FD6B    C1                            POP     BC
+  FD6C    F1                            POP     AF
+  FD6D    C9                            RET
+                                        ;-------------
+        MACRO-80 3.43   27-Jul-81       PAGE    1-37
+
+
+  FD6E    E6 0F                 HEX1:   AND     0FH
+  FD70    C6 30                         ADD     A,30H
+  FD72    FE 3A                         CP      3AH
+  FD74    38 02                         JR      C,HEX2
+  FD76    C6 07                         ADD     A,07H
+  FD78    C5                    HEX2:   PUSH BC
+  FD79    4F                            LD C,A
+  FD7A    CD FCA3                       CALL    CONOUT
+  FD7D    C1                            POP BC
+  FD7E    C9                            RET
+                                
+                                ;--------------------------------
+                                
+  FD7F    F5                    TEXTOUT:PUSH AF
+  FD80    7E                    TEXT1:  LD A,(HL)
+  FD81    FE FF                         CP 0FFH
+  FD83    28 0B                         JR Z,TEXT2
+  FD85    E5                            PUSH HL
+  FD86    C5                            PUSH BC
+  FD87    4F                            LD C,A
+  FD88    CD FCA3                       CALL CONOUT
+  FD8B    C1                            POP BC
+  FD8C    E1                            POP HL
+  FD8D    23                            INC HL
+  FD8E    18 F0                         JR TEXT1
+  FD90    F1                    TEXT2:  POP AF
+  FD91    C9                            RET
+                                
+                                ;------------------
+                                ; LCD 128X128  C AUSGEBEN
+                                
+  FD92                          LCDOUT: 
+                                ;IN A,(PIOA)
+                                ;       PUSH AF
+                                ;       RES 7,A
+                                ;       OUT (PIOA),A
+                                ;       LD C,'L'
+                                ;       CALL CONOUT
+                                ;       POP AF
+                                ;       OUT (PIOA),A    
+  FD92    C9                            RET
+                                ;--------------------------------
+                                ; TASK INTERRUPT ROUTINE
+                                ; RETTEN ALLER REGISTER
+                                
+  FD93    DD E5                 TASK:   PUSH IX
+  FD95    ED 73 FFA0                    LD (TSP),SP     ; ZEICHEN RETTEN
+  FD99    31 FFA0                       LD SP,TSP       ; NEUER STACK
+  FD9C    F5                            PUSH AF
+  FD9D    DB 1C                         IN A,(PIOA)
+  FD9F    CB 87                         RES TAS,A
+  FDA1    F5                            PUSH AF
+  FDA2    CB BF                         RES QA7,A
+  FDA4    CB B7                         RES ELATCH,A
+  FDA6    D3 1C                         OUT (PIOA),A
+  FDA8    C3 0435                       JP TASKEP
+        MACRO-80 3.43   27-Jul-81       PAGE    1-38
+
+
+                                        ;--------------
+  FDAB    F1                    TASK1:  POP AF
+  FDAC    D3 1C                         OUT (PIOA),A
+  FDAE    F1                            POP AF
+  FDAF    DD 2A FFA0                    LD IX,(TSP)
+  FDB3    DD F9                         LD SP,IX        ; ZEIGER
+  FDB5    DD E1                         POP IX  
+  FDB7    ED 4D                         RETI
+                                
+                                ;--------------------------------
+  FDB9    0000                  STACK:  DEFW 0000H              ; STACKPOINTER RETTEN
+  FDBB    0000                  BSTACK: DEFW 0000H              ; STACK FEUR EPROM EIN
+  FDBD    0000                  RSTACK: DEFW 0000H              ; STACK FUER EPROM AUS
+  FDBF    00 00                 CPUF:   DEFB    0,0
+  FDC1    00                    SEQ:    DEFB    0
+                                
+                                ;---------------------
+                                ;! BIT 7 F]R 0= INT 1= EXT DRIVE SELECT
+                                ; BIT 6 LBA = LOGICAL BLOCK ADDRESSING BIT( 1=LBA MODE, 0=CHS MODE)
+                                ; BIT 4 D=DRIVE DESTIGNATION BIT 0= MASTER,1= SLAVE)
+                                ; BIT 3-0 HS3-HS0 = STARTING HEAD NUMBER
+                                 
+  FDC2    00                    TABLE:  DEFB 00H                ; LAUFWERK A:
+  FDC3    A1                            DEFB 0A1H               ; LAUFWERK B:
+  FDC4    A2                            DEFB 0A2H               ; LAUFWERK C:
+  FDC5    A3                            DEFB 0A3H               ; LAUFWERK D:
+  FDC6    E4                            DEFB 0E4H               ; LAUFWERK E:
+  FDC7    E5                            DEFB 0E5H               ; LAUFWERK F:
+  FDC8    E6                            DEFB 0E6H               ; LAUFWERK G:
+  FDC9    F7                            DEFB 0F7H               ; LAUFWERK 2 SLAVE H:
+                                ;--------------------------------
+                                
+  FDCA    40 00 00 00           SDRES:  DEFB GO_IDLE_STATE,00H,00H,00H,00H,95H
+  FDCE    00 95                 
+  FDD0    41 00 00 00           SDCMD1: DEFB SEND_OP_COND,00H,00H,00H,00H,01H
+  FDD4    00 01                 
+  FDD6    4A 00 00 00           SDID:   DEFB 04AH,00H,00H,00H,00H,0FFH
+  FDDA    00 FF                 
+  FDDC    49 00 00 00           SDCSD:  DEFB 049H,00H,00H,00H,00H,0FFH
+  FDE0    00 FF                 
+  FDE2    50 00 00 02           SDBL:   DEFB SDBLOCK,00H,00H,02H,00H,01H
+  FDE6    00 01                 
+  FDE8    58 00 00 00           SDWRITE:DEFB WRITE_BLOCK,00H,00H,00H,00H,01H            ;WRITE_BLOCK
+  FDEC    00 01                 
+  FDEE    51 00 00 00           SDREAD: DEFB READ_SINGLE_BLOCK,00H,00H,00H,00H,01H      ;READ_SINGLE_BLOCK
+  FDF2    00 01                 
+                                
+                                ;------------------------
+                                
+  FDF4    0A                    MSGTS:  DEFB 0AH
+  FDF5    0D                            DEFB 0DH
+  FDF6    2A 2A 20 57                   DEFM '** WINI BOOTMONITOR H.WINTERHALTER  -VERS. 1.0- 15.06.07 **'
+  FDFA    49 4E 49 20           
+  FDFE    42 4F 4F 54           
+  FE02    4D 4F 4E 49           
+  FE06    54 4F 52 20           
+        MACRO-80 3.43   27-Jul-81       PAGE    1-39
+
+
+  FE0A    48 2E 57 49           
+  FE0E    4E 54 45 52           
+  FE12    48 41 4C 54           
+  FE16    45 52 20 20           
+  FE1A    2D 56 45 52           
+  FE1E    53 2E 20 31           
+  FE22    2E 30 2D 20           
+  FE26    31 35 2E 30           
+  FE2A    36 2E 30 37           
+  FE2E    20 2A 2A              
+  FE31    0A                            DEFB 0AH
+  FE32    0D                            DEFB 0DH
+  FE33    2A 2A 20 45                   DEFM '** Erweiterung IDE-Controller       -VERS. 1.1- 28.06.09 **'
+  FE37    72 77 65 69           
+  FE3B    74 65 72 75           
+  FE3F    6E 67 20 49           
+  FE43    44 45 2D 43           
+  FE47    6F 6E 74 72           
+  FE4B    6F 6C 6C 65           
+  FE4F    72 20 20 20           
+  FE53    20 20 20 20           
+  FE57    2D 56 45 52           
+  FE5B    53 2E 20 31           
+  FE5F    2E 31 2D 20           
+  FE63    32 38 2E 30           
+  FE67    36 2E 30 39           
+  FE6B    20 2A 2A              
+  FE6E    0A                            DEFB 0AH
+  FE6F    0D                            DEFB 0DH
+  FE70    2A 2A 20 45                   DEFM '** Erweiterung INTERRUPT            -VERS. 1.1- 20.10.09 **'
+  FE74    72 77 65 69           
+  FE78    74 65 72 75           
+  FE7C    6E 67 20 49           
+  FE80    4E 54 45 52           
+  FE84    52 55 50 54           
+  FE88    20 20 20 20           
+  FE8C    20 20 20 20           
+  FE90    20 20 20 20           
+  FE94    2D 56 45 52           
+  FE98    53 2E 20 31           
+  FE9C    2E 31 2D 20           
+  FEA0    32 30 2E 31           
+  FEA4    30 2E 30 39           
+  FEA8    20 2A 2A              
+  FEAB    0A                            DEFB 0AH
+  FEAC    0D                            DEFB 0DH
+  FEAD    2A 2A 20 44                   DEFM '** Drive A: MMC-Karte anpassen      -VERS. 1.1- 25.01.17 **'
+  FEB1    72 69 76 65           
+  FEB5    20 41 3A 20           
+  FEB9    4D 4D 43 2D           
+  FEBD    4B 61 72 74           
+  FEC1    65 20 61 6E           
+  FEC5    70 61 73 73           
+  FEC9    65 6E 20 20           
+  FECD    20 20 20 20           
+  FED1    2D 56 45 52           
+        MACRO-80 3.43   27-Jul-81       PAGE    1-40
+
+
+  FED5    53 2E 20 31           
+  FED9    2E 31 2D 20           
+  FEDD    32 35 2E 30           
+  FEE1    31 2E 31 37           
+  FEE5    20 2A 2A              
+  FEE8    0A                            DEFB 0AH
+  FEE9    0D                            DEFB 0DH
+  FEEA    FF FF                         DEFB 0FFH,0FFH
+                                
+  FEEC    20 45 53 20           MSGTF:  DEFM ' ES FLOPPY-DRIVE    STATUSM=('
+  FEF0    46 4C 4F 50           
+  FEF4    50 59 2D 44           
+  FEF8    52 49 56 45           
+  FEFC    20 20 20 20           
+  FF00    53 54 41 54           
+  FF04    55 53 4D 3D           
+  FF08    28                    
+  FF09    FF FF                         DEFB 0FFH,0FFH
+  FF0B    29 20                 MSGTE:  DEFM ') '
+  FF0D    0A                            DEFB 0AH
+  FF0E    0D                            DEFB 0DH
+  FF0F    FF FF                         DEFB 0FFH,0FFH
+                                
+  FF11    2A 2D 4E 4D           MNMI:   DEFM '*-NMI-*'
+  FF15    49 2D 2A              
+  FF18    FF FF                         DEFB 0FFH,0FFH
+                                
+  FF1A    20 20 4D 4D           RESNEU: DEFM '  MMC-DRIVE NOT READY'
+  FF1E    43 2D 44 52           
+  FF22    49 56 45 20           
+  FF26    4E 4F 54 20           
+  FF2A    52 45 41 44           
+  FF2E    59                    
+  FF2F    FF FF                         DEFB 0FFH,0FFH
+                                
+  FF31    0A 0D                 SYSERR: DEFB 0AH,0DH
+  FF33    20 20 4D 4D                   DEFM '  MMC-DRIVE NO SYSTEM'
+  FF37    43 2D 44 52           
+  FF3B    49 56 45 20           
+  FF3F    4E 4F 20 53           
+  FF43    59 53 54 45           
+  FF47    4D                    
+  FF48    FF FF                         DEFB 0FFH,0FFH
+                                
+  FF4A    20 20 44 52           STAT0:  DEFM '  DRIVE A:   STATUS0=(.'
+  FF4E    49 56 45 20           
+  FF52    41 3A 20 20           
+  FF56    20 53 54 41           
+  FF5A    54 55 53 30           
+  FF5E    3D 28 2E              
+  FF61    FF FF                         DEFB 0FFH,0FFH
+                                
+  FF63    29 20                 STAT0E: DEFM ') '
+  FF65    0A                            DEFB 0AH
+  FF66    0D                            DEFB 0DH
+  FF67    FF FF                         DEFB 0FFH,0FFH
+        MACRO-80 3.43   27-Jul-81       PAGE    1-41
+
+
+                                
+  FF69    20 20 4D 4D           STAT3:  DEFM '  MMC-DRIVE ID (.'
+  FF6D    43 2D 44 52           
+  FF71    49 56 45 20           
+  FF75    49 44 20 28           
+  FF79    2E                    
+  FF7A    FF FF                         DEFB 0FFH,0FFH
+  FF7C    29 20                 STAT3E: DEFM ') '
+  FF7E    0A                            DEFB 0AH
+  FF7F    0D                            DEFB 0DH
+  FF80    FF FF                         DEFB 0FFH,0FFH
+                                
+  FF82    0A 0D FF FF           CRLF:   DEFB 0AH,0DH,0FFH,0FFH
+                                
+  FF86    13 FF FF              CR:     DEFB 13H,0FFH,0FFH
+  FF89    0F 00 28              SEEKC:  DEFB 0FH,00H,28H
+  0003                          SEEKL   EQU $-SEEKC
+                                
+  FF8C    03 FA ED              SPY:    DEFB 03H,0FAH,0EDH
+  0003                          SPYL    EQU $-SPY
+                                
+  FF8F    0A 0D 20 28           STOP:   DEFB 0AH,0DH,020H,028H,0FFH,029H
+  FF93    FF 29                 
+  FF95    20 53 45 43                   DEFM ' SEC. ERROR '
+  FF99    2E 20 45 52           
+  FF9D    52 4F 52 20           
+  FFA1    0A 0D FF FF                   DEFB 0AH,0DH,0FFH,0FFH
+                                
+  FFA5    20 43 6F 6D           TCOM:   DEFM ' Com. '
+  FFA9    2E 20                 
+  FFAB    0A 0D FF FF                   DEFB 0AH,0DH,0FFH,0FFH
+                                
+  FFAF    20 20 42 49           BIOSERR:DEFM '  BIOS-Aufruf ERRORO'
+  FFB3    4F 53 2D 41           
+  FFB7    75 66 72 75           
+  FFBB    66 20 45 52           
+  FFBF    52 4F 52 4F           
+  FFC3    FF FF                         DEFB 0FFH,0FFH
+                                
+                                
+                                        ;-----------------------
+                                        ; FTAB=COM,DRV,C,H,R,N,EOT,GPL,DTL
+                                ; DRIVE:        DEFB 0
+  FFC5    00 00 00 00           FTAB:   DEFB 0,0,0,0,0,0,0,0,0
+  FFC9    00 00 00 00           
+  FFCD    00                    
+  FFCE    00                    BCPM:   DEFB 0
+                                
+                                ;       IF $ GT 0FFF0H OR $ LT START
+                                ;       .PRINTX "   ### ORIGIN OF HDBIOS TOO HIGHY! ###"
+                                ;       ENDIF
+                                
+                                END
+        MACRO-80 3.43   27-Jul-81       PAGE    S
+
+
+Macros:
+
+Symbols:
+F814    B1              F82F    B10             F832    B11             
+F835    B12             F838    B13             F817    B2              
+F81A    B3              F81D    B4              F820    B5              
+F823    B6              F826    B7              F829    B8              
+F82C    B9              0047    BAUD1           0047    BAUD2           
+0047    BAUD3           0047    BAUD4           FFCE    BCPM            
+0005    BDOSEN          03C1    BIOS            FFAF    BIOSERR         
+FFEF    BIOSSP          F83B    BOOT1           F85A    BOOTN           
+FDBB    BSTACK          F98D    CARDDELAY       FA3D    CHKERR          
+0090    CMD_DIAGN       00EC    CMD_IDENT       0091    CMD_INITIA      
+0020    CMD_READSEC     0070    CMD_SEEK        0030    CMD_WRITESEC    
+F978    COMMAND         F9FF    COMUP           FCC0    CONIN           
+FCA3    CONOUT          FCDA    CONST           FCF2    CONST0          
+009C    CONW            00B4    CONW1           FDBF    CPUF            
+FF86    CR              02FA    CR1             FF82    CRLF            
+0010    CTC             F8E5    DB01            F94B    DB02            
+F932    DB03            F91D    DB04            F8A6    DBOOT           
+00F4    DCI             F8E1    DIV             F8D8    DIVI            
+FFF3    DMA             FFAD    DRIVE           0007    DRVS            
+F8AB    DTEST           0006    ELATCH          FFF5    ENA             
+0028    EOFF            0000    EON             FD0A    EPR1            
+FD08    EPR2            FD00    EPROM           0114    ERRTEX          
+0385    ETEX            0060    EXOFF           056A    F08FB           
+0020    FDC             FD0D    FDCHRES         0571    FDCP1           
+056F    FDCP2           FFF0    FIRST           0004    FREI            
+FFC5    FTAB            F99B    GETBYTE         0040    GO_IDLE_STATE   
+F958    GROUP           FD54    HEX             FD6E    HEX1            
+FD78    HEX2            F9FD    HOK             F9FB    HOK0            
+F9F7    HOKE            F9F5    HOKE0           F99E    HOME            
+F9C4    HOME0           F9C2    HOMHD           FFA6    HSTDMA          
+FFAC    HSTDSK          FFA8    HSTSEC          FFAA    HSTTRK          
+00F0    IDE             00FD    IDECHI          00FC    IDECLO          
+00FF    IDECMD          00F8    IDEDAT          00F6    IDEDOR          
+00F9    IDEERR          FC31    IDERES          FC36    IDERES1         
+00FA    IDESCNT         00FE    IDESDH          00FB    IDESNUM         
+00FF    IDESTAT         FBD0    IDE_SET01       FBC3    IDE_SET_LBA     
+0475    INITIA          0069    INP0            006A    INP1            
+0089    INP2            0003    IOBYTE          0000    KANAL0          
+0001    KANAL1          0003    KANAL3          0004    KANAL4          
+0005    KANAL5          0054    KEYRD           00F5    LATCH           
+0060    LCD             02CD    LCD0            02BE    LCD00           
+02D1    LCD1            FD92    LCDOUT          02D3    LCDRY           
+02D6    LCDRY0          02DC    LCDRY1          02E5    LCDRY2          
+01A4    LCDS            02E7    LCR             0014    LETEX           
+031E    LHEX            0336    LHEX1           0340    LHEX2           
+FC7E    LIST            00C6    LISTA           FC78    LISTST          
+015A    LOS             030A    LPOS            0014    LSDOK           
+001F    LSTEX           FCFC    MEPROM          FF11    MNMI            
+FF0B    MSGTE           FEEC    MSGTF           FDF4    MSGTS           
+0584    MSTAT           0080    MSTIME          FD47    MSTX            
+FFB0    NBUF            F942    NOSYS           0157    NOT             
+004A    OUT0            0569    PAUS            056C    PAUS01          
+001C    PIOA            001E    PIOB            0095    PKEY            
+0141    PLISTST         00C5    PRINT           0007    QA7             
+        MACRO-80 3.43   27-Jul-81       PAGE    S-1
+
+
+8000    RAM             0061    RAMH            0040    RAML            
+0000    RAMSTART        FA79    RD00            FA7B    RD01            
+FA4E    READ            FA45    READH2          FA12    READHST         
+0051    READ_SINGLE_BLOC 0000   REG1            00C1    REG3            
+0044    REG4            00EA    REG5            FF1A    RESNEU          
+0003    RFDC            FDBD    RSTACK          0002    RT              
+FBC1    RW01            FB99    RW02            FBA3    RW03            
+FB8A    RWSETUP         055C    RY01            FFF1    SA              
+FDE2    SDBL            0050    SDBLOCK         FDD0    SDCMD1          
+F984    SDCOM           FDDC    SDCSD           054D    SDCSD0          
+04AE    SDERR           FDD6    SDID            04B6    SDINI1          
+0399    SDNEU           03AD    SDOK            FA88    SDRD02          
+FA97    SDRD03          0517    SDRDID          FDEE    SDREAD          
+FDCA    SDRES           FB0F    SDWR01          FB1E    SDWR02          
+FB26    SDWR03          FDE8    SDWRITE         0480    SD_INI          
+F992    SD_STATUS       FFB6    SECBUF          FFF9    SECL            
+0200    SECSIZE         FA0C    SECTRAN         FF89    SEEKC           
+0003    SEEKL           FFBB    SEKTORHH        FFBA    SEKTORHL        
+FFB9    SEKTORLH        FFB8    SEKTORLL        FC45    SELDR           
+FB32    SELDSK          FC75    SELRET          F98F    SENDBYTE        
+0041    SEND_OP_COND    FDC1    SEQ             FB3C    SETDMA          
+FB4A    SETSEC          FB41    SETSEC8         FB37    SETTRK          
+0018    SIOA            001A    SIOB            0060    SIOEX           
+0018    SIORES          01EE    SIOS            0005    SIOX            
+0020    SIOX1           0041    SIOX2           0024    SIOY            
+003F    SIOY1           FB66    SL01            FB72    SL02            
+FB7E    SL03            FB4F    SL32            FB5A    SL321           
+FB6A    SL322           FB76    SL323           FB82    SL324           
+FFF2    SM              FF8C    SPY             0003    SPYL            
+F993    SS1             FD28    STA0            FD30    STA1            
+FD32    STA2            FDB9    STACK           0593    START           
+FFF7    STARTA          FF4A    STAT0           FF63    STAT0E          
+FF69    STAT3           FF7C    STAT3E          FFAF    STATUS          
+0366    STEX            FD21    STFDC           FF8F    STOP            
+FF31    SYSERR          0005    TA16            FDC2    TABLE           
+0000    TAS             0445    TAS01           045E    TAS12           
+0460    TAS13           FD93    TASK            FDAB    TASK1           
+046F    TASK14          0435    TASKEP          FFA2    TASKSP          
+FFA5    TCOM            0006    TDRV            034B    TEX             
+035F    TEXDR           FD80    TEXT1           FD90    TEXT2           
+FD7F    TEXTOUT         F9C9    TI1             0004    TIME1           
+0004    TIME2           0004    TIME3           00FF    TIME4           
+0080    TPABUF          005C    TPAFCB          FFA5    TRACKH          
+FFA4    TRACKL          FFAE    TRACKN          FFA0    TSP             
+0062    TX2             0014    TXL             0080    URCS            
+0004    USRDRV          00D7    W0              00D5    W00             
+00DE    W1              0111    W3              00FE    W4              
+010A    W5              FC05    WAITBS1         FC01    WAITBSY         
+FBF5    WAITDR1         FBF0    WAITDRQ         FC2B    WAITEND         
+FC25    WAITERR         FC1A    WAITRD1         FC11    WAITRDY         
+00F0    WDTCR           00F1    WDTER           FAFA    WR00            
+FAFD    WR01            FACF    WRITE           FAA0    WRITEHST        
+0058    WRITE_BLOCK     
+
+
+
+No Fatal error(s)
+
+
+         
