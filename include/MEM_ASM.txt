@@ -75,26 +75,26 @@
                          C      ;-----------------------
                          C      ;   OFFSET BLASENEINTEILUNGS
                          C      
-  0000                   C      RBLAN   EQU 00H         ; Laenge der Darstellung
-  0001                   C      RUSER   EQU RBLAN+1     ; Benutzer Blasenspeicher festlegen 
-  0002                   C      RTYPE1  EQU RUSER+1     ; Anwendung
-  0003                   C      RTYPE2  EQU RTYPE1+1    ; Anwendung
-  0004                   C      RTERM   EQU RTYPE2+1    ; Gedaechtniszaehler    
-  0005                   C      RBSTAT  EQU RTERM+1     ; Blasenstatus BYTE
-  0006                   C      RSOTR   EQU RBSTAT+1    ; Buffer bein Suchen    
+  0000                   C      RBLAN   EQU 00H         ; Length of the presentation
+  0001                   C      RUSER   EQU RBLAN+1     ; Transfer program to address 
+  0002                   C      RTYPE1  EQU RUSER+1     ; application User
+  0003                   C      RTYPE2  EQU RTYPE1+1    ; application type
+  0004                   C      RTERM   EQU RTYPE2+1    ; memory counter
+  0005                   C      RBSTAT  EQU RTERM+1     ; Bubble Status Byte
+  0006                   C      RSOTR   EQU RBSTAT+1    ; Buffer while searching        
                          C      ;------------------------
                          C      
   0004                   C      SELDM   EQU 04H         ; 0A4H MASTER LAUFWERK E: ZUM PROGRAMME LADEN 
   00F7                   C      SELDS   EQU 0F7H        ; 0F7H SLAVE LAUFWERK H:
-  005C                   C      FCB     EQU 005CH       ; FCB Adresse
-  0080                   C      BUFF    EQU 0080H       ; Eingabebuffer
+  005C                   C      FCB     EQU 005CH       ; FCB address
+  0080                   C      BUFF    EQU 0080H       ; input buffer
                          C      ;
-  005D                   C      FCBFN   EQU FCB+1       ; Dateiname
-  0065                   C      FCBFT   EQU FCB+9       ; Datentype
-  006B                   C      FCBCR   EQU FCB+15      ; Datensatzanzahl
-  007C                   C      FCBRA   EQU 7CH         ; Einlesezaehler
+  005D                   C      FCBFN   EQU FCB+1       ; file name
+  0065                   C      FCBFT   EQU FCB+9       ; file type
+  006B                   C      FCBCR   EQU FCB+15      ; record-number
+  007C                   C      FCBRA   EQU 7CH         ; insertion counter
                          C      
-  00F0                   C      IDE     EQU 0F0H        ; FESTPLATTE
+  00F0                   C      IDE     EQU 0F0H        ; hard disk enable address
   00F6                   C      IDEDOR  EQU IDE+6       ; DIGITAL OUT REGISTER
   00F8                   C      IDEDAT  EQU IDE+8
   00F9                   C      IDEERR  EQU IDE+9
@@ -110,16 +110,18 @@
   0030                   C      CMD_WRITESEC    EQU 30H
                          C      
                          C      ;-----------------
-                         C      ; Unterprogramm Aufrufe
-                         C      
-  7000                   C      T0      EQU PROG        
-                         C      ; 0,1,2,3,4
-                         C      ; 5= RDREAD
-                         C      ; 6= RDWRITE
+                         C      ; Call subprogram in bubble
+                         C      ; 0,1,2,3,4,.......
+                         C      ;
+  0001                   C      KEYIN   EQU 01H         ; KEYS INQUERY
+  0002                   C      KEYOUT  EQU 02H         ; OUTPUT CHARACTER
+                         C      ;
         MACRO-80 3.43   27-Jul-81       PAGE    1-2
 
 
-                         C      ;
+  0005                   C      RDREAD  EQU 05H         ; HDD READ
+  0006                   C      RDWRITE EQU 06H         ; HDD WRITE
+  0007                   C      CPOS    EQU 07H         ; POSITION THE CURSOR
                          C      ; ENDE DEFINE
                                 ;-----------------
                                 ;--------------------------
@@ -143,13 +145,13 @@
   011C'   32 651E                       LD (CURT+2),A
   011F'   3E 31                         LD A,31H
   0121'   32 651F                       LD (CURT+3),A
-  0124'   06 07                         LD B,7H         ; UNTERPROG. CURSOR IN BLASE SET POS
+  0124'   06 07                         LD B,CPOS               ; UNTERPROG. CURSOR IN BLASE SET POS
   0126'   CD 013F'                      CALL UPROG
                                         ;----------------------         
                                         ; AKTUELLE BLASE SPEICHER 
                                         ;
-  0129'                         ST0:    ;LD B,5H        ; UNTERPROG. RDREAD:
-  0129'   06 06                         LD B,6H         ; UNTERPROG. RDWRITE:
+  0129'                         ST0:    ;LD B,RDREAD    ; UNTERPROG. RDREAD:
+  0129'   06 06                         LD B,RDWRITE    ; UNTERPROG. RDWRITE:
   012B'   CD 0144'                      CALL UPROG1
   012E'   AF                            XOR A
   012F'   32 6200                       LD (BLAN),A
@@ -173,11 +175,11 @@
                                         ;     
   0144'   CD 0154'              UPROG1: CALL UPROG2
   0147'   D5                            PUSH DE         ; ALS SPRUNGADRESSE BEI RET
-                                        ;LD BC,HDD      ;(BFRLL)
-                                        ;LD DE,0000H    ;(BFRHL)
         MACRO-80 3.43   27-Jul-81       PAGE    1-3
 
 
+                                        ;LD BC,HDD      ;(BFRLL)
+                                        ;LD DE,0000H    ;(BFRHL)
   0148'   ED 4B 6500                    LD BC,(BFRLL)
   014C'   ED 5B 6502                    LD DE,(BFRHL)
   0150'   21 6000                       LD HL,RAM
@@ -232,11 +234,11 @@
   01D4'   56 31 2E 30           
   01D8'   20                    
   01D9'   0D 0A                         DEFB 0DH,0AH
-  01DB'   10                            DEFB 10H        ; TASTATUR MENGE ZEICHENEINGABE
-  01DC'   01                            DEFB 01H        ; ANZAHL PROGRAMMAUFRUFE
         MACRO-80 3.43   27-Jul-81       PAGE    1-4
 
 
+  01DB'   10                            DEFB 10H        ; TASTATUR MENGE ZEICHENEINGABE
+  01DC'   01                            DEFB 01H        ; ANZAHL PROGRAMMAUFRUFE
   01DD'   07                            DEFB 07H        ; FILE NAME LAENGE
   01DE'   4D 45 4D 2E                   DEFM 'MEM.COM'
   01E2'   43 4F 4D              
@@ -256,27 +258,31 @@ Symbols:
 650A    BFVHL           6509    BFVLH           6508    BFVLL           
 0168'   BILD1           6200    BLAN            6205    BSTAT           
 0080    BUFF            0020    CMD_READSEC     0030    CMD_WRITESEC    
-6C3F    COP             6518    CURS            651C    CURT            
-005C    FCB             006B    FCBCR           005D    FCBFN           
-0065    FCBFT           007C    FCBRA           0800    HDD             
-00BE    HDDE            00F0    IDE             00FD    IDECHI          
-00FC    IDECLO          00FF    IDECMD          00F8    IDEDAT          
-00F6    IDEDOR          00F9    IDEERR          00FA    IDESCNT         
-00FE    IDESDH          00FB    IDESNUM         00FF    IDESTAT         
+6C3F    COP             0007    CPOS            6518    CURS            
+651C    CURT            005C    FCB             006B    FCBCR           
+005D    FCBFN           0065    FCBFT           007C    FCBRA           
+0800    HDD             00BE    HDDE            00F0    IDE             
+00FD    IDECHI          00FC    IDECLO          00FF    IDECMD          
+00F8    IDEDAT          00F6    IDEDOR          00F9    IDEERR          
+00FA    IDESCNT         00FE    IDESDH          00FB    IDESNUM         
+00FF    IDESTAT         0001    KEYIN           0002    KEYOUT          
 6513    LOGHH           6512    LOGHL           6511    LOGLH           
 6510    LOGLL           0162'   MASKE           0043    MBILD1          
 A101    MMC             0007    MMCE            7000    PROG            
 6524    RADR            0083    RAL             6000    RAM             
 6727    RAMS            6B27    RAMT            6527    RAMV            
-0000    RBLAN           0005    RBSTAT          6526    RMEN            
-0006    RSOTR           0004    RTERM           6BEF    RTEX            
-0002    RTYPE1          0003    RTYPE2          0001    RUSER           
-6520    SANDB           0004    SELDM           00F7    SELDS           
-0129'   ST0             0136'   STE             015A'   SUM             
-7000    T0              6204    TERM            6202    TYPE1           
-6203    TYPE2           013F'   UPROG           0144'   UPROG1          
-0154'   UPROG2          6201    USER            
+0000    RBLAN           0005    RBSTAT          0005    RDREAD          
+0006    RDWRITE         6526    RMEN            0006    RSOTR           
+0004    RTERM           6BEF    RTEX            0002    RTYPE1          
+0003    RTYPE2          0001    RUSER           6520    SANDB           
+0004    SELDM           00F7    SELDS           0129'   ST0             
+0136'   STE             015A'   SUM             6204    TERM            
+6202    TYPE1           6203    TYPE2           013F'   UPROG           
+0144'   UPROG1          0154'   UPROG2          6201    USER            
 
 
 
 No Fatal error(s)
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
