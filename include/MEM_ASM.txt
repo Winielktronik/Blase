@@ -1,25 +1,25 @@
         MACRO-80 3.43   27-Jul-81       PAGE    1
 
 
+                                ;  MEM.MAC
+                                ;  Vers. 1,0  01.01.2008
+                                ;        1,1  05.04.2018
                                 ;----------------------
                                 ;  Winterhalter CPU-System Neu
-                                ;  Entwicklungssystem
+                                ;  Entwicklungssystem  (c)
                                 ;----------------------
-                                ;  Speicher-Karte Anzeigen
-                                ;  Vers. 1,0  01.01.2008
-                                ;
+                                ;  save current bubble
                                 ;---------------------------
                                 
                                 .Z80
                                 
-                                
-                                
                                 ORG 100H
                                 
                          C      INCLUDE BLASEINI.MAC
+                         C      ; BLASEINI.MAC
+                         C      ; VERS. 1.0     05.04.2018
                          C      ;----------
-                         C      ;  INITIALISIERUNG VECTOREN
-                         C      ;   08.01.2018
+                         C      ;  initialization vectoren
                          C      ;----------
                          C      
   6000                   C      RAM     EQU 6000H       ; A HIER FREIE RAMBEREICH
@@ -119,8 +119,8 @@
         MACRO-80 3.43   27-Jul-81       PAGE    1-2
 
 
-  0005                   C      RDREAD  EQU 05H         ; HDD READ
-  0006                   C      RDWRITE EQU 06H         ; HDD WRITE
+  0005                   C      P_READ  EQU 05H         ; HDD READ
+  0006                   C      P_WRITE EQU 06H         ; HDD WRITE
   0007                   C      CPOS    EQU 07H         ; POSITION THE CURSOR
                          C      ; ENDE DEFINE
                                 ;-----------------
@@ -150,8 +150,8 @@
                                         ;----------------------         
                                         ; AKTUELLE BLASE SPEICHER 
                                         ;
-  0129'                         ST0:    ;LD B,RDREAD    ; UNTERPROG. RDREAD:
-  0129'   06 06                         LD B,RDWRITE    ; UNTERPROG. RDWRITE:
+  0129'                         ST0:    ;LD B,P_READ    ; UNTERPROG. RDREAD:
+  0129'   06 06                         LD B,P_WRITE    ; UNTERPROG. RDWRITE:
   012B'   CD 0144'                      CALL UPROG1
   012E'   AF                            XOR A
   012F'   32 6200                       LD (BLAN),A
@@ -269,10 +269,10 @@ Symbols:
 6513    LOGHH           6512    LOGHL           6511    LOGLH           
 6510    LOGLL           0162'   MASKE           0043    MBILD1          
 A101    MMC             0007    MMCE            7000    PROG            
-6524    RADR            0083    RAL             6000    RAM             
-6727    RAMS            6B27    RAMT            6527    RAMV            
-0000    RBLAN           0005    RBSTAT          0005    RDREAD          
-0006    RDWRITE         6526    RMEN            0006    RSOTR           
+0005    P_READ          0006    P_WRITE         6524    RADR            
+0083    RAL             6000    RAM             6727    RAMS            
+6B27    RAMT            6527    RAMV            0000    RBLAN           
+0005    RBSTAT          6526    RMEN            0006    RSOTR           
 0004    RTERM           6BEF    RTEX            0002    RTYPE1          
 0003    RTYPE2          0001    RUSER           6520    SANDB           
 0004    SELDM           00F7    SELDS           0129'   ST0             
@@ -285,4 +285,4 @@ A101    MMC             0007    MMCE            7000    PROG
 No Fatal error(s)
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
