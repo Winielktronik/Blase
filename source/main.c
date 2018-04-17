@@ -48,7 +48,6 @@
 #include "LCDInit.h"
 #include "BlaseSort.h"
 #include "Z84C15.h"
-#include "KernelConf.h"
 //#include "zsldevinit.asm"
 
 #define UART                 0			// change to 1 when using UART 1
@@ -59,8 +58,7 @@
 
 //#define DEVICE_NAME          "eZ80F91"
 #define DEVICE_NAME          "_Z84C15_IORQ"
-
-
+ 
 #if !defined(_ZSL_UART_USED)
 #if (UART==1) 
 #define	UART_FCTL	     	 UART1_FCTL
@@ -91,11 +89,6 @@
 
 #define LF                   '\n'
 #define CR                   '\r'
-
-unsigned short int trk;
-int sec;
-unsigned short int track;
-int sector;
  
 extern long SysClkFreq;
 char device_name[] = DEVICE_NAME;
@@ -113,7 +106,6 @@ void uart_init(void)
     PB_ALT2 = 0x00;
     PB_ALT1 = 0x00;
     PB_DDR = 0xBF;
-	
    #endif
  #else
     unsigned short int i;
@@ -121,11 +113,10 @@ void uart_init(void)
     brg = SysClkFreq/(16 * UART_BPS);
  
   #if (UART==1)
-	PC_ALT2 = 0x03;
+    PC_ALT2 = 0x03;
     PC_ALT1 = 0x00;
     PC_DDR = 0xEB;
     PC_DR = 0x00;
-	
   #else
     PD_ALT2 = 0x03;
     PD_ALT1 = 0x00;
@@ -212,14 +203,23 @@ int getch(void)
     return (UART_RBR);
 }
 #endif 
+
+void test(void)
+{
+    int a = 1;
+    int b = 2;
+    int c = 3;
+    c = b + a + 2;
+    c++;
+    c++;
+}
+
 	
 int main()
 {
     int i, ch;
 	//i = 0;
     static char zds[] = "ZiLOG Developers Studio";
-	static char LCD_NAME[] = "LCD 128x128 Display";
-
 	
  //* 		Display* display = kerne_init_display();
  //* 
@@ -231,84 +231,7 @@ int main()
 
     //uart_init();
     //test();
-
-	
-	while (1)
-	{
-
 	lcd128_init();
-	
-	trk =0x0801;
-	sec =0x0801;
-	
-	track, sector = lba0(trk, sec);
-		
-	printf("%d", track);
-	printf("%s",sector);
-		
-//*****************************
-// cursor position y,x Text
-
-	lcd128_data_write16(0x000a);
-	lcd128_cmd(PTR_ADDR);
-		
-//**********************
-//* LCD Clear mit Space (20H)-20H
-	
-	for (i=0; i < 322; i++)
-		{
-			lcd128_adt(0);
-		}	
-		
-//*****************************
-// cursor position y,x Grafik
-		
-	lcd128_data_write8(0x43);
-	lcd128_data_write8(0x14);
-	lcd128_cmd(PTR_ADDR);
-
-	i = lcd128_ard();
-	LEDMATRIX_COLUMN = (i & 0x1f);
-	while (i < 0xff){
-	LEDMATRIX_COLUMN = (0x0f);
-	if (i < 0xff)
-		{
-			lcd128_ard(i);
-		}
-		else 
-		{
-			i = 0xc0;
-		}
-	i++;
-	}
-	lcd128_cmd(AWR_OFF);
-	
-	delay(500);	
-//*****************************
-// cursor position y,x Text
-		
-	lcd128_data_write16(0x0000);
-	lcd128_cmd(PTR_ADDR);
-	
-	lcd128_ard(AWR_ON);
-
-//*****************************
-//* LCD Set ASCII((20H bis 7FH) -20H)
-	
-	for (i=0; i < 322; i++)
-		{
-			lcd128_adt(i &0x3f);
-		}
-
-	lcd128_cmd(AWR_OFF);
-    delay(500);
-	}
-	
-//*****************************
-// cursor position y,x Text
-
-	lcd128_data_write16(0x0000);	
-	
 	ch = LBA_mode_plus(10000);
 	ch = LBA_mode_minus(50000);
 	
