@@ -11,6 +11,9 @@
 <file filter-key="">include\Display.h</file>
 <file filter-key="">source\BlaseSort.c</file>
 <file filter-key="">include\BlaseSort.h</file>
+<file filter-key="">include\kernelconf.h</file>
+<file filter-key="">source\HDD.c</file>
+<file filter-key="">include\HDD.h</file>
 </files>
 
 <!-- configuration information -->
@@ -19,7 +22,7 @@
 <tools>
 <tool name="Assembler">
 <options>
-<option name="define" type="string" change-action="assemble">_EZ80ACCLAIM!=1,_SIMULATE=1</option>
+<option name="define" type="string" change-action="assemble">_EZ80ACCLAIM!=1</option>
 <option name="include" type="string" change-action="assemble"></option>
 <option name="list" type="boolean" change-action="none">true</option>
 <option name="listmac" type="boolean" change-action="none">false</option>
@@ -33,7 +36,7 @@
 <tool name="Compiler">
 <options>
 <option name="padbranch" type="string" change-action="compile">Off</option>
-<option name="define" type="string" change-action="compile">_DEBUG,_EZ80F91,_EZ80ACCLAIM!,_SIMULATE</option>
+<option name="define" type="string" change-action="compile">_DEBUG,_EZ80F91,_EZ80ACCLAIM!</option>
 <option name="genprintf" type="boolean" change-action="compile">true</option>
 <option name="keepasm" type="boolean" change-action="none">false</option>
 <option name="keeplst" type="boolean" change-action="none">true</option>
@@ -154,7 +157,7 @@
 <option name="padbranch" type="string" change-action="compile">Off</option>
 <option name="define" type="string" change-action="compile">NDEBUG,_EZ80F91,_EZ80ACCLAIM!</option>
 <option name="genprintf" type="boolean" change-action="compile">true</option>
-<option name="keepasm" type="boolean" change-action="none">false</option>
+<option name="keepasm" type="boolean" change-action="none">true</option>
 <option name="keeplst" type="boolean" change-action="none">true</option>
 <option name="list" type="boolean" change-action="none">false</option>
 <option name="listinc" type="boolean" change-action="none">false</option>

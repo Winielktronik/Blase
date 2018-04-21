@@ -241,10 +241,10 @@ int main()
 	trk =0x0801;
 	sec =0x0801;
 	
-	track, sector = lba0(trk, sec);
+	//track, sector = lba0(trk, sec);
 		
-	printf("%d", track);
-	printf("%s",sector);
+	//printf("%d", track);
+	//printf("%s",sector);
 		
 //*****************************
 // cursor position y,x Text
@@ -259,7 +259,20 @@ int main()
 		{
 			lcd128_adt(0);
 		}	
+//*****************************
+// cursor position y,x Text
+
+	lcd128_data_write16(0x000a);
+	lcd128_cmd(PTR_ADDR);
 		
+//**********************
+//* LCD Clear mit Space (20H)-20H
+	
+	for (i=0; i < 322; i++)
+		{
+			lcd128_adt(0);
+		}	
+				
 //*****************************
 // cursor position y,x Grafik
 		

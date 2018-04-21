@@ -62,6 +62,11 @@ static const int MODE_AUTOWRITE  = 0x80;
 static const int AWR_ON  = 0xb0;
 
 /**
+ * Set Data Auto read
+ */
+static const int ARD_ON  = 0xb1;
+
+/**
  * AUTO RESET
  */
 static const int AWR_OFF = 0xb2;
@@ -87,6 +92,13 @@ void lcd128_init(void);
 BOOL lcd128_cmd(char);
 
 /**
+ * Sends a Track, Sector and addiere.
+ * 
+ * @param The LBA trk, sec
+ */
+INT16 lba0(trk,sec);
+
+/**
  * Sends data directly to the lcd interface
  * 
  * @param The data to send to the lcd interface
@@ -106,8 +118,18 @@ BOOL lcd128_data_write16(short int);
 BOOL lcd128_adt(char); 
 
 /**
+ * 
+ */
+int lcd128_ard(); 
+
+/**
  *  Pause
  */
 void delay(int);
+
+/**
+ *  Kreisberechnung
+ */
+void kreis(void);
 
 #endif // INC_LCDINIT_H
