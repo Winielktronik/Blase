@@ -130,7 +130,7 @@
   0006                   C      P_WRITE EQU 06H         ; HDD WRITE
   0007                   C      CPOS    EQU 07H         ; POSITION THE CURSOR
   0008                   C      LPOS    EQU 08H         ; POSITION BC
-M 0009                   C      KEYBUF  EQU 09H         ; input keypad buffer, end with <cr> 
+  0009                   C      KEYBUF  EQU 09H         ; input keypad buffer, end with <cr> 
                          C      ; ENDE DEFINE
                                 ;-----------------
                          C      INCLUDE BIOSSEL.MAC
@@ -261,7 +261,7 @@ M 0009                   C      KEYBUF  EQU 09H         ; input keypad buffer, e
   7012    C3 7DD4               T6:     JP RDWRITE      ; Speichern einer Blase
   7015    C3 77CB               T7:     JP CUT          ; CURSOR POS SET IN (CURT)0-3
   7018    C3 7A95               T8:     JP LIST         ; CURSOR POS SET IN BC
-  701B    C3 0009               T9:     JP KEYBUF       ; input keypad buffer, end with <cr>
+  701B    C3 7917               T9:     JP KEYB         ; input keypad buffer, end with <cr>
                                 ;-----------------------
                                 ;  LCD 128X128 ANSTEUERN
   701E    DB 1C                 RUN:    IN A,(PIOA)
@@ -1885,12 +1885,12 @@ M 0009                   C      KEYBUF  EQU 09H         ; input keypad buffer, e
                                 ;-----------------------
                                 ; ZEICHEN IN KEYBUFFER SCHREIBEN
                                 ; UND MIT CR ENDE
-M 7917    12                    KEYBUF: LD (DE),A       ; Zeichen abspeichen
+  7917    FE 0D                 KEYB:   CP 0DH
         MACRO-80 3.43   27-Jul-81       PAGE    1-32
 
 
-  7918    FE 0D                         CP 0DH
-  791A    C8                            RET Z   ;,BL03  ; Ausgang mit CR
+  7919    C8                            RET Z   ;,BL03  ; Ausgang mit CR
+  791A    12                            LD (DE),A       ; Zeichen abspeichen
   791B    FE 08                         CP 08H          ; TAB
   791D    20 1E                         JR NZ,BL021     ; NEIN ->
                                         ;-----------------
@@ -3540,83 +3540,83 @@ Symbols:
 00FE    IDESDH          00FB    IDESNUM         00FF    IDESTAT         
 7F9E    INTERN          0000    KANAL0          0001    KANAL1          
 0003    KANAL3          0004    KANAL4          0005    KANAL5          
-79BB    KEY01           0009    KEYBUF          0002    KEYIN           
-0001    KEYOUT          79A9    KEYST           8224    KEYZ            
-001D    KEYZX           7024    KI              7096    KI1             
-00F5    LATCH           79BD    LBA0            7A06    LBA20           
-7A07    LBA21           7A03    LBA4            7A0C    LBA5            
-0060    LCD             81E9    LCDE            0015    LCDEX           
-7ABB    LIS0            7ABD    LIS1            7A95    LIST            
-6513    LOGHH           6512    LOGHL           6511    LOGLH           
-6510    LOGLL           0100    LOS             0120    LOS1            
-0008    LPOS            0010    LSTEX           0026    L_DERR          
-7A46    L__6            7A3E    L__7            76F1    MAS00           
-7701    MAS01           771D    MAS02           8241    MELD01          
-0036    MELD01X         A101    MMC             0007    MMCE            
-0043    MNBL1           0039    MNBL2           0043    MSMAS1          
-0043    MTBLA1          82C8    NBL1            831A    NBL2            
-82C2    NBLASE          00AD    NBLLE           001C    PIOA            
-001E    PIOB            81D1    PRLO1           0130    PRO             
-7000    PROG            8277    PROZ            0025    PROZX           
-0005    P_READ          0006    P_WRITE         6524    RADR            
-6000    RAM             0021    RAMH            0000    RAML            
-6727    RAMS            6B27    RAMT            6527    RAMV            
-0000    RBLAN           0005    RBSTAT          7CA1    RD01            
-7D5D    RD02            7D0E    RD03            7C3D    RD06            
-7B4B    RD07            7B4E    RD08            7B56    RD09            
-7C76    RD16            7C83    RD17            7C8B    RD170           
-7C96    RD171           7BE2    RD25            7C14    RD250           
-7BF6    RD255           7C00    RD26            7D43    RD30            
-7C32    RD35            7C20    RD36            7D71    RD90            
-7D95    RD91            7D98    RD911           7D9E    RD92            
-7C59    RDD1            7DAB    RDREAD          7F8B    RDU01           
-7F8E    RDU02           7F6F    RDU03           7DD4    RDWRITE         
-F814    READ            0000    REG1            00C1    REG3            
-0044    REG4            00EA    REG5            7A5D    RLIST           
-6526    RMEN            0006    RSOTR           0004    RTERM           
-6BEF    RTEX            0002    RTYPE1          0003    RTYPE2          
-701E    RUN             0001    RUSER           77BB    SA1             
-77BF    SA2             77C1    SA3             6520    SANDB           
-77AB    SANDU           0020    SDC             0004    SELDM           
-00F7    SELDS           F838    SELDSK          F82F    SETDMA          
-F835    SETSEC          F832    SETTRK          0018    SIOA            
-001A    SIOB            0018    SIORES          83CC    SMAS1           
-83C6    SMASKE          0088    SRAL            81D9    STEX            
-72EA    STX01           72DC    SU00            72F0    SU01            
-733F    SU02            7342    SU03            7356    SU04            
-741A    SU21            74CF    SU23            73FF    SU25            
-74D7    SU32            74E5    SU33            74AD    SU52            
+79BB    KEY01           7917    KEYB            0009    KEYBUF          
+0002    KEYIN           0001    KEYOUT          79A9    KEYST           
+8224    KEYZ            001D    KEYZX           7024    KI              
+7096    KI1             00F5    LATCH           79BD    LBA0            
+7A06    LBA20           7A07    LBA21           7A03    LBA4            
+7A0C    LBA5            0060    LCD             81E9    LCDE            
+0015    LCDEX           7ABB    LIS0            7ABD    LIS1            
+7A95    LIST            6513    LOGHH           6512    LOGHL           
+6511    LOGLH           6510    LOGLL           0100    LOS             
+0120    LOS1            0008    LPOS            0010    LSTEX           
+0026    L_DERR          7A46    L__6            7A3E    L__7            
+76F1    MAS00           7701    MAS01           771D    MAS02           
+8241    MELD01          0036    MELD01X         A101    MMC             
+0007    MMCE            0043    MNBL1           0039    MNBL2           
+0043    MSMAS1          0043    MTBLA1          82C8    NBL1            
+831A    NBL2            82C2    NBLASE          00AD    NBLLE           
+001C    PIOA            001E    PIOB            81D1    PRLO1           
+0130    PRO             7000    PROG            8277    PROZ            
+0025    PROZX           0005    P_READ          0006    P_WRITE         
+6524    RADR            6000    RAM             0021    RAMH            
+0000    RAML            6727    RAMS            6B27    RAMT            
+6527    RAMV            0000    RBLAN           0005    RBSTAT          
+7CA1    RD01            7D5D    RD02            7D0E    RD03            
+7C3D    RD06            7B4B    RD07            7B4E    RD08            
+7B56    RD09            7C76    RD16            7C83    RD17            
+7C8B    RD170           7C96    RD171           7BE2    RD25            
+7C14    RD250           7BF6    RD255           7C00    RD26            
+7D43    RD30            7C32    RD35            7C20    RD36            
+7D71    RD90            7D95    RD91            7D98    RD911           
+7D9E    RD92            7C59    RDD1            7DAB    RDREAD          
+7F8B    RDU01           7F8E    RDU02           7F6F    RDU03           
+7DD4    RDWRITE         F814    READ            0000    REG1            
+00C1    REG3            0044    REG4            00EA    REG5            
+7A5D    RLIST           6526    RMEN            0006    RSOTR           
+0004    RTERM           6BEF    RTEX            0002    RTYPE1          
+0003    RTYPE2          701E    RUN             0001    RUSER           
+77BB    SA1             77BF    SA2             77C1    SA3             
+6520    SANDB           77AB    SANDU           0020    SDC             
+0004    SELDM           00F7    SELDS           F838    SELDSK          
+F82F    SETDMA          F835    SETSEC          F832    SETTRK          
+0018    SIOA            001A    SIOB            0018    SIORES          
+83CC    SMAS1           83C6    SMASKE          0088    SRAL            
+81D9    STEX            72EA    STX01           72DC    SU00            
+72F0    SU01            733F    SU02            7342    SU03            
+7356    SU04            741A    SU21            74CF    SU23            
+73FF    SU25            74D7    SU32            74E5    SU33            
         MACRO-80 3.43   27-Jul-81       PAGE    S-2
 
 
-74C1    SU520           7423    SU62            7455    SU63            
-73DF    SU80            7395    SU82            73A5    SU83            
-73AE    SU84            738D    SU85            73CC    SU86            
-73D9    SU87            737C    SU88            7466    SU90            
-74AA    SU95            7476    SU99            78ED    SUCH0           
-78FB    SUCH1           78FD    SUCH2           7000    T0              
-7003    T1              7006    T2              7009    T3              
-700C    T4              700F    T5              7012    T6              
-7015    T7              7018    T8              701B    T9              
-7AC8    TAS             7B27    TAS00           7BB5    TAS03           
-7CE0    TAS22           7D06    TAS24           7E00    TASK            
-7E4B    TASK99          FFA2    TASKSP          8375    TBLA1           
-836F    TBLASE          0057    TBLLE           71D2    TEING           
-6204    TERM            7FAA    TERN            7FB7    TEX1            
-7FC7    TEX2            7FD7    TEX2I           7FDB    TEX3            
-0004    TIME1           0004    TIME2           0004    TIME3           
-FFAB    TRACK           FFA5    TRACKH          FFA4    TRACKL          
-7E4F    TWRITE          0010    TXL             0013    TXL3            
-6202    TYPE1           6203    TYPE2           7E73    UHR00           
-7EC0    UHR01           7EFE    UHR10           0080    URCS            
-6201    USER            783E    WAITDRQ         7833    WAITRDY         
-00F0    WDTCR           00F1    WDTER           7A7B    WLIST           
-F817    WRITE           81B1    ZCUR            7728    ZEI00           
-8037    ZEIL            
+74AD    SU52            74C1    SU520           7423    SU62            
+7455    SU63            73DF    SU80            7395    SU82            
+73A5    SU83            73AE    SU84            738D    SU85            
+73CC    SU86            73D9    SU87            737C    SU88            
+7466    SU90            74AA    SU95            7476    SU99            
+78ED    SUCH0           78FB    SUCH1           78FD    SUCH2           
+7000    T0              7003    T1              7006    T2              
+7009    T3              700C    T4              700F    T5              
+7012    T6              7015    T7              7018    T8              
+701B    T9              7AC8    TAS             7B27    TAS00           
+7BB5    TAS03           7CE0    TAS22           7D06    TAS24           
+7E00    TASK            7E4B    TASK99          FFA2    TASKSP          
+8375    TBLA1           836F    TBLASE          0057    TBLLE           
+71D2    TEING           6204    TERM            7FAA    TERN            
+7FB7    TEX1            7FC7    TEX2            7FD7    TEX2I           
+7FDB    TEX3            0004    TIME1           0004    TIME2           
+0004    TIME3           FFAB    TRACK           FFA5    TRACKH          
+FFA4    TRACKL          7E4F    TWRITE          0010    TXL             
+0013    TXL3            6202    TYPE1           6203    TYPE2           
+7E73    UHR00           7EC0    UHR01           7EFE    UHR10           
+0080    URCS            6201    USER            783E    WAITDRQ         
+7833    WAITRDY         00F0    WDTCR           00F1    WDTER           
+7A7B    WLIST           F817    WRITE           81B1    ZCUR            
+7728    ZEI00           8037    ZEIL            
 
 
 
-3 Fatal error(s)
+No Fatal error(s)
 
 
-                                                                                                                                    
+                                                                                                           
