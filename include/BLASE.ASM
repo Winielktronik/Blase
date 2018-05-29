@@ -254,13 +254,13 @@
   7001    00                            NOP
   7002    00                            NOP
   7003    C3 7802               T1:     JP HEXC         ; ZEICHENAUSGEBEN
-  7006    C3 79A9               T2:     JP KEYST        ; TASTENABFRABE OHNE SORTIERUNG
+  7006    C3 79B7               T2:     JP KEYST        ; TASTENABFRABE OHNE SORTIERUNG
   7009    C3 78ED               T3:     JP SUCH0        ; Blase mit Eintrag aus RAMT suchen  
-  700C    C3 79BD               T4:     JP LBA0         ; Plattenzugriff (DE), (HL) +1
-  700F    C3 7DAB               T5:     JP RDREAD       ; lesen einer Blase
-  7012    C3 7DD4               T6:     JP RDWRITE      ; Speichern einer Blase
+  700C    C3 79CB               T4:     JP LBA0         ; Plattenzugriff (DE), (HL) +1
+  700F    C3 7DB9               T5:     JP RDREAD       ; lesen einer Blase
+  7012    C3 7DE2               T6:     JP RDWRITE      ; Speichern einer Blase
   7015    C3 77CB               T7:     JP CUT          ; CURSOR POS SET IN (CURT)0-3
-  7018    C3 7A95               T8:     JP LIST         ; CURSOR POS SET IN BC
+  7018    C3 7AA3               T8:     JP LIST         ; CURSOR POS SET IN BC
   701B    C3 7917               T9:     JP KEYB         ; input keypad buffer, end with <cr>
                                 ;-----------------------
                                 ;  LCD 128X128 ANSTEUERN
@@ -313,7 +313,7 @@
                                 ; Blasenspeicher mit Startadresse vorbereiten
                                 
   7024    21 0000               KI:     LD HL,0000H
-  7027    22 8024                       LD (BF07+2),HL
+  7027    22 8032                       LD (BF07+2),HL
   702A    22 6502                       LD (BFRHL),HL           ; AKTUELL TRACK/SECTORADRESSE LADEN
                                         ; SORTIERE IN BFS...
   702D    22 650E                       LD (BFSHL),HL           ; IN BFS ADRESSE ZUM SORZIEREN
@@ -322,7 +322,7 @@
   7036    21 0010                       LD HL,0010H             ; STARTADR. USER-LOGIN AUF HDD
   7039    22 6510                       LD (LOGLL),HL
   703C    21 0800                       LD HL,HDD               ; HD STARTADRESSE
-  703F    22 8022                       LD (BF07),HL
+  703F    22 8030                       LD (BF07),HL
   7042    22 6500                       LD (BFRLL),HL           ; AKTUELLE TRACK/SECTORADRESSE LADEN
                                         ;-----------------------
                                         ; SORTIER STARTADRESSE SETZEN 
@@ -342,16 +342,16 @@
                                         ; USER wird nur durch Login veraendert
                                         ; TYPE1, TYPE2 aus Blasendaten 
   7052    AF                            XOR A
-  7053    32 7FFA                       LD (BF00),A
-  7056    32 7FFB                       LD (BF00+RUSER),A
-  7059    32 7FFC                       LD (BF00+RTYPE1),A
-  705C    32 7FFD                       LD (BF00+RTYPE2),A
-  705F    32 7FFE                       LD (BF00+RTERM),A
+  7053    32 8008                       LD (BF00),A
+  7056    32 8009                       LD (BF00+RUSER),A
+  7059    32 800A                       LD (BF00+RTYPE1),A
+  705C    32 800B                       LD (BF00+RTYPE2),A
+  705F    32 800C                       LD (BF00+RTERM),A
                                         ;----------
   7062    C5                            PUSH BC
   7063    D5                            PUSH DE
   7064    E5                            PUSH HL
-  7065    21 8039               COL0:   LD HL,COL01             ; BILDSCHIRM FARBE
+  7065    21 8047               COL0:   LD HL,COL01             ; BILDSCHIRM FARBE
         MACRO-80 3.43   27-Jul-81       PAGE    1-6
 
 
@@ -370,7 +370,7 @@
   7075    ED 4B 6500                    LD BC,(BFRLL)   ; Aktuelle HIGH LBA laden
   7079    ED 5B 6502                    LD DE,(BFRHL)   ; Aktuelle LOW LBA laden
   707D    21 6000                       LD HL,RAM       ; DMA
-  7080    CD 7DAB                       CALL RDREAD
+  7080    CD 7DB9                       CALL RDREAD
                                         ;------
                                         ; READ SICHTBAR MACHEN
                                 ;!!!    LD BC,0501H
@@ -381,12 +381,12 @@
   7086    FE 43                         CP 43H
   7088    CA 7096                       JP Z,KI1
                                         ;-------------------
-  708B    21 83C6                       LD HL,SMASKE            ; STARTMASKE LADEN
+  708B    21 83D4                       LD HL,SMASKE            ; STARTMASKE LADEN
   708E    11 6000                       LD DE,RAM
   7091    01 0088                       LD BC,SRAL
   7094    ED B0                         LDIR
   7096    3E 0A                 KI1:    LD A,0AH        ; >9
-  7098    32 8034                       LD (DAYZ+3),A   ; UHRZEIT LOESCHEN DAMIT GLEICH AUSGEGEBEN WIRD
+  7098    32 8042                       LD (DAYZ+3),A   ; UHRZEIT LOESCHEN DAMIT GLEICH AUSGEGEBEN WIRD
                                         ;------------
                                         ; Blasenstatus schon mal auf benutzt setzen
                                         ; IN AKTUELLER BLASE RAM
@@ -420,7 +420,7 @@
   70C3    23                            INC HL          ; ->USER
   70C4    23                            INC HL          ; ->TYPE1
   70C5    7E                            LD A,(HL)       ; load type1
-  70C6    32 7FFC                       LD (BF00+RTYPE1),A      
+  70C6    32 800A                       LD (BF00+RTYPE1),A      
   70C9    23                            INC HL          ; ->Type2
   70CA    23                            INC HL          ; ->Gedaechtniszaehler
   70CB    23                            INC HL          ; ->Status Byte
@@ -543,7 +543,7 @@
   715D    3A 6003                       LD A,(RAM+RTYPE2)
   7160    FE 00                         CP 0H
   7162    C2 7171                       JP NZ,EZ02
-  7165    21 804E                       LD HL,EBUFF
+  7165    21 805C                       LD HL,EBUFF
   7168    06 36                         LD B,EZLEN
   716A    7E                    EZ01:   LD A,(HL)
   716B    CD 7802                       CALL HEXC
@@ -555,7 +555,7 @@
   7174    C5                    BL02:   PUSH BC
   7175    D5                            PUSH DE
   7176    E5                            PUSH HL
-  7177    CD 7AC8                       CALL TAS        ; auf Zeichen Warten
+  7177    CD 7AD6                       CALL TAS        ; auf Zeichen Warten
   717A    F5                            PUSH AF
   717B    CD 7811                       CALL CON        ; CURSOR ON
   717E    F1                            POP AF
@@ -599,7 +599,7 @@
   71B9    FE 39                         CP 39H          ; MIT 9 ENDE
   71BB    20 05                         JR NZ,BL033
   71BD    0E 00                 EXIT:   LD C,00H
-  71BF    C3 7FAE                       JP EPROMON
+  71BF    C3 7FBC                       JP EPROMON
                                 ;-------
   71C2    FE 3A                 BL033:  CP 3AH          ; nicht > 9
   71C4    D2 70AF                       JP NC,BL00      ; AUSGANG FEHLER
@@ -784,14 +784,14 @@
                                 ;---------------------------
                                 ;  Blase vom Anfang aus nach RAMR laden und Text suchen
                                  
-  72B7    3A 7FFB               BS10:   LD A,(BF00+RUSER)       ; UEBERNEHMEN
-  72BA    32 8027                       LD (BF10+RUSER),A       ; loeschen 
-  72BD    3A 7FFC                       LD A,(BF00+RTYPE1)      ; uebernehmen
-  72C0    32 8028                       LD (BF10+RTYPE1),A      ; loeschen 
-  72C3    3A 7FFD                       LD A,(BF00+RTYPE2)      ; uebernehmen 
-  72C6    32 8029                       LD (BF10+RTYPE2),A      ; loeschen 
-  72C9    32 802A                       LD (BF10+RTERM),A       ; loeschen 
-  72CC    32 802B                       LD (BF10+RBSTAT),A      ; loeschen 
+  72B7    3A 8009               BS10:   LD A,(BF00+RUSER)       ; UEBERNEHMEN
+  72BA    32 8035                       LD (BF10+RUSER),A       ; loeschen 
+  72BD    3A 800A                       LD A,(BF00+RTYPE1)      ; uebernehmen
+  72C0    32 8036                       LD (BF10+RTYPE1),A      ; loeschen 
+  72C3    3A 800B                       LD A,(BF00+RTYPE2)      ; uebernehmen 
+  72C6    32 8037                       LD (BF10+RTYPE2),A      ; loeschen 
+  72C9    32 8038                       LD (BF10+RTERM),A       ; loeschen 
+  72CC    32 8039                       LD (BF10+RBSTAT),A      ; loeschen 
   72CF    AF                            XOR A
   72D0    32 650B                       LD (BFVHH),A    ; Aktuelle Track/Sectoradresse laden
   72D3    32 650A                       LD (BFVHL),A
@@ -815,12 +815,12 @@
   72F0    ED 4B 6508            SU01:   LD BC,(BFVLL)
   72F4    ED 5B 650A                    LD DE,(BFVHL)           ; Suchadresse 
   72F8    21 6527                       LD HL,RAMV
-  72FB    CD 7DAB                       CALL RDREAD             ; AKTUELLE BLASE LADEN
+  72FB    CD 7DB9                       CALL RDREAD             ; AKTUELLE BLASE LADEN
                                         ; READ SICHTBAR MACHEN
   72FE    01 1501                       LD BC,1501H
   7301    CD 7018                       CALL T8
   7304    21 6527                       LD HL,RAMV
-  7307    CD 7ABB                       CALL LIS0
+  7307    CD 7AC9                       CALL LIS0
   730A    E5                            PUSH HL
   730B    21 0801                       LD HL,HDD+1
   730E    22 6510                       LD (BFSLL+4),HL
@@ -833,7 +833,7 @@
                                         ;---------------------
                                         ; Cursor drehen lassen und
                                         ; nach Abstand gefundener Zeichen setzen
-  7318    CD 7E73                       CALL UHR00
+  7318    CD 7E81                       CALL UHR00
   731B    3E 02                         LD A,02H
   731D    32 651C                       LD (CURT),A
   7320    3E 04                         LD A,04H
@@ -860,7 +860,7 @@
   734C    FE 02                         CP 02H                  ; Suchtext muss > 1 Zeichen sein
   734E    DA 74AD                       JP C,SU52               ; Ausgang ohne suchtext
   7351    23                            INC HL                  ; ZU USER 
-  7352    3A 7FFB                       LD A,(BF00+RUSER)       ; Aus sichtbarer aktuel Blase
+  7352    3A 8009                       LD A,(BF00+RUSER)       ; Aus sichtbarer aktuel Blase
   7355    BE                            CP (HL)                 ; RAMV VERGLEICH MIT USER IN BLASE 
                                         ;JP Z,SU80              ; User mit Blase ist gleich 
                                         ;JP NC,SU62             ; ERST IN USER+1 LEERE BLASE SUCHEN
@@ -880,7 +880,7 @@
   7369    21 6508                       LD HL,BFVLL     ; Leere gefundene Blase
   736C    EB                            EX DE,HL        ; TAUSCHEN
                                         ;----------------
-  736D    3A 8029                       LD A,(BF10+RTYPE2)
+  736D    3A 8037                       LD A,(BF10+RTYPE2)
   7370    FE 00                         CP 0H
   7372    28 19                         JR Z,SU85
         MACRO-80 3.43   27-Jul-81       PAGE    1-15
@@ -888,7 +888,7 @@
 
   7374    06 19                         LD B,25D                ; laenge DES KOPFTEXT AUS Blase einkopieren
   7376    11 601B                       LD DE,RAM+1BH   ; Adr. Aktueller Blase
-  7379    21 838A                       LD HL,TBLASE+1BH        ; Textblock leerer Blase
+  7379    21 8398                       LD HL,TBLASE+1BH        ; Textblock leerer Blase
   737C    1A                    SU88:   LD A,(DE)
   737D    77                            LD (HL),A
   737E    23                            INC HL
@@ -896,12 +896,12 @@
   7380    10 FA                         DJNZ SU88
   7382    06 57                         LD B,TBLLE      ; laenge neuer Blase einkopieren
   7384    11 6000                       LD DE,RAM       ; Adr. Aktueller Blase
-  7387    21 836F                       LD HL,TBLASE    ; Textblock leerer Blase
+  7387    21 837D                       LD HL,TBLASE    ; Textblock leerer Blase
   738A    C3 7395                       JP SU82
                                         ;---------------
   738D    06 AD                 SU85:   LD B,NBLLE      ; laenge neuer Blase einkopieren
   738F    11 6000                       LD DE,RAM       ; Adr. Aktueller Blase
-  7392    21 82C2                       LD HL,NBLASE    ; Textblock leerer Blase
+  7392    21 82D0                       LD HL,NBLASE    ; Textblock leerer Blase
   7395    7E                    SU82:   LD A,(HL)       ; kopieren
   7396    12                            LD (DE),A
   7397    23                            INC HL
@@ -928,20 +928,20 @@
                                         ; BF10 IN NEU GEFUNDENE BLASE ]BERNEHMEN
                                         ; RUSER, RTYPE1+1, RTYPE2
                                         ;
-  73B4    3A 8027                       LD A,(BF10+RUSER)
+  73B4    3A 8035                       LD A,(BF10+RUSER)
   73B7    32 6001                       LD (RAM+RUSER),A        ; Aktueller USER uebernehmen
-  73BA    3A 8029                       LD A,(BF10+RTYPE2)
+  73BA    3A 8037                       LD A,(BF10+RTYPE2)
   73BD    FE 00                         CP 0
   73BF    28 0B                         JR Z,SU86
-  73C1    3A 7FFC                       LD A,(BF00+RTYPE1)      ; uebernehmen 
+  73C1    3A 800A                       LD A,(BF00+RTYPE1)      ; uebernehmen 
   73C4    32 6002                       LD (RAM+RTYPE1),A       ; uebernehmen 
-  73C7    3A 8029                       LD A,(BF10+RTYPE2)      ; uebernehmen 
+  73C7    3A 8037                       LD A,(BF10+RTYPE2)      ; uebernehmen 
                                         ;LD (RAM+RTYPE2),A      ; uebernehmen 
   73CA    18 0D                         JR SU87 
-  73CC    3A 8028               SU86:   LD A,(BF10+RTYPE1)      ; uebernehmen 
+  73CC    3A 8036               SU86:   LD A,(BF10+RTYPE1)      ; uebernehmen 
   73CF    3C                            INC A
   73D0    32 6002                       LD (RAM+RTYPE1),A       ; uebernehmen 
-  73D3    3A 8029                       LD A,(BF10+RTYPE2)      ; uebernehmen 
+  73D3    3A 8037                       LD A,(BF10+RTYPE2)      ; uebernehmen 
         MACRO-80 3.43   27-Jul-81       PAGE    1-16
 
 
@@ -957,12 +957,12 @@
                                 
   73DF    23                    SU80:   INC HL          ; zu TYPE1 in RAMV
   73E0    23                            INC HL          ; ZU TYPE2 IN RAMV
-  73E1    3A 8029                       LD A,(BF10+RTYPE2)
+  73E1    3A 8037                       LD A,(BF10+RTYPE2)
                                         ;CP (HL)
   73E4    B6                            OR (HL)
   73E5    CA 7466                       JP Z,SU90
   73E8    23                            INC HL          ; Gedaechtnisz. TERM 
-  73E9    3A 802A                       LD A,(BF10+RTERM)       ; 
+  73E9    3A 8038                       LD A,(BF10+RTERM)       ; 
   73EC    BE                            CP (HL)
   73ED    CA 7423                       JP Z,SU62               ; nicht =1
   73F0    23                            INC HL          ; Status Byte
@@ -972,7 +972,7 @@
   73F4    FE 2F                         CP '/'
   73F6    28 07                         JR Z,SU25
   73F8    AF                            XOR A
-  73F9    32 8029                       LD (BF10+RTYPE2),A      ; '/' fehlt dann TYPE2=0 und TYPE1 SUCHEN
+  73F9    32 8037                       LD (BF10+RTYPE2),A      ; '/' fehlt dann TYPE2=0 und TYPE1 SUCHEN
   73FC    C3 7423                       JP SU62         ; WEITER NACH TYPE1+TYPE2=0 SUCHEN->
                                         ;------------
   73FF    3A 6002               SU25:   LD A,(RAM+RTYPE1)
@@ -994,7 +994,7 @@
                                         ; Bereich Ende xxxxxxxx1, xxxxxxx2, .... ????
                                         ; noch einbauen
                                         ;
-  7423    CD 79A9               SU62:   CALL KEYST      ; CONSOLE AUF ZEICHEN ABFRAGE
+  7423    CD 79B7               SU62:   CALL KEYST      ; CONSOLE AUF ZEICHEN ABFRAGE
   7426    FE 1B                         CP 1BH
   7428    CA 74AD                       JP Z,SU52       ; ABBRUCH MIT ESC
   742B    ED 5B 6508                    LD DE,(BFVLL)   ; Aktuelle Track/Sectoradresse laden
@@ -1004,7 +1004,7 @@
         MACRO-80 3.43   27-Jul-81       PAGE    1-17
 
 
-  7434    CD 79BD                       CALL LBA0               ; Suchadresse +1
+  7434    CD 79CB                       CALL LBA0               ; Suchadresse +1
   7437    E1                            POP HL
   7438    22 650A                       LD (BFVHL),HL   
   743B    D1                            POP DE
@@ -1012,11 +1012,11 @@
   7440    38 6B                         JR C,SU52       ; CARRY -> ENDE
   7442    18 11                         JR SU63
                                         ;--------------
-  7444    ED 4B 8024                    LD BC,(BF07+2)          ; HL
+  7444    ED 4B 8032                    LD BC,(BF07+2)          ; HL
   7448    ED 42                         SBC HL,BC
   744A    38 09                         JR C,SU63
   744C    EB                            EX DE,HL
-  744D    ED 4B 8022                    LD BC,(BF07)            ; LL
+  744D    ED 4B 8030                    LD BC,(BF07)            ; LL
   7451    ED 42                         SBC HL,BC               
   7453    30 58                         JR NC,SU52              ; LETZTE SUCHADRESSE AUS TAS00 
   7455    7B                    SU63:   LD A,E
@@ -1031,26 +1031,26 @@
                                         ; fuer naechste neue Blase vorbereiten 
                                         ; und in neuer Blase uebernehmen
   7466    2B                    SU90:   DEC HL          ; ZURUECK ZU TYPE1
-  7467    3A 8028                       LD A,(BF10+RTYPE1)      ; Type1 
+  7467    3A 8036                       LD A,(BF10+RTYPE1)      ; Type1 
   746A    BE                            CP (HL)
   746B    30 09                         JR NC,SU99
   746D    3C                            INC A
   746E    28 06                         JR Z,SU99               ; groesser 0FFH
   7470    BE                            CP (HL)
   7471    20 03                         JR NZ,SU99              ; Abstand groesser 1
-  7473    32 8028                       LD (BF10+RTYPE1),A      ; Type1 wenn groesser uebernehmen
+  7473    32 8036                       LD (BF10+RTYPE1),A      ; Type1 wenn groesser uebernehmen
   7476    23                    SU99:   INC HL          ; Type2 in Blase
                                 ;--------------------------
                                 ;       hier auf erste Type2 =0 selektiert aus Blase
                                 ;
-  7477    3A 8029                       LD A,(BF10+RTYPE2)      ; Type2 aus RAMV Blase
+  7477    3A 8037                       LD A,(BF10+RTYPE2)      ; Type2 aus RAMV Blase
   747A    BE                            CP (HL)
   747B    C2 7423                       JP NZ,SU62              ; NEUE RAMV BLASE nicht =0 
                                 ;--------------------------
                                 ; wenn Gedaechtnisszaehler =0 dann ungueltig
                                 ; frei fuer neue Blase
   747E    23                            INC     HL              ; Gedaechtnisz. TERM 
-  747F    3A 802A                       LD      A,(BF10+RTERM)  ; Gedaechtnisz. aus Blase
+  747F    3A 8038                       LD      A,(BF10+RTERM)  ; Gedaechtnisz. aus Blase
   7482    BE                            CP      (HL)
   7483    CA 7423                       JP      Z,SU62          ; nicht =1 ->
   7486    23                            INC     HL              ; Status Byte
@@ -1072,10 +1072,10 @@
   7494    CD 78ED                       CALL    SUCH0
   7497    DA 7423                       JP      C,SU62
   749A    3A 6529                       LD      A,(RAMV+RTYPE1) ; WENN BLASE GEFUNDEN TYPE1 UEBERNEHMEN
-  749D    32 8028                       LD      (BF10+RTYPE1),A ; Type1 =0 wenn BLASE GEFUNDEN
-  74A0    3A 8029                       LD      A,(BF10+RTYPE2) ; BLASE TYPE1 GEFUNDEN
+  749D    32 8036                       LD      (BF10+RTYPE1),A ; Type1 =0 wenn BLASE GEFUNDEN
+  74A0    3A 8037                       LD      A,(BF10+RTYPE2) ; BLASE TYPE1 GEFUNDEN
   74A3    3C                            INC     A               ;SET    0,A >0 SETZEN F]R TYPE2 SUCHEN
-  74A4    32 8029                       LD      (BF10+RTYPE2),A
+  74A4    32 8037                       LD      (BF10+RTYPE2),A
   74A7    C3 74CF                       JP      SU23
                                 ;-----------------------
                                 ; Kein Eintrag in TYPE2>0 gefunden
@@ -1083,10 +1083,10 @@
   74AA    C3 70AF               SU95:   JP BL00
                                 ;----------------
                                 ;
-  74AD    21 8241               SU52:   LD HL,MELD01
+  74AD    21 824F               SU52:   LD HL,MELD01
   74B0    06 36                         LD B,MELD01X
   74B2    0E 02                         LD C,02H                ; BIOS Console Output
-  74B4    CD 7FEE                       CALL BIOS
+  74B4    CD 7FFC                       CALL BIOS
   74B7    11 0000                       LD DE,0000H
   74BA    06 08                         LD B,08H
   74BC    3E 00                         LD A,00H
@@ -1227,7 +1227,7 @@
                                         ;       
   7579    C5                    ED12:   PUSH BC
   757A    E5                            PUSH HL
-  757B    CD 79A9               _ED12:  CALL KEYST
+  757B    CD 79B7               _ED12:  CALL KEYST
   757E    FE 00                         CP 0H
   7580    28 F9                         JR Z,_ED12      ; -> KEIN ZEICHEN
   7582    5F                            LD E,A          ; neues Zeichen
@@ -1283,7 +1283,7 @@
   75CC    E5                            PUSH HL
   75CD    06 80                         LD B,80H
   75CF    10 FE                 ED31:   DJNZ ED31
-  75D1    CD 79A9                       CALL KEYST      ; CONSOLE AUF ZEICHEN ABFRAGE
+  75D1    CD 79B7                       CALL KEYST      ; CONSOLE AUF ZEICHEN ABFRAGE
   75D4    FE 00                         CP 0
   75D6    28 0A                         JR Z,ED32
   75D8    C5                            PUSH BC
@@ -1383,10 +1383,10 @@
   7650    2A 6524                       LD HL,(RADR)
   7653    3A 6B27                       LD A,(RAMT)
   7656    77                            LD (HL),A
-  7657    21 8224                       LD HL,KEYZ
+  7657    21 8232                       LD HL,KEYZ
   765A    06 1D                         LD B,KEYZX
   765C    0E 02                         LD C,02H                ; BIOS Console Output
-  765E    CD 7FEE                       CALL BIOS
+  765E    CD 7FFC                       CALL BIOS
                                         ;------------------------
   7661    E1                            POP HL
   7662    C5                            PUSH BC
@@ -1396,11 +1396,11 @@
   7668    C1                            POP BC
   7669    C1                            POP BC
   766A    E5                            PUSH HL
-  766B    CD 7AC8                       CALL TAS
+  766B    CD 7AD6                       CALL TAS
   766E    5F                            LD E,A
   766F    CD 772C                       CALL HEXI1
   7672    D5                            PUSH DE
-  7673    CD 7AC8                       CALL TAS
+  7673    CD 7AD6                       CALL TAS
   7676    D1                            POP DE
   7677    5F                            LD E,A
   7678    CD 773F                       CALL HEXI2
@@ -1413,13 +1413,13 @@
                                         ; Text ausgeben
                                         ;
   767E    E5                    EING21: PUSH HL
-  767F    21 8277                       LD HL,PROZ
+  767F    21 8285                       LD HL,PROZ
         MACRO-80 3.43   27-Jul-81       PAGE    1-24
 
 
   7682    06 25                         LD B,PROZX
   7684    0E 02                         LD C,02H                ; BIOS Console Output
-  7686    CD 7FEE                       CALL BIOS
+  7686    CD 7FFC                       CALL BIOS
                                         ;------------------------
   7689    06 0C                         LD      B,0CH           ; Dateinamenlaenge
   768B    0E 00                         LD      C,00H           ; loeschen
@@ -1435,7 +1435,7 @@
   7696    CD 778E                       CALL    HEX00           ; HEX Anzeigen
   7699    C1                            POP BC
   769A    C1                            POP BC
-  769B    CD 7AC8                       CALL    TAS     ; ZEICHEN EINGABE
+  769B    CD 7AD6                       CALL    TAS     ; ZEICHEN EINGABE
   769E    D1                            POP     DE
   769F    E1                            POP     HL
   76A0    77                            LD      (HL),A          ; Tasteneingabee retten
@@ -1620,7 +1620,7 @@
                                 ;---------
   7796    DD 4E 04                      LD C,(IX+4)             ; Adresse anzeigen
   7799    C5                            PUSH BC
-  779A    CD 7ECD                       CALL ASCII_CODE
+  779A    CD 7EDB                       CALL ASCII_CODE
   779D    C1                            POP BC
   779E    78                            LD A,B
   779F    CD 7802                       CALL HEXC
@@ -1699,7 +1699,7 @@
                                         ; Cursor on
   7811    E5                    CON:    PUSH HL
   7812    C5                            PUSH BC
-  7813    21 8042                       LD HL,CURON             ; CURSOR ON
+  7813    21 8050                       LD HL,CURON             ; CURSOR ON
   7816    06 06                         LD B,06H
   7818    7E                    CUR02:  LD A,(HL)
   7819    CD 7802                       CALL HEXC
@@ -1715,7 +1715,7 @@
                                         ; Cursor off
   7822    E5                    COFF:   PUSH HL
   7823    C5                            PUSH BC
-  7824    21 8048                       LD HL,CUROFF            ; CURSOR OFF
+  7824    21 8056                       LD HL,CUROFF            ; CURSOR OFF
   7827    06 06                         LD B,06D
   7829    7E                    CUR01:  LD A,(HL)
   782A    CD 7802                       CALL HEXC
@@ -1776,7 +1776,7 @@
   7872    79                            LD A,C
   7873    E6 01                         AND 01H
   7875    C8                            RET Z
-  7876    21 829C                       LD HL,DERR
+  7876    21 82AA                       LD HL,DERR
   7879    06 26                         LD B,L_DERR
   787B    7E                    ERR1:   LD A,(HL)
   787C    CD 7802                       CALL HEXC
@@ -1808,7 +1808,7 @@
   789F    CD 78A5                       CALL IDERES1
   78A2    C3 7849                       JP HDD_WAIT
                                         ;----------
-  78A5    CD 7FA5               IDERES1:CALL EXTERN
+  78A5    CD 7FB3               IDERES1:CALL EXTERN
   78A8    F5                            PUSH AF         ; PIOA
   78A9    C5                            PUSH BC
   78AA    3E 06                         LD A,06H
@@ -1892,421 +1892,432 @@
   7919    C8                            RET Z   ;,BL03  ; Ausgang mit CR
   791A    12                            LD (DE),A       ; Zeichen abspeichen
   791B    FE 08                         CP 08H          ; TAB
-  791D    20 1E                         JR NZ,BL021     ; NEIN ->
+  791D    20 2F                         JR NZ,BL021     ; NEIN ->
                                         ;-----------------
                                         ; BACKSPACE FUNKTION CURSOR LINKS MIT ZEICHEN LOESCHEN
                                         ;
   791F    7E                            LD A,(HL)       ; Zeichenzaehler
   7920    D6 01                         SUB 01H
-  7922    DA 79A4                       JP C,BL023
-  7925    77                            LD (HL),A       ; Zeichenlaenge -1
-  7926    3E 20                         LD A,20H
-  7928    CD 7802                       CALL HEXC
-  792B    04                            INC B
-  792C    1B                            DEC DE          ; Zeichen loeschen
-  792D    3E 1B                         LD A,1BH
-  792F    CD 7802                       CALL HEXC
-  7932    3E 5B                         LD A,5BH
-  7934    CD 7802                       CALL HEXC
-  7937    3E 44                         LD A,44H
-  7939    CD 7802                       CALL HEXC
-  793C    C9                            RET     ;JR BL02                ; zurueck ohne B dec
+  7922    38 19                         JR C,KEYB1
+  7924    77                            LD (HL),A       ; Zeichenlaenge -1
+  7925    3E 20                         LD A,20H
+  7927    CD 7802                       CALL HEXC
+  792A    04                            INC B
+  792B    1B                            DEC DE          ; Zeichen loeschen
+                                        ;----------
+                                        ; set cursor 1 left
+  792C    3E 1B                         LD A,1BH
+  792E    CD 7802                       CALL HEXC
+  7931    3E 5B                         LD A,5BH
+  7933    CD 7802                       CALL HEXC
+  7936    3E 44                         LD A,44H
+  7938    CD 7802                       CALL HEXC
+  793B    AF                            XOR A
+  793C    C9                            RET             ; zurueck ohne B dec
+                                        ;----------
+                                        ; set cursor 1 right
+  793D    3E 1B                 KEYB1:  LD A,1BH
+  793F    CD 7802                       CALL HEXC
+  7942    3E 5B                         LD A,5BH
+  7944    CD 7802                       CALL HEXC
+  7947    3E 43                         LD A,43H
+  7949    CD 7802                       CALL HEXC
+  794C    AF                            XOR A
+  794D    C9                            RET             ; zurueck ohne B dec
                                         ;-------------------
                                         ; ESC 
                                         ; 
-  793D    FE 1B                 BL021:  CP 1BH          ; ESC
-  793F    20 5D                         JR NZ,BL022     ; NEIN ->
-  7941    7E                            LD A,(HL)
-  7942    FE 00                         CP 0H
-  7944    20 58                         JR NZ,BL022
-  7946    D5                            PUSH DE
-  7947    C5                            PUSH BC
-  7948    E5                            PUSH HL
-  7949    06 A0                 BL120:  LD B,0A0H
-  794B    10 FE                         DJNZ $          ; DELAY
-  794D    CD 79A9                       CALL KEYST      ; pruefe ob Zeichen da
-  7950    FE 00                         CP 0H
-  7952    28 41                         JR Z,BL121      ; -> NO
-  7954    5F                            LD E,A
-  7955    FE 5B                         CP '['
-  7957    28 F0                         JR Z,BL120
-  7959    3E 44                         LD A,'D'
-  795B    BB                            CP E
-  795C    38 37                         JR C,BL121
-  795E    3E 40                         LD A,'@'
-  7960    BB                            CP E
-  7961    30 32                         JR NC,BL121
-  7963    3E 41                         LD A,'A'
-  7965    BB                            CP E
-  7966    20 0D                         JR NZ,BL123
-  7968    3A 8037                       LD A,(ZEIL)
-  796B    3C                            INC A
-  796C    FE 07                         CP CURUD
-  796E    30 25                         JR NC,BL121
-  7970    32 8037                       LD (ZEIL),A
-  7973    18 20                         JR BL121
+  794E    FE 1B                 BL021:  CP 1BH          ; ESC
+  7950    20 5A                         JR NZ,BL022     ; NEIN ->
+  7952    7E                            LD A,(HL)
+  7953    FE 00                         CP 0H
+  7955    20 55                         JR NZ,BL022
+  7957    D5                            PUSH DE
+  7958    C5                            PUSH BC
+  7959    E5                            PUSH HL
+  795A    06 A0                 BL120:  LD B,0A0H
+  795C    10 FE                         DJNZ $          ; DELAY
+  795E    CD 79B7                       CALL KEYST      ; pruefe ob Zeichen da
+  7961    FE 00                         CP 0H
+  7963    28 42                         JR Z,BL121      ; -> NO
+  7965    5F                            LD E,A
+  7966    FE 5B                         CP '['
+  7968    28 F0                         JR Z,BL120
+  796A    3E 44                         LD A,'D'
+  796C    BB                            CP E
         MACRO-80 3.43   27-Jul-81       PAGE    1-33
 
 
+  796D    38 38                         JR C,BL121
+  796F    3E 40                         LD A,'@'
+  7971    BB                            CP E
+  7972    30 33                         JR NC,BL121
+  7974    3E 41                         LD A,'A'
+  7976    BB                            CP E
+  7977    20 0D                         JR NZ,BL123
+  7979    3A 8045                       LD A,(ZEIL)
+  797C    3C                            INC A
+  797D    FE 07                         CP CURUD
+  797F    30 26                         JR NC,BL121
+  7981    32 8045                       LD (ZEIL),A
+  7984    18 21                         JR BL121
                                 ;--------------------------     
-  7975    3E 42                 BL123:  LD A,'B'
-  7977    BB                            CP E
-  7978    20 0D                         JR NZ,BL124
+  7986    3E 42                 BL123:  LD A,'B'
+  7988    BB                            CP E
+  7989    20 0D                         JR NZ,BL124
                                         ;JR NZ,BL123
-  797A    3A 8037                       LD A,(ZEIL)
-  797D    3D                            DEC A
-  797E    FE 01                         CP 01H
-  7980    38 13                         JR C,BL121
-  7982    32 8037                       LD (ZEIL),A
-  7985    18 0E                         JR BL121
+  798B    3A 8045                       LD A,(ZEIL)
+  798E    3D                            DEC A
+  798F    FE 01                         CP 01H
+  7991    38 14                         JR C,BL121
+  7993    32 8045                       LD (ZEIL),A
+  7996    18 0F                         JR BL121
                                         ;-------------------
-  7987    3E 43                 BL124:  LD A,'C'
-  7989    BB                            CP E
-  798A    20 02                         JR NZ,BL125
+  7998    3E 43                 BL124:  LD A,'C'
+  799A    BB                            CP E
+  799B    20 02                         JR NZ,BL125
                                 ; Cursor right
-  798C    18 07                         JR BL121
+  799D    18 08                         JR BL121
                                         ;-----------
-  798E    3E 44                 BL125:  LD A,'D'
-  7990    BB                            CP E
-  7991    20 02                         JR NZ,BL121
+  799F    3E 44                 BL125:  LD A,'D'
+  79A1    BB                            CP E
+  79A2    20 03                         JR NZ,BL121
                                 ; Cursor left
-  7993    18 B4                         JR BL120
+  79A4    18 B4                         JR BL120
+  79A6    C9                    BL02X:  RET ;!!JP BL02
                                         ;------------
-  7995    AF                    BL121:  XOR A           ; letzes Zeichen loeschen
-  7996    E1                            POP HL
-  7997    C1                            POP BC
-  7998    D1                            POP DE
-  7999    77                            LD (HL),A               ; Zeichenzaehler loeschen
-  799A    18 02                         JR BL022
-  799C    AF                    BL02X:  XOR A
-  799D    C9                            RET ;!!JP BL02
+  79A7    E1                    BL121:  POP HL
+  79A8    C1                            POP BC
+  79A9    D1                            POP DE
+  79AA    AF                            XOR A           ; letzes Zeichen loeschen
+  79AB    77                            LD (HL),A       ; Zeichenzaehler loeschen
                                         ;-------------
-  799E    FE 21                 BL022:  CP 21H          ; Zeichen < Space
-  79A0    38 02                         JR C,BL023
-  79A2    13                            INC DE          ; Zeichenadr. +1
-  79A3    34                            INC (HL)        ; Zeichenzaehler erhoehen
-  79A4    10 F6                 BL023:  DJNZ BL02X      ; vorgegebene Laenge aus Blase
-  79A6    3E 0D                         LD A,0DH
-  79A8    C9                            RET
+  79AC    FE 21                 BL022:  CP 21H          ; Zeichen < Space
+  79AE    38 02                         JR C,BL023
+  79B0    13                            INC DE          ; Zeichenadr. +1
+  79B1    34                            INC (HL)        ; Zeichenzaehler erhoehen
+  79B2    10 F2                 BL023:  DJNZ BL02X      ; vorgegebene Laenge aus Blase
+  79B4    3E 0D                         LD A,0DH        ; LAENGE B ERREICHT ENDE
+  79B6    C9                            RET
                                 ;-----------------------
                                 ; CONSOLE QUERY AND PICK 
                                 ; WITHOUT WAITING
                                 ; 
-  79A9    CD 7E73               KEYST:  CALL UHR00
-  79AC    C5                            PUSH BC
-  79AD    0E 0B                         LD C,0BH        ; GET CONSILE STATUS
-  79AF    CD 0005                       CALL 0005H
-  79B2    FE 00                         CP 0
-  79B4    28 05                         JR Z,KEY01
-  79B6    0E 01                         LD C,01H        ; console Input read chr
-  79B8    CD 0005                       CALL 0005H
-  79BB    C1                    KEY01:  POP BC
-  79BC    C9                            RET 
-                                ;-----------------------
-                                ; LBA Z[HLER HERH\HE BID HDDE ENDE
+  79B7    CD 7E81               KEYST:  CALL UHR00
         MACRO-80 3.43   27-Jul-81       PAGE    1-34
 
 
+  79BA    C5                            PUSH BC
+  79BB    0E 0B                         LD C,0BH        ; GET CONSILE STATUS
+  79BD    CD 0005                       CALL 0005H
+  79C0    FE 00                         CP 0
+  79C2    28 05                         JR Z,KEY01
+  79C4    0E 01                         LD C,01H        ; console Input read chr
+  79C6    CD 0005                       CALL 0005H
+  79C9    C1                    KEY01:  POP BC
+  79CA    C9                            RET 
+                                ;-----------------------
+                                ; LBA Z[HLER HERH\HE BID HDDE ENDE
                                 ;
-  79BD    DD E5                 LBA0:   PUSH IX
-  79BF    DD 21 0000                    LD IX,0
-  79C3    DD 39                         ADD IX,SP
+  79CB    DD E5                 LBA0:   PUSH IX
+  79CD    DD 21 0000                    LD IX,0
+  79D1    DD 39                         ADD IX,SP
                                 ;--------
-  79C5    DD 4E 06                      LD C,(IX+6)     ; LBA LOW SECTOR
-  79C8    DD 46 07                      LD B,(IX+7)
-  79CB    0C                            INC C
-  79CC    DD 71 06                      LD (IX+6),C
-  79CF    20 35                         JR NZ,LBA20
-  79D1    04                            INC B
-  79D2    DD 70 07                      LD (IX+7),B
-  79D5    20 2F                         JR NZ,LBA20
-  79D7    DD 4E 04                      LD C,(IX+4)     ; LBA TRACK 
-  79DA    DD 46 05                      LD B,(IX+5)
-  79DD    03                            INC BC
-  79DE    DD 71 04                      LD (IX+4),C     ; LBA TRACK
-  79E1    DD 70 05                      LD (IX+5),B
-  79E4    AF                            XOR A           ; RES CARRY FLAG
-  79E5    21 00BE                       LD HL,HDDE      ; DISK ENDE
-  79E8    ED 42                         SBC HL,BC       ; -C
-  79EA    30 1A                         JR NC,LBA20     
-  79EC    01 0801                       LD BC,HDD+1
-  79EF    DD 71 06                      LD (IX+6),C
-  79F2    DD 70 07                      LD (IX+7),B
-  79F5    01 0000                       LD BC,0
-  79F8    DD 71 04                      LD (IX+4),C
-  79FB    DD 70 05                      LD (IX+5),B
-  79FE    C3 0000                       JP 0;!!!!
-  7A01    18 03                         JR LBA20
+  79D3    DD 4E 06                      LD C,(IX+6)     ; LBA LOW SECTOR
+  79D6    DD 46 07                      LD B,(IX+7)
+  79D9    0C                            INC C
+  79DA    DD 71 06                      LD (IX+6),C
+  79DD    20 35                         JR NZ,LBA20
+  79DF    04                            INC B
+  79E0    DD 70 07                      LD (IX+7),B
+  79E3    20 2F                         JR NZ,LBA20
+  79E5    DD 4E 04                      LD C,(IX+4)     ; LBA TRACK 
+  79E8    DD 46 05                      LD B,(IX+5)
+  79EB    03                            INC BC
+  79EC    DD 71 04                      LD (IX+4),C     ; LBA TRACK
+  79EF    DD 70 05                      LD (IX+5),B
+  79F2    AF                            XOR A           ; RES CARRY FLAG
+  79F3    21 00BE                       LD HL,HDDE      ; DISK ENDE
+  79F6    ED 42                         SBC HL,BC       ; -C
+  79F8    30 1A                         JR NC,LBA20     
+  79FA    01 0801                       LD BC,HDD+1
+  79FD    DD 71 06                      LD (IX+6),C
+  7A00    DD 70 07                      LD (IX+7),B
+  7A03    01 0000                       LD BC,0
+  7A06    DD 71 04                      LD (IX+4),C
+  7A09    DD 70 05                      LD (IX+5),B
+  7A0C    C3 0000                       JP 0;!!!!
+  7A0F    18 03                         JR LBA20
                                         ; ENDE ERREICHT
-  7A03    37                    LBA4:   SCF             ;AUSGANG FEHLER
-  7A04    18 01                         JR LBA21
+  7A11    37                    LBA4:   SCF             ;AUSGANG FEHLER
+  7A12    18 01                         JR LBA21
                                 ;-----------
-  7A06    AF                    LBA20:  XOR A           ; SET CARRY -> OHNE FEHLER
-  7A07    DD F9                 LBA21:  LD SP,IX
-  7A09    DD E1                         POP IX
-  7A0B    C9                            RET
+  7A14    AF                    LBA20:  XOR A           ; SET CARRY -> OHNE FEHLER
+  7A15    DD F9                 LBA21:  LD SP,IX
+  7A17    DD E1                         POP IX
+  7A19    C9                            RET
                                 ;-----------------
                                 ; ADRESSE -1
-  7A0C    C3 0000               LBA5:   JP 0;!!!
-  7A0F    DD E5                 PUSH IX
-  7A11    DD 21 0000                    LD IX,0
-  7A15    DD 39                         ADD IX,SP
+  7A1A    C3 0000               LBA5:   JP 0;!!!
+  7A1D    DD E5                 PUSH IX
+  7A1F    DD 21 0000                    LD IX,0
+  7A23    DD 39                         ADD IX,SP
                                 ;------
-  7A17    DD 46 07                      LD B,(IX+7)     ; LBA 
-  7A1A    DD 4E 06                      LD C,(IX+6)     ; LOW
-  7A1D    0B                            DEC BC
-  7A1E    78                            LD A,B
-  7A1F    E6 F0                         AND 0F0H
-  7A21    28 23                         JR Z,L__6
-  7A23    06 0F                         LD B,0FH
-  7A25    DD 70 07                      LD (IX+7),B     ; LBA 
-  7A28    DD 71 06                      LD (IX+6),C     ; LOW
-  7A2B    DD 46 05                      LD B,(IX+5)     ; LBA HIGH
-  7A2E    DD 4E 04                      LD C,(IX+4)     ; LOW
         MACRO-80 3.43   27-Jul-81       PAGE    1-35
 
 
-  7A31    0B                            DEC BC
-  7A32    E5                            PUSH HL
-  7A33    AF                            XOR A
-  7A34    21 0800                       LD HL,HDD
-  7A37    ED 42                         SBC HL,BC
-  7A39    E1                            POP HL
-  7A3A    38 02                         JR C,L__7
-  7A3C    18 C5                         JR LBA4
+  7A25    DD 46 07                      LD B,(IX+7)     ; LBA 
+  7A28    DD 4E 06                      LD C,(IX+6)     ; LOW
+  7A2B    0B                            DEC BC
+  7A2C    78                            LD A,B
+  7A2D    E6 F0                         AND 0F0H
+  7A2F    28 23                         JR Z,L__6
+  7A31    06 0F                         LD B,0FH
+  7A33    DD 70 07                      LD (IX+7),B     ; LBA 
+  7A36    DD 71 06                      LD (IX+6),C     ; LOW
+  7A39    DD 46 05                      LD B,(IX+5)     ; LBA HIGH
+  7A3C    DD 4E 04                      LD C,(IX+4)     ; LOW
+  7A3F    0B                            DEC BC
+  7A40    E5                            PUSH HL
+  7A41    AF                            XOR A
+  7A42    21 0800                       LD HL,HDD
+  7A45    ED 42                         SBC HL,BC
+  7A47    E1                            POP HL
+  7A48    38 02                         JR C,L__7
+  7A4A    18 C5                         JR LBA4
                                         ;-----------
-  7A3E    DD 70 05              L__7:   LD (IX+5),B
-  7A41    DD 71 04                      LD (IX+4),C
-  7A44    18 C0                         JR LBA20
+  7A4C    DD 70 05              L__7:   LD (IX+5),B
+  7A4F    DD 71 04                      LD (IX+4),C
+  7A52    18 C0                         JR LBA20
                                         ;_-------
-  7A46    DD 70 07              L__6:   LD (IX+7),B     ; LBA HIGH
-  7A49    DD 71 06                      LD (IX+6),C     ; LOW
-  7A4C    18 B8                         JR LBA20
+  7A54    DD 70 07              L__6:   LD (IX+7),B     ; LBA HIGH
+  7A57    DD 71 06                      LD (IX+6),C     ; LOW
+  7A5A    18 B8                         JR LBA20
                                 
-  7A4E    DD 46 05                      LD B,(IX+5)     ; LBA HIGH
-  7A51    DD 4E 04                      LD C,(IX+4)     ; LOW
-  7A54    0B                            DEC BC
-  7A55    DD 70 05                      LD (IX+5),B
-  7A58    DD 71 04                      LD (IX+4),C
-  7A5B    18 A9                         JR LBA20
+  7A5C    DD 46 05                      LD B,(IX+5)     ; LBA HIGH
+  7A5F    DD 4E 04                      LD C,(IX+4)     ; LOW
+  7A62    0B                            DEC BC
+  7A63    DD 70 05                      LD (IX+5),B
+  7A66    DD 71 04                      LD (IX+4),C
+  7A69    18 A9                         JR LBA20
                                         ; --------------------
                                         ; aktuelle Blasenadresse
                                 ;------------------------
                                 ; Cursor auf Position setzen
                                 
-  7A5D    F5                    RLIST:  PUSH AF
-  7A5E    3A 6518                       LD A,(CURS)
-  7A61    32 651C                       LD (CURT),A
-  7A64    3A 6519                       LD A,(CURS+1)
-  7A67    32 651D                       LD (CURT+1),A
-  7A6A    3A 651A                       LD A,(CURS+2)
-  7A6D    32 651E                       LD (CURT+2),A
-  7A70    3A 651B                       LD A,(CURS+3)
-  7A73    32 651F                       LD (CURT+3),A
-  7A76    CD 77CB                       CALL CUT
-  7A79    F1                            POP AF
-  7A7A    C9                            RET
+  7A6B    F5                    RLIST:  PUSH AF
+  7A6C    3A 6518                       LD A,(CURS)
+  7A6F    32 651C                       LD (CURT),A
+  7A72    3A 6519                       LD A,(CURS+1)
+  7A75    32 651D                       LD (CURT+1),A
+  7A78    3A 651A                       LD A,(CURS+2)
+  7A7B    32 651E                       LD (CURT+2),A
+  7A7E    3A 651B                       LD A,(CURS+3)
+  7A81    32 651F                       LD (CURT+3),A
+  7A84    CD 77CB                       CALL CUT
+  7A87    F1                            POP AF
+  7A88    C9                            RET
                                         ;------------
                                         ; CURSER POS SAVE
-  7A7B    F5                    WLIST:  PUSH AF
-  7A7C    3A 651C                       LD A,(CURT)
-  7A7F    32 6518                       LD (CURS),A
-  7A82    3A 651D                       LD A,(CURT+1)
-  7A85    32 6519                       LD (CURS+1),A
-  7A88    3A 651E                       LD A,(CURT+2)
-  7A8B    32 651A                       LD (CURS+2),A
-  7A8E    3A 651F                       LD A,(CURT+3)
-  7A91    32 651B                       LD (CURS+3),A
-  7A94    F1                            POP AF
-                                        ;------------
-  7A95    F5                    LIST:   PUSH AF
-  7A96    78                            LD A,B
-  7A97    E6 F0                         AND 0F0H
+  7A89    F5                    WLIST:  PUSH AF
+  7A8A    3A 651C                       LD A,(CURT)
+  7A8D    32 6518                       LD (CURS),A
         MACRO-80 3.43   27-Jul-81       PAGE    1-36
 
 
-  7A99    0F                            RRCA
-  7A9A    0F                            RRCA
-  7A9B    0F                            RRCA
-  7A9C    0F                            RRCA
-  7A9D    32 651C                       LD (CURT),A
-  7AA0    78                            LD A,B
-  7AA1    E6 0F                         AND 0FH
-  7AA3    32 651D                       LD (CURT+1),a
-  7AA6    79                            LD A,C
-  7AA7    E6 F0                         AND 0F0H
+  7A90    3A 651D                       LD A,(CURT+1)
+  7A93    32 6519                       LD (CURS+1),A
+  7A96    3A 651E                       LD A,(CURT+2)
+  7A99    32 651A                       LD (CURS+2),A
+  7A9C    3A 651F                       LD A,(CURT+3)
+  7A9F    32 651B                       LD (CURS+3),A
+  7AA2    F1                            POP AF
+                                        ;------------
+  7AA3    F5                    LIST:   PUSH AF
+  7AA4    78                            LD A,B
+  7AA5    E6 F0                         AND 0F0H
+  7AA7    0F                            RRCA
+  7AA8    0F                            RRCA
   7AA9    0F                            RRCA
   7AAA    0F                            RRCA
-  7AAB    0F                            RRCA
-  7AAC    0F                            RRCA
-  7AAD    32 651E                       LD (CURT+2),A
-  7AB0    79                            LD A,C
-  7AB1    E6 0F                         AND 0FH
-  7AB3    32 651F                       LD (CURT+3),A
-  7AB6    CD 77CB                       CALL CUT
-  7AB9    F1                            POP AF
-  7ABA    C9                            RET
+  7AAB    32 651C                       LD (CURT),A
+  7AAE    78                            LD A,B
+  7AAF    E6 0F                         AND 0FH
+  7AB1    32 651D                       LD (CURT+1),a
+  7AB4    79                            LD A,C
+  7AB5    E6 F0                         AND 0F0H
+  7AB7    0F                            RRCA
+  7AB8    0F                            RRCA
+  7AB9    0F                            RRCA
+  7ABA    0F                            RRCA
+  7ABB    32 651E                       LD (CURT+2),A
+  7ABE    79                            LD A,C
+  7ABF    E6 0F                         AND 0FH
+  7AC1    32 651F                       LD (CURT+3),A
+  7AC4    CD 77CB                       CALL CUT
+  7AC7    F1                            POP AF
+  7AC8    C9                            RET
                                         ;-------------
                                         ; ZUM TEST (HL)+1  30MAL AUSGEBEN
                                         ;
-  7ABB    06 1E                 LIS0:   LD B,30D
-  7ABD    7E                    LIS1:   LD A,(HL)
-  7ABE    4F                            LD C,A
-  7ABF    C5                            PUSH BC
-  7AC0    CD 778E                       CALL HEX00
-  7AC3    C1                            POP BC
-  7AC4    23                            INC HL
-  7AC5    10 F6                         DJNZ LIS1
-  7AC7    C9                            RET
+  7AC9    06 1E                 LIS0:   LD B,30D
+  7ACB    7E                    LIS1:   LD A,(HL)
+  7ACC    4F                            LD C,A
+  7ACD    C5                            PUSH BC
+  7ACE    CD 778E                       CALL HEX00
+  7AD1    C1                            POP BC
+  7AD2    23                            INC HL
+  7AD3    10 F6                         DJNZ LIS1
+  7AD5    C9                            RET
                                 ;---------------------------
                                 ;  Kontrollausgabe rechts
                                 ;
-  7AC8    CD 7822               TAS:    CALL COFF
-  7ACB    ED 73 651C                    LD (CURT),SP
-  7ACF    C5                            PUSH BC
-  7AD0    01 2273                       LD BC,2273H
-  7AD3    CD 7018                       CALL T8         ;CURSOR POS
-  7AD6    C1                            POP BC
-  7AD7    3A 650F                       LD A,(BFSHH)
-  7ADA    4F                            LD C,A
-  7ADB    C5                            PUSH BC
-  7ADC    CD 778E                       CALL HEX00      ; ADRESSE DER AKTUEL GELESENEN BLASE
-  7ADF    C1                            POP BC
-  7AE0    3A 650E                       LD A,(BFSHL)
-  7AE3    4F                            LD C,A
-  7AE4    C5                            PUSH BC
-  7AE5    CD 778E                       CALL HEX00
-  7AE8    C1                            POP BC
-  7AE9    3A 650D                       LD A,(BFSLH)
-  7AEC    4F                            LD C,A
-  7AED    C5                            PUSH BC
-  7AEE    CD 778E                       CALL HEX00
+  7AD6    CD 7822               TAS:    CALL COFF
+  7AD9    ED 73 651C                    LD (CURT),SP
+  7ADD    C5                            PUSH BC
+  7ADE    01 2273                       LD BC,2273H
+  7AE1    CD 7018                       CALL T8         ;CURSOR POS
+  7AE4    C1                            POP BC
+  7AE5    3A 650F                       LD A,(BFSHH)
+  7AE8    4F                            LD C,A
+  7AE9    C5                            PUSH BC
         MACRO-80 3.43   27-Jul-81       PAGE    1-37
 
 
-  7AF1    C1                            POP BC
-  7AF2    3A 650C                       LD A,(BFSLL)
-  7AF5    4F                            LD C,A
-  7AF6    C5                            PUSH BC
-  7AF7    CD 778E                       CALL HEX00
-  7AFA    C1                            POP BC
+  7AEA    CD 778E                       CALL HEX00      ; ADRESSE DER AKTUEL GELESENEN BLASE
+  7AED    C1                            POP BC
+  7AEE    3A 650E                       LD A,(BFSHL)
+  7AF1    4F                            LD C,A
+  7AF2    C5                            PUSH BC
+  7AF3    CD 778E                       CALL HEX00
+  7AF6    C1                            POP BC
+  7AF7    3A 650D                       LD A,(BFSLH)
+  7AFA    4F                            LD C,A
+  7AFB    C5                            PUSH BC
+  7AFC    CD 778E                       CALL HEX00
+  7AFF    C1                            POP BC
+  7B00    3A 650C                       LD A,(BFSLL)
+  7B03    4F                            LD C,A
+  7B04    C5                            PUSH BC
+  7B05    CD 778E                       CALL HEX00
+  7B08    C1                            POP BC
                                         ; --------------------
                                         ; aktuelle Blasenadresse
-  7AFB    C5                            PUSH BC
-  7AFC    01 2173                       LD BC,2173H
-  7AFF    CD 7018                       CALL T8         ;CURSOR POS
-  7B02    C1                            POP BC
-  7B03    3A 8025                       LD A,(BF07+3) ;(BFRHH)
-  7B06    4F                            LD C,A
-  7B07    C5                            PUSH BC
-  7B08    CD 778E                       CALL HEX00
-  7B0B    C1                            POP BC
-  7B0C    3A 8024                       LD A,(BF07+2)  ;(BFRHL)
-  7B0F    4F                            LD C,A
-  7B10    C5                            PUSH BC
-  7B11    CD 778E                       CALL HEX00
-  7B14    C1                            POP BC
-  7B15    3A 8023                       LD A,(BF07+1)  ;(BFRLH)
-  7B18    4F                            LD C,A
-  7B19    C5                            PUSH BC
-  7B1A    CD 778E                       CALL HEX00
-  7B1D    C1                            POP BC
-  7B1E    3A 8022                       LD A,(BF07) ;(BFRLL)
-  7B21    4F                            LD C,A
-  7B22    C5                            PUSH BC
-  7B23    CD 778E                       CALL HEX00
-  7B26    C1                            POP BC
+  7B09    C5                            PUSH BC
+  7B0A    01 2173                       LD BC,2173H
+  7B0D    CD 7018                       CALL T8         ;CURSOR POS
+  7B10    C1                            POP BC
+  7B11    3A 8033                       LD A,(BF07+3) ;(BFRHH)
+  7B14    4F                            LD C,A
+  7B15    C5                            PUSH BC
+  7B16    CD 778E                       CALL HEX00
+  7B19    C1                            POP BC
+  7B1A    3A 8032                       LD A,(BF07+2)  ;(BFRHL)
+  7B1D    4F                            LD C,A
+  7B1E    C5                            PUSH BC
+  7B1F    CD 778E                       CALL HEX00
+  7B22    C1                            POP BC
+  7B23    3A 8031                       LD A,(BF07+1)  ;(BFRLH)
+  7B26    4F                            LD C,A
+  7B27    C5                            PUSH BC
+  7B28    CD 778E                       CALL HEX00
+  7B2B    C1                            POP BC
+  7B2C    3A 8030                       LD A,(BF07) ;(BFRLL)
+  7B2F    4F                            LD C,A
+  7B30    C5                            PUSH BC
+  7B31    CD 778E                       CALL HEX00
+  7B34    C1                            POP BC
                                         ;---------------------
                                         ; CURSOR IN EINGABEZEILE MIT EINGABE SCHIEBEN
-  7B27    3E 02                 TAS00:  LD A,02H
-  7B29    32 651C                       LD (CURT),A
-  7B2C    3E 04                         LD A,04H
-  7B2E    32 651D                       LD (CURT+1),A
-  7B31    3E 01                         LD A,01H
-  7B33    32 651E                       LD (CURT+2),A
-  7B36    3A 6B27                       LD A,(RAMT)
-  7B39    FE 0A                         CP 0AH
-  7B3B    38 0E                         JR C,RD07       ; < 0AH ->
-  7B3D    D6 0A                         SUB 0AH
-  7B3F    32 651F                       LD (CURT+3),A
-  7B42    3A 651E                       LD A,(CURT+2)
-  7B45    3C                            INC A
-  7B46    32 651E                       LD (CURT+2),A
-  7B49    18 03                         JR RD08
-  7B4B    32 651F               RD07:   LD (CURT+3),A
-  7B4E    CD 77CB               RD08:   CALL CUT
-  7B51    06 14                         LD B,20D
-  7B53    21 6728                       LD HL,RAMS+RUSER
-  7B56    CD 77CB               RD09:   CALL CUT
-  7B59    CD 7811                       CALL CON
-                                ;-----------------------
+  7B35    3E 02                 TAS00:  LD A,02H
+  7B37    32 651C                       LD (CURT),A
+  7B3A    3E 04                         LD A,04H
+  7B3C    32 651D                       LD (CURT+1),A
+  7B3F    3E 01                         LD A,01H
+  7B41    32 651E                       LD (CURT+2),A
+  7B44    3A 6B27                       LD A,(RAMT)
+  7B47    FE 0A                         CP 0AH
+  7B49    38 0E                         JR C,RD07       ; < 0AH ->
+  7B4B    D6 0A                         SUB 0AH
+  7B4D    32 651F                       LD (CURT+3),A
         MACRO-80 3.43   27-Jul-81       PAGE    1-38
 
 
+  7B50    3A 651E                       LD A,(CURT+2)
+  7B53    3C                            INC A
+  7B54    32 651E                       LD (CURT+2),A
+  7B57    18 03                         JR RD08
+  7B59    32 651F               RD07:   LD (CURT+3),A
+  7B5C    CD 77CB               RD08:   CALL CUT
+  7B5F    06 14                         LD B,20D
+  7B61    21 6728                       LD HL,RAMS+RUSER
+  7B64    CD 77CB               RD09:   CALL CUT
+  7B67    CD 7811                       CALL CON
+                                ;-----------------------
                                 ; Tastenabfrage und Zeichen einlesen
                                 ; Sonst weitere Task ausfueren
                                 ;
                                 ; LBA ZAEHLER +1
                                 ;
-  7B5C    ED 5B 650C                    LD DE,(BFSLL)   ; Aktuelle Track/Sectoradresse laden
-  7B60    ED 53 6C43                    LD (COP+4),DE   ; STARTPUNKT NACH SPEICHERN
-  7B64    D5                            PUSH DE
-  7B65    2A 650E                       LD HL,(BFSHL)
-  7B68    22 6C45                       LD (COP+6),HL
-  7B6B    E5                            PUSH HL
-  7B6C    CD 79BD                       CALL LBA0       ; LBA + 1
-  7B6F    E1                            POP HL
-  7B70    22 650E                       LD (BFSHL),HL   ; adresse HIGH speichern
-  7B73    D1                            POP DE
-  7B74    ED 53 650C                    LD (BFSLL),DE   ; adresse LOW speichern
-  7B78    DA 0000                       JP C,0 ;NOCH ENDE BEI FEHLER RD91               ; RUECKGABE CARRY 0=FEHLER
+  7B6A    ED 5B 650C                    LD DE,(BFSLL)   ; Aktuelle Track/Sectoradresse laden
+  7B6E    ED 53 6C43                    LD (COP+4),DE   ; STARTPUNKT NACH SPEICHERN
+  7B72    D5                            PUSH DE
+  7B73    2A 650E                       LD HL,(BFSHL)
+  7B76    22 6C45                       LD (COP+6),HL
+  7B79    E5                            PUSH HL
+  7B7A    CD 79CB                       CALL LBA0       ; LBA + 1
+  7B7D    E1                            POP HL
+  7B7E    22 650E                       LD (BFSHL),HL   ; adresse HIGH speichern
+  7B81    D1                            POP DE
+  7B82    ED 53 650C                    LD (BFSLL),DE   ; adresse LOW speichern
+  7B86    DA 0000                       JP C,0 ;NOCH ENDE BEI FEHLER RD91               ; RUECKGABE CARRY 0=FEHLER
                                         ;---------------- 
                                         ; 1. BLASE + 1 = 2.BLASE
-  7B7B    D5                            PUSH DE         ; IX UEBERGABE
-  7B7C    E5                            PUSH HL         ; IX UEBERGEBE
-  7B7D    CD 79BD                       CALL LBA0       ; LBA + 1
-  7B80    E1                            POP HL
-  7B81    22 6512                       LD (BFSHL+4),HL ; adresse HIGH speichern
-  7B84    D1                            POP DE
-  7B85    ED 53 6510                    LD (BFSLL+4),DE ; adresse LOW speichern
-  7B89    DA 0000                       JP C,0 ;NOCH ENDE BEI FEHLER RD91               ; RUECKGABE CARRY 0=FEHLER
-  7B8C    CD 790F                       CALL FREI       ; TAST INT FREI
+  7B89    D5                            PUSH DE         ; IX UEBERGABE
+  7B8A    E5                            PUSH HL         ; IX UEBERGEBE
+  7B8B    CD 79CB                       CALL LBA0       ; LBA + 1
+  7B8E    E1                            POP HL
+  7B8F    22 6512                       LD (BFSHL+4),HL ; adresse HIGH speichern
+  7B92    D1                            POP DE
+  7B93    ED 53 6510                    LD (BFSLL+4),DE ; adresse LOW speichern
+  7B97    DA 0000                       JP C,0 ;NOCH ENDE BEI FEHLER RD91               ; RUECKGABE CARRY 0=FEHLER
+  7B9A    CD 790F                       CALL FREI       ; TAST INT FREI
                                         ;---------------------
                                         ; Erste Blase laden
-  7B8F    ED 4B 650C                    LD BC,(BFSLL)
-  7B93    ED 5B 650E                    LD DE,(BFSHL)
-  7B97    21 6727                       LD HL,RAMS
-  7B9A    CD 7DAB                       CALL RDREAD     ; BFSLL BLASE LADEN
-  7B9D    CD 790F                       CALL FREI
+  7B9D    ED 4B 650C                    LD BC,(BFSLL)
+  7BA1    ED 5B 650E                    LD DE,(BFSHL)
+  7BA5    21 6727                       LD HL,RAMS
+  7BA8    CD 7DB9                       CALL RDREAD     ; BFSLL BLASE LADEN
+  7BAB    CD 790F                       CALL FREI
                                         ; READ SICHTBAR MACHEN
                                         ;LD BC,1001H
                                         ;CALL T8
                                         ;LD HL,RAMS
                                         ;CALL LIS0
                                         ;------
-  7BA0    3A 672D                       LD A,(RAMS+RSOTR)
-  7BA3    FE 1B                         CP 1BH
-  7BA5    28 0E                         JR Z,TAS03
-  7BA7    21 82C2                       LD HL,NBLASE
-  7BAA    11 6727                       LD DE,RAMS
-  7BAD    01 00AD                       LD BC,NBLLE
-  7BB0    ED B0                         LDIR
+  7BAE    3A 672D                       LD A,(RAMS+RSOTR)
+  7BB1    FE 1B                         CP 1BH
+  7BB3    28 0E                         JR Z,TAS03
+  7BB5    21 82D0                       LD HL,NBLASE
+        MACRO-80 3.43   27-Jul-81       PAGE    1-39
+
+
+  7BB8    11 6727                       LD DE,RAMS
+  7BBB    01 00AD                       LD BC,NBLLE
+  7BBE    ED B0                         LDIR
                                         ; READ SICHTBAR MACHEN
                                         ;LD BC,1101H
                                         ;CALL T8
                                         ;LD HL,RAMS
                                         ;CALL LIS0
-  7BB2    C3 7C8B                       JP RD170
+  7BC0    C3 7C99                       JP RD170
                                         ;-------------------
                                         ; Zweite Blase laden
-        MACRO-80 3.43   27-Jul-81       PAGE    1-39
-
-
-  7BB5    ED 4B 6510            TAS03:  LD BC,(BFSLL+4)
-  7BB9    ED 5B 6512                    LD DE,(BFSHL+4)
-  7BBD    21 6927                       LD HL,RAMS+200H
-  7BC0    CD 7DAB                       CALL RDREAD     ; BFSLL BLASE LADEN
-  7BC3    CD 790F                       CALL FREI
+  7BC3    ED 4B 6510            TAS03:  LD BC,(BFSLL+4)
+  7BC7    ED 5B 6512                    LD DE,(BFSHL+4)
+  7BCB    21 6927                       LD HL,RAMS+200H
+  7BCE    CD 7DB9                       CALL RDREAD     ; BFSLL BLASE LADEN
+  7BD1    CD 790F                       CALL FREI
                                         ;------
                                         ; READ SICHTBAR MACHEN
                                         ;LD BC,1101H
@@ -2324,12 +2335,12 @@
                                 ; wenn U < U+1 dann Gedaechtniss -1
                                 ; wenn U = U+1 dann weiter
                                 ;
-  7BC6    21 6928                       LD      HL,RAMS+RUSER+200H      ;BLASE2 RAM
-  7BC9    11 6728                       LD      DE,RAMS+RUSER           ;BLASE1 RAM
-  7BCC    1A                            LD      A,(DE)          ; USER vergleich
-  7BCD    BE                            CP      (HL)            ; Blase2 > Blase1 dann
-  7BCE    DA 7C3D                       JP      C,RD06          ; zum naechstem >USER 2  neu anfangen
-  7BD1    C2 7CA1                       JP      NZ,RD01         ; Blase2 < Blase1 tauschen ->
+  7BD4    21 6928                       LD      HL,RAMS+RUSER+200H      ;BLASE2 RAM
+  7BD7    11 6728                       LD      DE,RAMS+RUSER           ;BLASE1 RAM
+  7BDA    1A                            LD      A,(DE)          ; USER vergleich
+  7BDB    BE                            CP      (HL)            ; Blase2 > Blase1 dann
+  7BDC    DA 7C4B                       JP      C,RD06          ; zum naechstem >USER 2  neu anfangen
+  7BDF    C2 7CAF                       JP      NZ,RD01         ; Blase2 < Blase1 tauschen ->
                                 ;----------------------
                                 ; Blasen der groesse nach Sortieren
                                 ; TYPE1, AUFSTEIGEND
@@ -2337,1134 +2348,1134 @@
                                 ; wenn T1 = T1+1 (DE)-(HL) =Z,dann TYPE2 
                                 ; wenn T1 < T1+1 (DE)-(HL) =NZ,dann GEDAECHTNIS
                                 ;
-  7BD4    21 6929                       LD      HL,RAMS+RTYPE1+200H     ; Blase2
-  7BD7    11 6729                       LD      DE,RAMS+RTYPE1          ; Blase1
-  7BDA    1A                            LD      A,(DE)                  ; TYPE1 Vergleich
-  7BDB    BE                            CP      (HL)                    ; Blase2 > Blase1 dann
-  7BDC    DA 7C3D                       JP      C,RD06                  ; zum Gedaechtnis zuruecksetzen 
-  7BDF    C2 7CA1                       JP      NZ,RD01                 ; tauschen und Speichern 
+  7BE2    21 6929                       LD      HL,RAMS+RTYPE1+200H     ; Blase2
+  7BE5    11 6729                       LD      DE,RAMS+RTYPE1          ; Blase1
+  7BE8    1A                            LD      A,(DE)                  ; TYPE1 Vergleich
+  7BE9    BE                            CP      (HL)                    ; Blase2 > Blase1 dann
+  7BEA    DA 7C4B                       JP      C,RD06                  ; zum Gedaechtnis zuruecksetzen 
+  7BED    C2 7CAF                       JP      NZ,RD01                 ; tauschen und Speichern 
                                 ;       JP RD02 ;!!!!!TEST
                                 ;----------------------
                                 ; Blasen der groesse nach Sortieren
                                 ; TYPE2 AUFSTEIGEND
+        MACRO-80 3.43   27-Jul-81       PAGE    1-40
+
+
                                 ; wenn T2 > T2+1 (DE)-(HL) =NC,dann tauschen
                                 ; wenn T2 = T2+1 (DE)-(HL) = Z,dann gedaechtniss-1
                                 ; wenn T2 < T2+1 (DE)-(HL) =NZ,dann weiter
                                 ;
-  7BE2    21 692A               RD25:   LD HL,RAMS+RTYPE2+200H  ; Blase2
-  7BE5    11 672A                       LD DE,RAMS+RTYPE2       ; Blase1
-  7BE8    1A                            LD A,(DE)
-  7BE9    FE 01                         CP 01H                  ; RAM+TYPE2 > 0
-  7BEB    20 09                         JR NZ,RD255             ; TYPE2 BEREITS 1=FORNE JA ->
-  7BED    BE                            CP (HL)
+  7BF0    21 692A               RD25:   LD HL,RAMS+RTYPE2+200H  ; Blase2
+  7BF3    11 672A                       LD DE,RAMS+RTYPE2       ; Blase1
+  7BF6    1A                            LD A,(DE)
+  7BF7    FE 01                         CP 01H                  ; RAM+TYPE2 > 0
+  7BF9    20 09                         JR NZ,RD255             ; TYPE2 BEREITS 1=FORNE JA ->
+  7BFB    BE                            CP (HL)
                                 ;??     CALL C,TASK     ; NOCH AUSARBEITEN
-        MACRO-80 3.43   27-Jul-81       PAGE    1-40
-
-
-  7BEE    3A 692C                       LD A,(RAMS+RBSTAT+200H)
-  7BF1    E6 07                         AND 07H
-  7BF3    CA 7CA1                       JP Z,RD01               ; BLASE 2 SPEICHERN MIT TAUSCHEN
-  7BF6    1A                    RD255:  LD A,(DE)
-  7BF7    BE                            CP (HL)                 ; Blase2 > Blase1 dann
-  7BF8    38 06                         JR C,RD26
-  7BFA    CA 7C20                       JP Z,RD36               ; ZUM GEDAECHTNIS
-  7BFD    D2 7CA1                       JP NC,RD01              ; TAUSCHEN
+  7BFC    3A 692C                       LD A,(RAMS+RBSTAT+200H)
+  7BFF    E6 07                         AND 07H
+  7C01    CA 7CAF                       JP Z,RD01               ; BLASE 2 SPEICHERN MIT TAUSCHEN
+  7C04    1A                    RD255:  LD A,(DE)
+  7C05    BE                            CP (HL)                 ; Blase2 > Blase1 dann
+  7C06    38 06                         JR C,RD26
+  7C08    CA 7C2E                       JP Z,RD36               ; ZUM GEDAECHTNIS
+  7C0B    D2 7CAF                       JP NC,RD01              ; TAUSCHEN
                                         ;----------------------
-  7C00    1A                    RD26:   LD A,(DE)               ; BLASE1 TYPE2 Vergleich
-  7C01    FE 00                         CP 0H
-  7C03    C2 7C3D                       JP NZ,RD06              ; zum Gedaechtnisszaehler
+  7C0E    1A                    RD26:   LD A,(DE)               ; BLASE1 TYPE2 Vergleich
+  7C0F    FE 00                         CP 0H
+  7C11    C2 7C4B                       JP NZ,RD06              ; zum Gedaechtnisszaehler
                                         ;----------------------
                                         ; GED[CHTNISS BLASE1 TYPE2=0 MIT BLASE2 TYPE2>0 VERGLEICHEN
                                          
-  7C06    21 672B                       LD HL,RAMS+RTERM                ; Blase1
-  7C09    11 692B                       LD DE,RAMS+RTERM+200H   ; Blase2
-  7C0C    1A                            LD A,(DE)                       ; Gedaechtnissz Vergleich
-  7C0D    BE                            CP (HL)
-  7C0E    38 2D                         JR C,RD06                       ; 1>2 GEDAECHTNISS FALLEND
-  7C10    3C                            INC A
-  7C11    20 01                         JR NZ,RD250
-  7C13    1A                            LD A,(DE)
-  7C14    77                    RD250:  LD (HL),A
-  7C15    ED 4B 650C                    LD BC,(BFSLL)
-  7C19    ED 5B 650E                    LD DE,(BFSHL)           ; Suchadresse 2. BLASE speichern
-  7C1D    C3 7D0E                       JP RD03
+  7C14    21 672B                       LD HL,RAMS+RTERM                ; Blase1
+  7C17    11 692B                       LD DE,RAMS+RTERM+200H   ; Blase2
+  7C1A    1A                            LD A,(DE)                       ; Gedaechtnissz Vergleich
+  7C1B    BE                            CP (HL)
+  7C1C    38 2D                         JR C,RD06                       ; 1>2 GEDAECHTNISS FALLEND
+  7C1E    3C                            INC A
+  7C1F    20 01                         JR NZ,RD250
+  7C21    1A                            LD A,(DE)
+  7C22    77                    RD250:  LD (HL),A
+  7C23    ED 4B 650C                    LD BC,(BFSLL)
+  7C27    ED 5B 650E                    LD DE,(BFSHL)           ; Suchadresse 2. BLASE speichern
+  7C2B    C3 7D1C                       JP RD03
                                         ;----------------------
                                         ; Blasen der groesse nach Sortieren
                                         ; GEDAECHTNIS FALLEND
-  7C20    7E                    RD36:   LD A,(HL)
-  7C21    FE 00                         CP 0
-  7C23    20 0D                         JR NZ,RD35
-  7C25    3A 672C                       LD A,(RAMS+RBSTAT)
-  7C28    E6 78                         AND 78H
-  7C2A    F6 47                         OR 47H
-  7C2C    32 672C                       LD (RAMS+RBSTAT),A
-  7C2F    C3 7C00                       JP RD26 
+  7C2E    7E                    RD36:   LD A,(HL)
+  7C2F    FE 00                         CP 0
+  7C31    20 0D                         JR NZ,RD35
+  7C33    3A 672C                       LD A,(RAMS+RBSTAT)
+  7C36    E6 78                         AND 78H
+  7C38    F6 47                         OR 47H
+  7C3A    32 672C                       LD (RAMS+RBSTAT),A
+  7C3D    C3 7C0E                       JP RD26 
                                         ;---------------------
-  7C32    21 692B               RD35:   LD HL,RAMS+RTERM+200H   ; Blase2
-  7C35    11 672B                       LD DE,RAMS+RTERM        ; Blase1
-  7C38    1A                            LD A,(DE)               ; Gedaechtnissz Vergleich
-  7C39    BE                            CP (HL)
-  7C3A    DA 7CA1                       JP C,RD01               ; tauschen und Speichern fallend
+  7C40    21 692B               RD35:   LD HL,RAMS+RTERM+200H   ; Blase2
+  7C43    11 672B                       LD DE,RAMS+RTERM        ; Blase1
+  7C46    1A                            LD A,(DE)               ; Gedaechtnissz Vergleich
+  7C47    BE                            CP (HL)
+  7C48    DA 7CAF                       JP C,RD01               ; tauschen und Speichern fallend
                                         ;---------------------
-                                        ; Gedaechtniss zuruecksetzen wenn MONAT ungleich ist
-                                
-  7C3D    CD 790F               RD06:   CALL FREI
-  7C40    3A 802F                       LD A,(DAYM)             ; MONAT AUS UHR
-  7C43    E6 1F                         AND 1FH
-  7C45    47                            LD B,A
-  7C46    3A 672C                       LD A,(RAMS+RBSTAT)      ; MONAT AUS BLASE1
-  7C49    E6 1F                         AND 1FH
-  7C4B    B8                            CP B
-  7C4C    C2 7C59                       JP NZ,RDD1              ; NICHT GLEICH ->
-  7C4F    3A 672C                       LD A,(RAMS+RBSTAT)      ; MONAT AUS BLASE1
         MACRO-80 3.43   27-Jul-81       PAGE    1-41
 
 
-  7C52    CB 77                         BIT 6,A                 ; PRUEFE SORTIEREN 
-  7C54    20 03                         JR NZ,RDD1              ; SPEICHERN ->
-  7C56    C3 7D5D                       JP RD02                 ; GLEICH nicht speichern gleicher MONAT
+                                        ; Gedaechtniss zuruecksetzen wenn MONAT ungleich ist
+                                
+  7C4B    CD 790F               RD06:   CALL FREI
+  7C4E    3A 803D                       LD A,(DAYM)             ; MONAT AUS UHR
+  7C51    E6 1F                         AND 1FH
+  7C53    47                            LD B,A
+  7C54    3A 672C                       LD A,(RAMS+RBSTAT)      ; MONAT AUS BLASE1
+  7C57    E6 1F                         AND 1FH
+  7C59    B8                            CP B
+  7C5A    C2 7C67                       JP NZ,RDD1              ; NICHT GLEICH ->
+  7C5D    3A 672C                       LD A,(RAMS+RBSTAT)      ; MONAT AUS BLASE1
+  7C60    CB 77                         BIT 6,A                 ; PRUEFE SORTIEREN 
+  7C62    20 03                         JR NZ,RDD1              ; SPEICHERN ->
+  7C64    C3 7D6B                       JP RD02                 ; GLEICH nicht speichern gleicher MONAT
                                         ;------------------
                                         ; NEUER MONAT UND GEDAECHTNIS SPEICHERN
-  7C59    3A 672C               RDD1:   LD A,(RAMS+RBSTAT)      ; BLASE 1
-  7C5C    E6 E0                         AND 0E0H
-  7C5E    B0                            OR B            ; neuer MONAT einbinden 
-  7C5F    CB B7                         RES 6,A         ; Zaehler aktivieren
-  7C61    CB 7F                         BIT 7,A         ; Blase benutzt fuer +/-
-  7C63    28 11                         JR Z,RD16       ; Gedaechtniss abziehen =0
-  7C65    CB BF                         RES 7,A         ; =1 ADDIEREN loesche
-  7C67    32 672C                       LD (RAMS+RBSTAT),A      ; wieder zurueck in Blase1
-  7C6A    3A 672B                       LD A,(RAMS+RTERM)       ; GEDAECHTNISSZAEHLER AUS RAM
-  7C6D    3C                            INC A                   ; Gedaechtniss +1
-  7C6E    CA 7C8B                       JP Z,RD170              ; Ausgang WENN MAX ERREICHT
-  7C71    32 672B                       LD (RAMS+RTERM),A       ; ZURUECK IN RAM
-  7C74    18 0D                         JR RD17
+  7C67    3A 672C               RDD1:   LD A,(RAMS+RBSTAT)      ; BLASE 1
+  7C6A    E6 E0                         AND 0E0H
+  7C6C    B0                            OR B            ; neuer MONAT einbinden 
+  7C6D    CB B7                         RES 6,A         ; Zaehler aktivieren
+  7C6F    CB 7F                         BIT 7,A         ; Blase benutzt fuer +/-
+  7C71    28 11                         JR Z,RD16       ; Gedaechtniss abziehen =0
+  7C73    CB BF                         RES 7,A         ; =1 ADDIEREN loesche
+  7C75    32 672C                       LD (RAMS+RBSTAT),A      ; wieder zurueck in Blase1
+  7C78    3A 672B                       LD A,(RAMS+RTERM)       ; GEDAECHTNISSZAEHLER AUS RAM
+  7C7B    3C                            INC A                   ; Gedaechtniss +1
+  7C7C    CA 7C99                       JP Z,RD170              ; Ausgang WENN MAX ERREICHT
+  7C7F    32 672B                       LD (RAMS+RTERM),A       ; ZURUECK IN RAM
+  7C82    18 0D                         JR RD17
                                         ;--------------
-  7C76    32 672C               RD16:   LD (RAMS+RBSTAT),A      ; MONAT SPEICHERN
-  7C79    3A 672B                       LD A,(RAMS+RTERM)
-  7C7C    D6 01                         SUB 01H                 ; Gedaechtniss schon Min
-  7C7E    38 16                         JR C,RD171              ; Ausgang WENN MIN ERREICHT
-  7C80    32 672B                       LD (RAMS+RTERM),A       ; ZURUECK IN RAM
-  7C83    3A 6205               RD17:   LD A,(BSTAT)
-  7C86    CB B7                         RES 6,A                 ; Sortieren aktivieren aller Blasen
-  7C88    32 6205                       LD (BSTAT),A
-  7C8B    ED 5B 650E            RD170:  LD DE,(BFSHL)           ; Suchadresse speichern
-  7C8F    ED 4B 650C                    LD BC,(BFSLL)
-  7C93    C3 7D0E                       JP RD03                 ; nur Blase1 ohne tauschen speicher
+  7C84    32 672C               RD16:   LD (RAMS+RBSTAT),A      ; MONAT SPEICHERN
+  7C87    3A 672B                       LD A,(RAMS+RTERM)
+  7C8A    D6 01                         SUB 01H                 ; Gedaechtniss schon Min
+  7C8C    38 16                         JR C,RD171              ; Ausgang WENN MIN ERREICHT
+  7C8E    32 672B                       LD (RAMS+RTERM),A       ; ZURUECK IN RAM
+  7C91    3A 6205               RD17:   LD A,(BSTAT)
+  7C94    CB B7                         RES 6,A                 ; Sortieren aktivieren aller Blasen
+  7C96    32 6205                       LD (BSTAT),A
+  7C99    ED 5B 650E            RD170:  LD DE,(BFSHL)           ; Suchadresse speichern
+  7C9D    ED 4B 650C                    LD BC,(BFSLL)
+  7CA1    C3 7D1C                       JP RD03                 ; nur Blase1 ohne tauschen speicher
                                         ;------------------
-  7C96    3A 6728               RD171:  LD A,(RAMS+RUSER)
-  7C99    3C                            INC A
-  7C9A    28 EF                         JR Z,RD170
-  7C9C    32 6728                       LD (RAMS+RUSER),A       ; User =FFH damit Blase wieder an Schluss wandert
-  7C9F    18 EA                         JR RD170
+  7CA4    3A 6728               RD171:  LD A,(RAMS+RUSER)
+  7CA7    3C                            INC A
+  7CA8    28 EF                         JR Z,RD170
+  7CAA    32 6728                       LD (RAMS+RUSER),A       ; User =FFH damit Blase wieder an Schluss wandert
+  7CAD    18 EA                         JR RD170
                                         ;-----------------------
                                         ; Zweite Blase mit Erster Blase beim Speichern tauschen
-  7CA1    ED 4B 650C            RD01:   LD BC,(BFSLL)
-  7CA5    ED 5B 650E                    LD DE,(BFSHL)   ; Suchadresse 1.Blase speichern
-  7CA9    21 6927                       LD HL,RAMS+200H         ; MIT WERT AUS 2.BLASE SPEICHERN
-  7CAC    CD 7DD4                       CALL RDWRITE
+  7CAF    ED 4B 650C            RD01:   LD BC,(BFSLL)
+  7CB3    ED 5B 650E                    LD DE,(BFSHL)   ; Suchadresse 1.Blase speichern
+  7CB7    21 6927                       LD HL,RAMS+200H         ; MIT WERT AUS 2.BLASE SPEICHERN
+  7CBA    CD 7DE2                       CALL RDWRITE
                                         ;------
                                         ; WRITE SICHTBAR MACHEN
                                         ;LD BC,1401H
+        MACRO-80 3.43   27-Jul-81       PAGE    1-42
+
+
                                         ;CALL T8
                                         ;LD HL,RAMS+200H
                                         ;CALL LIS0
                                         ;--------
-  7CAF    3A 6205                       LD A,(BSTAT)
-  7CB2    CB B7                         RES 6,A         ; SORTIEREN START
-  7CB4    32 6205                       LD (BSTAT),A
+  7CBD    3A 6205                       LD A,(BSTAT)
+  7CC0    CB B7                         RES 6,A         ; SORTIEREN START
+  7CC2    32 6205                       LD (BSTAT),A
                                         ;-------------------
                                         ; pruefe ob AKTUELLE ZAEHLER ALS 1. Blase offen ist
-  7CB7    AF                            XOR A           ; RES CARRY FLAG
-  7CB8    ED 5B 650E                    LD DE,(BFSHL)   ; ADRESSE HIGH
-        MACRO-80 3.43   27-Jul-81       PAGE    1-42
-
-
-  7CBC    2A 6502                       LD HL,(BFRHL)   ; AKTUELL SICHTBARE BLASE
-  7CBF    ED 52                         SBC HL,DE       ;-C
-  7CC1    20 1D                         JR NZ,TAS22     ; BLASE H SORTIEREN UND OFFEN NICHT GLEICH ->
-  7CC3    AF                            XOR A           ; RES CARRY FAG
-  7CC4    ED 5B 650C                    LD DE,(BFSLL)   ; ADRESSE LOW
-  7CC8    2A 6500                       LD HL,(BFRLL)
-  7CCB    ED 52                         SBC HL,DE       ;-C
-  7CCD    20 11                         JR NZ,TAS22
+  7CC5    AF                            XOR A           ; RES CARRY FLAG
+  7CC6    ED 5B 650E                    LD DE,(BFSHL)   ; ADRESSE HIGH
+  7CCA    2A 6502                       LD HL,(BFRHL)   ; AKTUELL SICHTBARE BLASE
+  7CCD    ED 52                         SBC HL,DE       ;-C
+  7CCF    20 1D                         JR NZ,TAS22     ; BLASE H SORTIEREN UND OFFEN NICHT GLEICH ->
+  7CD1    AF                            XOR A           ; RES CARRY FAG
+  7CD2    ED 5B 650C                    LD DE,(BFSLL)   ; ADRESSE LOW
+  7CD6    2A 6500                       LD HL,(BFRLL)
+  7CD9    ED 52                         SBC HL,DE       ;-C
+  7CDB    20 11                         JR NZ,TAS22
                                         ;-------------------
                                         ; DANN ADRESSE AKTUELLER BLASE AUCH TAUSCHEN
                                         ; SICHTBARE BLASE VERSCHIEBEN
-  7CCF    ED 5B 6510                    LD DE,(BFSLL+4)
-  7CD3    2A 6512                       LD HL,(BFSHL+4)
-  7CD6    22 6502                       LD (BFRHL),HL
-  7CD9    ED 53 6500                    LD (BFRLL),DE
-  7CDD    C3 7D06                       JP TAS24
+  7CDD    ED 5B 6510                    LD DE,(BFSLL+4)
+  7CE1    2A 6512                       LD HL,(BFSHL+4)
+  7CE4    22 6502                       LD (BFRHL),HL
+  7CE7    ED 53 6500                    LD (BFRLL),DE
+  7CEB    C3 7D14                       JP TAS24
                                         ;-------------------
                                         ; pruefe ob AKTUELLE ZAEHLER ALS 1. Blase offen ist
-  7CE0    AF                    TAS22:  XOR A           ; RES CARRY FLAG
-  7CE1    ED 5B 6512                    LD DE,(BFSHL+4) ; Aktuelle Track/Sectoradresse laden
-  7CE5    2A 6502                       LD HL,(BFRHL)
-  7CE8    ED 52                         SBC HL,DE       ; -C
-  7CEA    20 1A                         JR NZ,TAS24     ; BLASE H SORTIEREN UND OFFEN NICHT GLEICH ->
-  7CEC    AF                            XOR A           ; RES CARRY FLAG
-  7CED    ED 5B 6510                    LD DE,(BFSLL+4) ; Aktuelle Track/Sectoradresse laden
-  7CF1    2A 6500                       LD HL,(BFRLL)
-  7CF4    ED 52                         SBC HL,DE       ; -C
-  7CF6    20 0E                         JR NZ,TAS24
+  7CEE    AF                    TAS22:  XOR A           ; RES CARRY FLAG
+  7CEF    ED 5B 6512                    LD DE,(BFSHL+4) ; Aktuelle Track/Sectoradresse laden
+  7CF3    2A 6502                       LD HL,(BFRHL)
+  7CF6    ED 52                         SBC HL,DE       ; -C
+  7CF8    20 1A                         JR NZ,TAS24     ; BLASE H SORTIEREN UND OFFEN NICHT GLEICH ->
+  7CFA    AF                            XOR A           ; RES CARRY FLAG
+  7CFB    ED 5B 6510                    LD DE,(BFSLL+4) ; Aktuelle Track/Sectoradresse laden
+  7CFF    2A 6500                       LD HL,(BFRLL)
+  7D02    ED 52                         SBC HL,DE       ; -C
+  7D04    20 0E                         JR NZ,TAS24
                                         ;-----------------
                                         ; AKTUELLE BLASE TAUSCHEN H->L
-  7CF8    ED 5B 650C                    LD DE,(BFSLL)
-  7CFC    2A 650E                       LD HL,(BFSHL)
-  7CFF    ED 53 6500                    LD (BFRLL),DE
-  7D03    22 6502                       LD (BFRHL),HL
+  7D06    ED 5B 650C                    LD DE,(BFSLL)
+  7D0A    2A 650E                       LD HL,(BFSHL)
+  7D0D    ED 53 6500                    LD (BFRLL),DE
+  7D11    22 6502                       LD (BFRHL),HL
                                         ;-----------------------
                                         ; Erste Blase mit zweiter Blase beim Speichern tauschen
-  7D06    ED 4B 6510            TAS24:  LD BC,(BFSLL+4)
-  7D0A    ED 5B 6512                    LD DE,(BFSHL+4) ; Suchadresse 2. BLASE speichern
-  7D0E    21 6727               RD03:   LD HL,RAMS
-  7D11    CD 7DD4                       CALL RDWRITE
+  7D14    ED 4B 6510            TAS24:  LD BC,(BFSLL+4)
+  7D18    ED 5B 6512                    LD DE,(BFSHL+4) ; Suchadresse 2. BLASE speichern
+  7D1C    21 6727               RD03:   LD HL,RAMS
+  7D1F    CD 7DE2                       CALL RDWRITE
                                         ;------
                                         ; WRITE SICHTBAR MACHEN
                                         ;LD BC,1601H
                                         ;CALL T8
                                         ;LD HL,RAMS+200H
-                                        ;CALL LIS0
-                                        ;--------
-  7D14    3A 6205                       LD A,(BSTAT)
-  7D17    CB 77                         BIT 6,A
-  7D19    20 42                         JR NZ,RD02
-  7D1B    CB F7                         SET 6,A         ; STOP/START
-  7D1D    32 6205                       LD (BSTAT),A
-                                        ;----------------------
-                                        ; nach letztem Blase speichern Sortieradresse > letzter Blase Adr. 
-                                        ; dann neu Adr. speichern und bei HDD-neu Anfangsadr. beginnen
-  7D20    AF                            XOR A           ; RES CARRY FLAG
         MACRO-80 3.43   27-Jul-81       PAGE    1-43
 
 
-  7D21    2A 8024                       LD HL,(BF07+2)
-  7D24    ED 5B 650E                    LD DE,(BFSHL)   ; LETZTE Suchadresse speichern
-  7D28    ED 52                         SBC HL,DE       ; -C
-  7D2A    30 17                         JR NC,RD30
-  7D2C    ED 53 8024                    LD (BF07+2),DE  ; SPEICHE WENN HL<DE
-  7D30    ED 4B 650C                    LD BC,(BFSLL)
-  7D34    ED 43 8022                    LD (BF07),BC
-  7D38    ED 5B 650C                    LD DE,(BFSLL)
-  7D3C    ED 4B 650E                    LD BC,(BFSHL)
-  7D40    C3 7D71                       JP RD90 
+                                        ;CALL LIS0
+                                        ;--------
+  7D22    3A 6205                       LD A,(BSTAT)
+  7D25    CB 77                         BIT 6,A
+  7D27    20 42                         JR NZ,RD02
+  7D29    CB F7                         SET 6,A         ; STOP/START
+  7D2B    32 6205                       LD (BSTAT),A
+                                        ;----------------------
+                                        ; nach letztem Blase speichern Sortieradresse > letzter Blase Adr. 
+                                        ; dann neu Adr. speichern und bei HDD-neu Anfangsadr. beginnen
+  7D2E    AF                            XOR A           ; RES CARRY FLAG
+  7D2F    2A 8032                       LD HL,(BF07+2)
+  7D32    ED 5B 650E                    LD DE,(BFSHL)   ; LETZTE Suchadresse speichern
+  7D36    ED 52                         SBC HL,DE       ; -C
+  7D38    30 17                         JR NC,RD30
+  7D3A    ED 53 8032                    LD (BF07+2),DE  ; SPEICHE WENN HL<DE
+  7D3E    ED 4B 650C                    LD BC,(BFSLL)
+  7D42    ED 43 8030                    LD (BF07),BC
+  7D46    ED 5B 650C                    LD DE,(BFSLL)
+  7D4A    ED 4B 650E                    LD BC,(BFSHL)
+  7D4E    C3 7D7F                       JP RD90 
                                         ;---------------
-  7D43    ED 5B 650C            RD30:   LD DE,(BFSLL)
-  7D47    ED 4B 650E                    LD BC,(BFSHL)
-  7D4B    C2 7D9E                       JP NZ,RD92
-  7D4E    AF                            XOR A           ; RES CARRY FLAG
-  7D4F    2A 8022                       LD HL,(BF07)
-  7D52    ED 52                         SBC HL,DE       ; -C
-  7D54    30 07                         JR NC,RD02
-  7D56    ED 53 8022                    LD (BF07),DE
-  7D5A    C3 7D71                       JP RD90         ; NACH sPEICHERN BLASE VON NULL NEUSTART
+  7D51    ED 5B 650C            RD30:   LD DE,(BFSLL)
+  7D55    ED 4B 650E                    LD BC,(BFSHL)
+  7D59    C2 7DAC                       JP NZ,RD92
+  7D5C    AF                            XOR A           ; RES CARRY FLAG
+  7D5D    2A 8030                       LD HL,(BF07)
+  7D60    ED 52                         SBC HL,DE       ; -C
+  7D62    30 07                         JR NC,RD02
+  7D64    ED 53 8030                    LD (BF07),DE
+  7D68    C3 7D7F                       JP RD90         ; NACH sPEICHERN BLASE VON NULL NEUSTART
                                 ;-----------
-  7D5D                          RD02:   ;------
+  7D6B                          RD02:   ;------
                                         ; READ SICHTBAR MACHEN
                                         ;LD BC,0501H
                                         ;CALL T8
                                         ;LD HL,RAMS
                                         ;CALL LIS0
-  7D5D    CD 790F                       CALL FREI
-  7D60    ED 5B 650E                    LD DE,(BFSHL)           ; LETZTE SUCHADRESSE SPEICHERN
+  7D6B    CD 790F                       CALL FREI
+  7D6E    ED 5B 650E                    LD DE,(BFSHL)           ; LETZTE SUCHADRESSE SPEICHERN
                                         ; LD (BF07+4),DE
-  7D64    ED 4B 650C                    LD BC,(BFSLL)
+  7D72    ED 4B 650C                    LD BC,(BFSLL)
                                         ; LD (BF07+6),BC
                                         ;ACHTUNG SECTOR 8/16 LD (BF07),BC
                                         ;---------------------
                                         ; Tastenabfrage und Zeichen einlesen
-  7D68    CD 79A9                       CALL KEYST
-  7D6B    FE 00                         CP 0H
-  7D6D    CA 7AC8                       JP Z,TAS        ;TAS00
-  7D70    C9                            RET                     ; RETURN ZU BL ENDE
+  7D76    CD 79B7                       CALL KEYST
+  7D79    FE 00                         CP 0H
+  7D7B    CA 7AD6                       JP Z,TAS        ;TAS00
+  7D7E    C9                            RET                     ; RETURN ZU BL ENDE
                                 
                                 ;---------------------
                                 ; RD90 AUSGABE UEBERSPRINGEN
                                 ; SUCHADRESSE
                                 ;
-  7D71    E5                    RD90:   PUSH HL
-  7D72    D5                            PUSH DE
-  7D73    C5                            PUSH BC
-  7D74    ED 5B 650C                    LD DE,(BFSLL)
-  7D78    ED 4B 650E                    LD BC,(BFSHL)
-  7D7C    CB 38                         SRL B
-  7D7E    CB 19                         RR C
-  7D80    CB 1A                         RR D
-  7D82    CB 1B                         RR E
-  7D84    AF                            XOR A           ; RES CARRY FLAG
-  7D85    21 0000                       LD HL,0000H
-  7D88    ED 42                         SBC HL,BC       ; -C HIGH
+  7D7F    E5                    RD90:   PUSH HL
         MACRO-80 3.43   27-Jul-81       PAGE    1-44
 
 
-  7D8A    20 12                         JR NZ,RD92      ; BC >0 ->
-  7D8C    21 0800                       LD HL,HDD
-  7D8F    ED 52                         SBC HL,DE
-  7D91    30 05                         JR NC,RD911
-  7D93    18 09                         JR RD92
+  7D80    D5                            PUSH DE
+  7D81    C5                            PUSH BC
+  7D82    ED 5B 650C                    LD DE,(BFSLL)
+  7D86    ED 4B 650E                    LD BC,(BFSHL)
+  7D8A    CB 38                         SRL B
+  7D8C    CB 19                         RR C
+  7D8E    CB 1A                         RR D
+  7D90    CB 1B                         RR E
+  7D92    AF                            XOR A           ; RES CARRY FLAG
+  7D93    21 0000                       LD HL,0000H
+  7D96    ED 42                         SBC HL,BC       ; -C HIGH
+  7D98    20 12                         JR NZ,RD92      ; BC >0 ->
+  7D9A    21 0800                       LD HL,HDD
+  7D9D    ED 52                         SBC HL,DE
+  7D9F    30 05                         JR NC,RD911
+  7DA1    18 09                         JR RD92
                                 ;----------------------
                                 ; RESET TO HDD START
                                 ; 
-  7D95    E5                    RD91:   PUSH HL
-  7D96    D5                            PUSH DE
-  7D97    C5                            PUSH BC
-  7D98    11 0801               RD911:  LD DE,HDD+1
-  7D9B    01 0000                       LD BC,0
-  7D9E    ED 53 650C            RD92:   LD (BFSLL),DE
-  7DA2    ED 43 650E                    LD (BFSHL),BC
-  7DA6    C1                            POP BC
-  7DA7    D1                            POP DE
-  7DA8    E1                            POP HL
-  7DA9    18 B2                         JR RD02
+  7DA3    E5                    RD91:   PUSH HL
+  7DA4    D5                            PUSH DE
+  7DA5    C5                            PUSH BC
+  7DA6    11 0801               RD911:  LD DE,HDD+1
+  7DA9    01 0000                       LD BC,0
+  7DAC    ED 53 650C            RD92:   LD (BFSLL),DE
+  7DB0    ED 43 650E                    LD (BFSHL),BC
+  7DB4    C1                            POP BC
+  7DB5    D1                            POP DE
+  7DB6    E1                            POP HL
+  7DB7    18 B2                         JR RD02
                                 ;------------------------
                                 ; READ SECTOR VON HDD
                                 ;
-  7DAB    DD E5                 RDREAD: PUSH IX
-  7DAD    DD 21 0000                    LD IX,0
-  7DB1    DD 39                         ADD IX,SP
+  7DB9    DD E5                 RDREAD: PUSH IX
+  7DBB    DD 21 0000                    LD IX,0
+  7DBF    DD 39                         ADD IX,SP
                                         ;----------------
-  7DB3    CD 7FA5                       CALL EXTERN
-  7DB6    F5                            PUSH AF         ; PIOA RESCUE
+  7DC1    CD 7FB3                       CALL EXTERN
+  7DC4    F5                            PUSH AF         ; PIOA RESCUE
                                         ;----------------
-  7DB7    E5                            PUSH HL         ; DMA
-  7DB8    C5                            PUSH BC         ; DISK SEL
-  7DB9    D5                            PUSH DE         ; DISK SEL
-  7DBA    CD 78BB                       CALL DISK
-  7DBD    D1                            POP DE
-  7DBE    3E 20                         LD A,CMD_READSEC
-  7DC0    D3 FF                         OUT (IDECMD),A
-  7DC2    7A                            LD A,D
-  7DC3    D3 FE                         OUT (IDESDH),A
-  7DC5    CD 783E                       CALL WAITDRQ
-  7DC8    C1                            POP BC
-  7DC9    E1                            POP HL
-  7DCA    06 00                         LD B,00H
-  7DCC    0E F8                         LD C,IDEDAT
-  7DCE    ED B2                         INIR
-  7DD0    ED B2                         INIR
-  7DD2    18 24                         JR HDIST
-                                ;----------------------
-                                ; BLASE TO SAVE DE=HIGH, BC=LOW
-                                ;
-  7DD4                          RDWRITE:
-  7DD4    DD E5                         PUSH IX
-  7DD6    DD 21 0000                    LD IX,0
-  7DDA    DD 39                         ADD IX,SP
-                                        ;----------------
-  7DDC    CD 7FA5                       CALL EXTERN
-  7DDF    F5                            PUSH AF         ; PIOA RESCUE
+  7DC5    E5                            PUSH HL         ; DMA
+  7DC6    C5                            PUSH BC         ; DISK SEL
+  7DC7    D5                            PUSH DE         ; DISK SEL
+  7DC8    CD 78BB                       CALL DISK
+  7DCB    D1                            POP DE
+  7DCC    3E 20                         LD A,CMD_READSEC
+  7DCE    D3 FF                         OUT (IDECMD),A
+  7DD0    7A                            LD A,D
+  7DD1    D3 FE                         OUT (IDESDH),A
+  7DD3    CD 783E                       CALL WAITDRQ
+  7DD6    C1                            POP BC
+  7DD7    E1                            POP HL
+  7DD8    06 00                         LD B,00H
+  7DDA    0E F8                         LD C,IDEDAT
+  7DDC    ED B2                         INIR
+  7DDE    ED B2                         INIR
         MACRO-80 3.43   27-Jul-81       PAGE    1-45
 
 
+  7DE0    18 24                         JR HDIST
+                                ;----------------------
+                                ; BLASE TO SAVE DE=HIGH, BC=LOW
+                                ;
+  7DE2                          RDWRITE:
+  7DE2    DD E5                         PUSH IX
+  7DE4    DD 21 0000                    LD IX,0
+  7DE8    DD 39                         ADD IX,SP
                                         ;----------------
-  7DE0    E5                            PUSH HL         ; DMA
-  7DE1    C5                            PUSH BC         ; DISK SEL
-  7DE2    D5                            PUSH DE         ; DISK SEL
-  7DE3    CD 78BB                       CALL DISK
-  7DE6    D1                            POP DE
-  7DE7    C1                            POP BC
-  7DE8    3E 30                         LD A,CMD_WRITESEC
-  7DEA    D3 FF                         OUT (IDECMD),A
-  7DEC    CD 783E                       CALL WAITDRQ
-  7DEF    E1                            POP HL          ; DMA ZURUECK
-  7DF0    06 00                         LD B,00H
-  7DF2    0E F8                         LD C,IDEDAT
-  7DF4    ED B3                         OTIR
-  7DF6    ED B3                         OTIR
+  7DEA    CD 7FB3                       CALL EXTERN
+  7DED    F5                            PUSH AF         ; PIOA RESCUE
                                         ;----------------
-  7DF8    F1                    HDIST:  POP AF
-  7DF9    D3 1C                         OUT (PIOA),A    ; PIOA BACK UP
-  7DFB    DD F9                         LD SP,IX
-  7DFD    DD E1                         POP IX
-  7DFF    C9                            RET
+  7DEE    E5                            PUSH HL         ; DMA
+  7DEF    C5                            PUSH BC         ; DISK SEL
+  7DF0    D5                            PUSH DE         ; DISK SEL
+  7DF1    CD 78BB                       CALL DISK
+  7DF4    D1                            POP DE
+  7DF5    C1                            POP BC
+  7DF6    3E 30                         LD A,CMD_WRITESEC
+  7DF8    D3 FF                         OUT (IDECMD),A
+  7DFA    CD 783E                       CALL WAITDRQ
+  7DFD    E1                            POP HL          ; DMA ZURUECK
+  7DFE    06 00                         LD B,00H
+  7E00    0E F8                         LD C,IDEDAT
+  7E02    ED B3                         OTIR
+  7E04    ED B3                         OTIR
+                                        ;----------------
+  7E06    F1                    HDIST:  POP AF
+  7E07    D3 1C                         OUT (PIOA),A    ; PIOA BACK UP
+  7E09    DD F9                         LD SP,IX
+  7E0B    DD E1                         POP IX
+  7E0D    C9                            RET
                                 ;---------------------
                                 ; TASK zum Programm Starten
                                 ; auf Adr. 100H
                                 
-  7E00                          TASK:   ;PUSH   AF
-  7E00    C5                            PUSH    BC
-  7E01    D5                            PUSH    DE
-  7E02    E5                            PUSH    HL
-  7E03    3A 6928                       LD      A,(RAMS+RUSER+200H)
-  7E06    FE FF                         CP      0FFH
-  7E08    30 41                         JR      NC,TASK99       ; USER = FFH nicht auswerten
-  7E0A    7E                            LD      A,(HL)          ; TYPE2 Blase2 vergleichen
-  7E0B    FE 02                         CP      02H
-  7E0D    38 3C                         JR      C,TASK99
-  7E0F    3A 6003                       LD      A,(RAM+RTYPE2)
-  7E12    FE 02                         CP      02H
-  7E14    30 35                         JR      NC,TASK99       ; WENN IN RAM >1 EXTERNE TASK EINGABE
+  7E0E                          TASK:   ;PUSH   AF
+  7E0E    C5                            PUSH    BC
+  7E0F    D5                            PUSH    DE
+  7E10    E5                            PUSH    HL
+  7E11    3A 6928                       LD      A,(RAMS+RUSER+200H)
+  7E14    FE FF                         CP      0FFH
+  7E16    30 41                         JR      NC,TASK99       ; USER = FFH nicht auswerten
+  7E18    7E                            LD      A,(HL)          ; TYPE2 Blase2 vergleichen
+  7E19    FE 02                         CP      02H
+  7E1B    38 3C                         JR      C,TASK99
+  7E1D    3A 6003                       LD      A,(RAM+RTYPE2)
+  7E20    FE 02                         CP      02H
+  7E22    30 35                         JR      NC,TASK99       ; WENN IN RAM >1 EXTERNE TASK EINGABE
                                         ;----------------------
                                         ; EXTERN BEARBEITEN
                                 
-  7E16    11 0080                       LD      DE,BUFF
-  7E19    21 81D1                       LD      HL,PRLO1
-  7E1C    7E                            LD      A,(HL)
-  7E1D    12                            LD      (DE),A
-  7E1E    13                            INC     DE
-  7E1F    47                            LD      B,A
-  7E20    CD 71F6                       CALL    BL13
+  7E24    11 0080                       LD      DE,BUFF
+  7E27    21 81DF                       LD      HL,PRLO1
+  7E2A    7E                            LD      A,(HL)
+  7E2B    12                            LD      (DE),A
+        MACRO-80 3.43   27-Jul-81       PAGE    1-46
+
+
+  7E2C    13                            INC     DE
+  7E2D    47                            LD      B,A
+  7E2E    CD 71F6                       CALL    BL13
                                 ;ERROR ??
                                 ; CALL  E.TEXT
                                 ; JR    NC,TASK99
                                 
-  7E23    CD 0100                       CALL    0100H
-  7E26    FE 00                         CP      0
-  7E28    20 21                         JR      NZ,TASK99
-  7E2A    ED 4B 6510                    LD BC,(BFSLL+4)
-        MACRO-80 3.43   27-Jul-81       PAGE    1-46
-
-
-  7E2E    C5                            PUSH BC
-  7E2F    ED 5B 6512                    LD DE,(BFSHL+4) ; Suchadresse 2. BLASE speichern
-  7E33    D5                            PUSH DE
-  7E34    CD 78BB                       CALL DISK
-  7E37    D1                            POP DE
-  7E38    C1                            POP BC
-  7E39    38 10                         JR      C,TASK99
-  7E3B    01 6927                       LD      BC,RAMS+200H            ; MIT WERT AUS 1. BLASE
-  7E3E    CD F82F                       CALL    SETDMA
-  7E41    CD 7FA5                       CALL EXTERN
-  7E44    F5                            PUSH AF
-  7E45    CD F817                       CALL WRITE
-  7E48    F1                            POP AF
-  7E49    D3 1C                         OUT (PIOA),A
+  7E31    CD 0100                       CALL    0100H
+  7E34    FE 00                         CP      0
+  7E36    20 21                         JR      NZ,TASK99
+  7E38    ED 4B 6510                    LD BC,(BFSLL+4)
+  7E3C    C5                            PUSH BC
+  7E3D    ED 5B 6512                    LD DE,(BFSHL+4) ; Suchadresse 2. BLASE speichern
+  7E41    D5                            PUSH DE
+  7E42    CD 78BB                       CALL DISK
+  7E45    D1                            POP DE
+  7E46    C1                            POP BC
+  7E47    38 10                         JR      C,TASK99
+  7E49    01 6927                       LD      BC,RAMS+200H            ; MIT WERT AUS 1. BLASE
+  7E4C    CD F82F                       CALL    SETDMA
+  7E4F    CD 7FB3                       CALL EXTERN
+  7E52    F5                            PUSH AF
+  7E53    CD F817                       CALL WRITE
+  7E56    F1                            POP AF
+  7E57    D3 1C                         OUT (PIOA),A
                                 
                                         ;----------------
-  7E4B    E1                    TASK99: POP     HL
-  7E4C    D1                            POP     DE
-  7E4D    C1                            POP     BC
+  7E59    E1                    TASK99: POP     HL
+  7E5A    D1                            POP     DE
+  7E5B    C1                            POP     BC
                                         ;POP    AF
-  7E4E    C9                            RET
+  7E5C    C9                            RET
                                         ;-----------------------
                                         ; Blase Speichern  aus RAMS in 
                                         ; BC = LL- LH , DE = HL-HH Adresse LBA
-  7E4F    C5                    TWRITE: PUSH BC
-  7E50    D5                            PUSH DE
-  7E51    CD 78BB                       CALL DISK
-  7E54    D1                            POP DE
-  7E55    C1                            POP BC
-  7E56    D8                            RET C
-  7E57    01 6727                       LD BC,RAMS              ; MIT WERT AUS 2. BLASE
-  7E5A    CD F82F                       CALL SETDMA
-  7E5D    CD 7FA5                       CALL EXTERN
-  7E60    F5                            PUSH AF
-  7E61    CD F817                       CALL WRITE
-  7E64    F1                            POP AF
-  7E65    D3 1C                         OUT (PIOA),A
-  7E67    AF                            XOR     A
-  7E68    C9                            RET
+  7E5D    C5                    TWRITE: PUSH BC
+  7E5E    D5                            PUSH DE
+  7E5F    CD 78BB                       CALL DISK
+  7E62    D1                            POP DE
+  7E63    C1                            POP BC
+  7E64    D8                            RET C
+  7E65    01 6727                       LD BC,RAMS              ; MIT WERT AUS 2. BLASE
+  7E68    CD F82F                       CALL SETDMA
+  7E6B    CD 7FB3                       CALL EXTERN
+  7E6E    F5                            PUSH AF
+  7E6F    CD F817                       CALL WRITE
+  7E72    F1                            POP AF
+  7E73    D3 1C                         OUT (PIOA),A
+  7E75    AF                            XOR     A
+  7E76    C9                            RET
                                 ;---------------
                                 ; INTERRUPT FUER TASK PRUEFEN
                                 ;INT:   EI
-  7E69    00                            NOP
-  7E6A    00                            NOP
-  7E6B    00                            NOP
-  7E6C    00                            NOP
-  7E6D    00                            NOP
-  7E6E    00                            NOP
-  7E6F    00                            NOP
-  7E70    00                            NOP
-  7E71    F3                            DI
-  7E72    C9                            RET
+  7E77    00                            NOP
+  7E78    00                            NOP
+  7E79    00                            NOP
+        MACRO-80 3.43   27-Jul-81       PAGE    1-47
+
+
+  7E7A    00                            NOP
+  7E7B    00                            NOP
+  7E7C    00                            NOP
+  7E7D    00                            NOP
+  7E7E    00                            NOP
+  7E7F    F3                            DI
+  7E80    C9                            RET
                                 
                                 ;-----------------------
                                 ;  Uhr auslesen
                                 
-        MACRO-80 3.43   27-Jul-81       PAGE    1-47
-
-
-  7E73    C5                    UHR00:  PUSH BC
-  7E74    CD 7F9E                       CALL INTERN
-  7E77    F5                            PUSH AF
-  7E78    DB 1E                         IN A,(PIOB)
-  7E7A    F5                            PUSH AF
-  7E7B    3E 3F                         LD A,3FH                ; Adresse fuer Uhr
-  7E7D    D3 1E                         OUT (PIOB),A
+  7E81    C5                    UHR00:  PUSH BC
+  7E82    CD 7FAC                       CALL INTERN
+  7E85    F5                            PUSH AF
+  7E86    DB 1E                         IN A,(PIOB)
+  7E88    F5                            PUSH AF
+  7E89    3E 3F                         LD A,3FH                ; Adresse fuer Uhr
+  7E8B    D3 1E                         OUT (PIOB),A
                                         ;-----------------
                                         ; Minuten in Dezimal
                                         ;
-  7E7F    3E 40                         LD A,040H               ; Lesen Ein
-  7E81    D3 98                         OUT (URCS+18H),A
-  7E83    DB 9A                         IN A,(URCS+1AH) ; Minuten
-  7E85    4F                            LD C,A
+  7E8D    3E 40                         LD A,040H               ; Lesen Ein
+  7E8F    D3 98                         OUT (URCS+18H),A
+  7E91    DB 9A                         IN A,(URCS+1AH) ; Minuten
+  7E93    4F                            LD C,A
                                 ;       XOR A
                                 ;       OUT (URCS+18H),A        ; R/W Aus
-  7E86    C5                            PUSH BC
-  7E87    CD 7ECD                       CALL ASCII_CODE
-  7E8A    C1                            POP BC
-  7E8B    78                            LD A,B
-  7E8C    32 8033                       LD (DAYZ+2),A           ; ZEHNER
-  7E8F    3A 8034                       LD A,(DAYZ+3)
-  7E92    B9                            CP C
-  7E93    28 2B                         JR Z,UHR01              ; ZEITAENERUNG NEIN ->
-  7E95    79                            LD A,C
-  7E96    32 8034                       LD (DAYZ+3),A
+  7E94    C5                            PUSH BC
+  7E95    CD 7EDB                       CALL ASCII_CODE
+  7E98    C1                            POP BC
+  7E99    78                            LD A,B
+  7E9A    32 8041                       LD (DAYZ+2),A           ; ZEHNER
+  7E9D    3A 8042                       LD A,(DAYZ+3)
+  7EA0    B9                            CP C
+  7EA1    28 2B                         JR Z,UHR01              ; ZEITAENERUNG NEIN ->
+  7EA3    79                            LD A,C
+  7EA4    32 8042                       LD (DAYZ+3),A
                                         ;-----------------------
                                         ;       Stunde
                                         ;
                                 ;       LD A,040H               ; Lesen Ein
                                 ;       OUT (URCS+18H),A
-  7E99    00                            NOP
-  7E9A    DB 9B                         IN A,(URCS+1BH) ; Stunde
-  7E9C    4F                            LD C,A
-  7E9D    AF                            XOR A
-  7E9E    D3 98                         OUT (URCS+18H),A        ; R/W Aus
-  7EA0    C5                            PUSH BC
-  7EA1    CD 7ECD                       CALL ASCII_CODE
-  7EA4    C1                            POP BC
-  7EA5    78                            LD A,B
-  7EA6    32 8031                       LD (DAYZ),A
-  7EA9    79                            LD A,C
-  7EAA    32 8032                       LD (DAYZ+1),A
+  7EA7    00                            NOP
+  7EA8    DB 9B                         IN A,(URCS+1BH) ; Stunde
+  7EAA    4F                            LD C,A
+  7EAB    AF                            XOR A
+  7EAC    D3 98                         OUT (URCS+18H),A        ; R/W Aus
+  7EAE    C5                            PUSH BC
+  7EAF    CD 7EDB                       CALL ASCII_CODE
+  7EB2    C1                            POP BC
+  7EB3    78                            LD A,B
+  7EB4    32 803F                       LD (DAYZ),A
+  7EB7    79                            LD A,C
+  7EB8    32 8040                       LD (DAYZ+1),A
                                         ;-----------------
                                         ; DAY auslesen
-                                        ;
-                                ;       LD A,040H               ; Lesen Ein
-                                ;       OUT (URCS+18H),A
-  7EAD    00                            NOP
-  7EAE    DB 9D                         IN A,(URCS+1DH) ; Tag
-  7EB0    47                            LD B,A
-                                ;       XOR A
-                                ;       OUT (URCS+18H),A        ; Lesen Aus
-  7EB1    78                            LD A,B
-  7EB2    32 8030                       LD (DAYT),A
-                                        ;-----------------
         MACRO-80 3.43   27-Jul-81       PAGE    1-48
 
 
+                                        ;
+                                ;       LD A,040H               ; Lesen Ein
+                                ;       OUT (URCS+18H),A
+  7EBB    00                            NOP
+  7EBC    DB 9D                         IN A,(URCS+1DH) ; Tag
+  7EBE    47                            LD B,A
+                                ;       XOR A
+                                ;       OUT (URCS+18H),A        ; Lesen Aus
+  7EBF    78                            LD A,B
+  7EC0    32 803E                       LD (DAYT),A
+                                        ;-----------------
                                         ; Monat auslesen
                                         ;
                                 ;       LD A,040H               ; Lesen Ein
                                 ;       OUT (URCS+18H),A
-  7EB5    00                            NOP
-  7EB6    DB 9E                         IN A,(URCS+1EH) ; Tag
-  7EB8    47                            LD B,A
+  7EC3    00                            NOP
+  7EC4    DB 9E                         IN A,(URCS+1EH) ; Tag
+  7EC6    47                            LD B,A
                                 ;       XOR A
                                 ;       OUT (URCS+18H),A        ; Lesen Aus
-  7EB9    78                            LD A,B
-  7EBA    32 802F                       LD (DAYM),A
+  7EC7    78                            LD A,B
+  7EC8    32 803D                       LD (DAYM),A
                                         ;------------------
                                         ; Zeit ausgeben
                                         ;
-  7EBD    CD 7EFE                       CALL    UHR10
-  7EC0    AF                    UHR01:  XOR A
-  7EC1    D3 98                         OUT (URCS+18H),A        ; Lesen Aus
-  7EC3    F1                            POP AF
-  7EC4    E6 F0                         AND 0F0H
-  7EC6    D3 1E                         OUT (PIOB),A
-  7EC8    F1                            POP AF
-  7EC9    D3 1C                         OUT (PIOA),A
-  7ECB    C1                            POP BC
-  7ECC    C9                            RET
+  7ECB    CD 7F0C                       CALL    UHR10
+  7ECE    AF                    UHR01:  XOR A
+  7ECF    D3 98                         OUT (URCS+18H),A        ; Lesen Aus
+  7ED1    F1                            POP AF
+  7ED2    E6 F0                         AND 0F0H
+  7ED4    D3 1E                         OUT (PIOB),A
+  7ED6    F1                            POP AF
+  7ED7    D3 1C                         OUT (PIOA),A
+  7ED9    C1                            POP BC
+  7EDA    C9                            RET
                                 ;---------
-  7ECD                          ASCII_CODE:
-  7ECD    DD E5                         PUSH IX
-  7ECF    DD 21 0000                    LD IX,0
-  7ED3    DD 39                         ADD IX,SP
+  7EDB                          ASCII_CODE:
+  7EDB    DD E5                         PUSH IX
+  7EDD    DD 21 0000                    LD IX,0
+  7EE1    DD 39                         ADD IX,SP
                                         ;------
-  7ED5    DD 7E 04                      LD A,(IX+4)     ;B=HIGH
-  7ED8    0F                            RRCA
-  7ED9    0F                            RRCA
-  7EDA    0F                            RRCA
-  7EDB    0F                            RRCA
-  7EDC    E6 0F                         AND 0FH
-  7EDE    C6 30                         ADD A,30H
-  7EE0    FE 3A                         CP 3AH
-  7EE2    38 02                         JR C,ASC_1
-  7EE4    C6 07                         ADD A,07H
-  7EE6    DD 77 05              ASC_1:  LD (IX+5),A
-  7EE9    DD 7E 04                      LD A,(IX+4)     ; C=LOW
-  7EEC    E6 0F                         AND 0FH
-  7EEE    C6 30                         ADD A,30H
-  7EF0    FE 3A                         CP 3AH
-  7EF2    38 02                         JR C,ASC_2
-  7EF4    C6 07                         ADD A,07H
-  7EF6    DD 77 04              ASC_2:  LD (IX+4),A
-                                        ;---------
-  7EF9    DD F9                         LD SP,IX
-  7EFB    DD E1                         POP IX
-  7EFD    C9                            RET             ; RETURN =BC
-                                ;-----------------------
-                                ;   Uhr anzeigen
-                                ;
-  7EFE    CD 7822               UHR10:  CALL COFF       ; CURSOR AUS
+  7EE3    DD 7E 04                      LD A,(IX+4)     ;B=HIGH
+  7EE6    0F                            RRCA
+  7EE7    0F                            RRCA
+  7EE8    0F                            RRCA
+  7EE9    0F                            RRCA
+  7EEA    E6 0F                         AND 0FH
+  7EEC    C6 30                         ADD A,30H
+  7EEE    FE 3A                         CP 3AH
+  7EF0    38 02                         JR C,ASC_1
+  7EF2    C6 07                         ADD A,07H
+  7EF4    DD 77 05              ASC_1:  LD (IX+5),A
+  7EF7    DD 7E 04                      LD A,(IX+4)     ; C=LOW
+  7EFA    E6 0F                         AND 0FH
+  7EFC    C6 30                         ADD A,30H
+  7EFE    FE 3A                         CP 3AH
         MACRO-80 3.43   27-Jul-81       PAGE    1-49
 
 
+  7F00    38 02                         JR C,ASC_2
+  7F02    C6 07                         ADD A,07H
+  7F04    DD 77 04              ASC_2:  LD (IX+4),A
+                                        ;---------
+  7F07    DD F9                         LD SP,IX
+  7F09    DD E1                         POP IX
+  7F0B    C9                            RET             ; RETURN =BC
+                                ;-----------------------
+                                ;   Uhr anzeigen
+                                ;
+  7F0C    CD 7822               UHR10:  CALL COFF       ; CURSOR AUS
                                         ;---------------
                                         ; Zeile/Spalte
-  7F01    C5                            PUSH BC
-  7F02    01 0075                       LD BC,0075H
-  7F05    CD 7A7B                       CALL WLIST      ; CURSOR POS
-  7F08    C1                            POP BC
-  7F09    3A 8031                       LD A,(DAYZ)
-  7F0C    CD 7802                       CALL HEXC
-  7F0F    3A 8032                       LD A,(DAYZ+1)
-  7F12    CD 7802                       CALL HEXC
-  7F15    3E 3A                         LD A,3AH
-  7F17    CD 7802                       CALL HEXC
-  7F1A    3A 8033                       LD A,(DAYZ+2)
-  7F1D    CD 7802                       CALL HEXC
-  7F20    3A 8034                       LD A,(DAYZ+3)
-  7F23    CD 7802                       CALL HEXC
+  7F0F    C5                            PUSH BC
+  7F10    01 0075                       LD BC,0075H
+  7F13    CD 7A89                       CALL WLIST      ; CURSOR POS
+  7F16    C1                            POP BC
+  7F17    3A 803F                       LD A,(DAYZ)
+  7F1A    CD 7802                       CALL HEXC
+  7F1D    3A 8040                       LD A,(DAYZ+1)
+  7F20    CD 7802                       CALL HEXC
+  7F23    3E 3A                         LD A,3AH
+  7F25    CD 7802                       CALL HEXC
+  7F28    3A 8041                       LD A,(DAYZ+2)
+  7F2B    CD 7802                       CALL HEXC
+  7F2E    3A 8042                       LD A,(DAYZ+3)
+  7F31    CD 7802                       CALL HEXC
                                         ;-----------
-  7F26    CD 7822                       CALL COFF 
-  7F29    C5                            PUSH BC
-  7F2A    01 2475                       LD BC,2475H
-  7F2D    CD 7018                       CALL T8         ;CURSOR POS
-  7F30    C1                            POP BC
-  7F31    3A 8030                       LD A,(DAYT)
-  7F34    4F                            LD C,A
-  7F35    C5                            PUSH BC
-  7F36    CD 7ECD                       CALL ASCII_CODE
-  7F39    C1                            POP BC
-  7F3A    78                            LD A,B
-  7F3B    CD 7802                       CALL HEXC
-  7F3E    79                            LD A,C
-  7F3F    CD 7802                       CALL HEXC
-  7F42    3E 2E                         LD A,2EH
-  7F44    CD 7802                       CALL HEXC
-  7F47    3A 802F                       LD A,(DAYM)
-  7F4A    4F                            LD C,A
-  7F4B    C5                            PUSH BC
-  7F4C    CD 7ECD                       CALL ASCII_CODE
-  7F4F    C1                            POP BC
-  7F50    78                            LD A,B
-  7F51    CD 7802                       CALL HEXC
-  7F54    79                            LD A,C
-  7F55    CD 7802                       CALL HEXC
-  7F58    18 34                         JR RDU02
+  7F34    CD 7822                       CALL COFF 
+  7F37    C5                            PUSH BC
+  7F38    01 2475                       LD BC,2475H
+  7F3B    CD 7018                       CALL T8         ;CURSOR POS
+  7F3E    C1                            POP BC
+  7F3F    3A 803E                       LD A,(DAYT)
+  7F42    4F                            LD C,A
+  7F43    C5                            PUSH BC
+  7F44    CD 7EDB                       CALL ASCII_CODE
+  7F47    C1                            POP BC
+  7F48    78                            LD A,B
+  7F49    CD 7802                       CALL HEXC
+  7F4C    79                            LD A,C
+  7F4D    CD 7802                       CALL HEXC
+  7F50    3E 2E                         LD A,2EH
+  7F52    CD 7802                       CALL HEXC
+  7F55    3A 803D                       LD A,(DAYM)
+  7F58    4F                            LD C,A
+  7F59    C5                            PUSH BC
+  7F5A    CD 7EDB                       CALL ASCII_CODE
+  7F5D    C1                            POP BC
+  7F5E    78                            LD A,B
+  7F5F    CD 7802                       CALL HEXC
+  7F62    79                            LD A,C
+  7F63    CD 7802                       CALL HEXC
+  7F66    18 34                         JR RDU02
                                 ;-----------------------
-  7F5A    3E 02                         LD A,02H
-  7F5C    32 651C                       LD (CURT),A
-  7F5F    3E 04                         LD A,04H
-  7F61    32 651D                       LD (CURT+1),A
-  7F64    3A 6B27                       LD A,(RAMT)
-  7F67    CB 7F                         BIT 7,A
-  7F69    28 04                         JR Z,RDU03
-  7F6B    3E 00                         LD A,00H
-  7F6D    18 02                         JR RDU03+2
-  7F6F    3E 01                 RDU03:  LD A,01H
-  7F71    32 651E                       LD (CURT+2),A
-  7F74    3A 6B27                       LD A,(RAMT)
+  7F68    3E 02                         LD A,02H
         MACRO-80 3.43   27-Jul-81       PAGE    1-50
 
 
-  7F77    E6 0F                         AND 0FH
-  7F79    FE 0A                         CP 0AH
-  7F7B    38 0E                         JR C,RDU01
-  7F7D    D6 0A                         SUB 0AH
-  7F7F    32 651F                       LD (CURT+3),A
-  7F82    3A 651E                       LD A,(CURT+2)
-  7F85    3C                            INC A
-  7F86    32 651E                       LD (CURT+2),A
-  7F89    18 03                         JR RDU02
-  7F8B    32 651F               RDU01:  LD (CURT+3),A
+  7F6A    32 651C                       LD (CURT),A
+  7F6D    3E 04                         LD A,04H
+  7F6F    32 651D                       LD (CURT+1),A
+  7F72    3A 6B27                       LD A,(RAMT)
+  7F75    CB 7F                         BIT 7,A
+  7F77    28 04                         JR Z,RDU03
+  7F79    3E 00                         LD A,00H
+  7F7B    18 02                         JR RDU03+2
+  7F7D    3E 01                 RDU03:  LD A,01H
+  7F7F    32 651E                       LD (CURT+2),A
+  7F82    3A 6B27                       LD A,(RAMT)
+  7F85    E6 0F                         AND 0FH
+  7F87    FE 0A                         CP 0AH
+  7F89    38 0E                         JR C,RDU01
+  7F8B    D6 0A                         SUB 0AH
+  7F8D    32 651F                       LD (CURT+3),A
+  7F90    3A 651E                       LD A,(CURT+2)
+  7F93    3C                            INC A
+  7F94    32 651E                       LD (CURT+2),A
+  7F97    18 03                         JR RDU02
+  7F99    32 651F               RDU01:  LD (CURT+3),A
                                 
-  7F8E    CD 7A5D               RDU02:  CALL RLIST      
-  7F91    21 8042                       LD HL,CURON     ; CURSOR ON
-  7F94    06 06                         LD B,06D
-  7F96    7E                    CUR03:  LD A,(HL)
-  7F97    CD 7802                       CALL HEXC
-  7F9A    23                            INC HL
-  7F9B    10 F9                         DJNZ CUR03
-  7F9D    C9                            RET
+  7F9C    CD 7A6B               RDU02:  CALL RLIST      
+  7F9F    21 8050                       LD HL,CURON     ; CURSOR ON
+  7FA2    06 06                         LD B,06D
+  7FA4    7E                    CUR03:  LD A,(HL)
+  7FA5    CD 7802                       CALL HEXC
+  7FA8    23                            INC HL
+  7FA9    10 F9                         DJNZ CUR03
+  7FAB    C9                            RET
                                 ;------------------
                                 ;INCLUDE LCDINI.MAC
                                 ;------------------
                                         ;
                                         ; BUS INTERN UMSCHALTUNG
                                         ;
-  7F9E    DB 1C                 INTERN: IN A,(PIOA)
-  7FA0    F5                            PUSH AF
-  7FA1    CB BF                         RES 7,A
-  7FA3    18 05                         JR TERN
-  7FA5    DB 1C                 EXTERN: IN A,(PIOA)
-  7FA7    F5                            PUSH AF
-  7FA8    CB FF                         SET 7,A
-  7FAA    D3 1C                 TERN:   OUT (PIOA),A
-  7FAC    F1                            POP AF
-  7FAD    C9                            RET
+  7FAC    DB 1C                 INTERN: IN A,(PIOA)
+  7FAE    F5                            PUSH AF
+  7FAF    CB BF                         RES 7,A
+  7FB1    18 05                         JR TERN
+  7FB3    DB 1C                 EXTERN: IN A,(PIOA)
+  7FB5    F5                            PUSH AF
+  7FB6    CB FF                         SET 7,A
+  7FB8    D3 1C                 TERN:   OUT (PIOA),A
+  7FBA    F1                            POP AF
+  7FBB    C9                            RET
                                 ;----------------
-  7FAE                          EPROMON:        
-  7FAE    DB 1C                         IN A,(PIOA)
-  7FB0    CB B7                         RES 6,A
-  7FB2    D3 1C                         OUT (PIOA),A    ; EPROM Ein
-  7FB4    C3 0000                       JP 0000H        ; EPROM NEUSTART -> PROGRAMM ENDE
+  7FBC                          EPROMON:        
+  7FBC    DB 1C                         IN A,(PIOA)
+  7FBE    CB B7                         RES 6,A
+  7FC0    D3 1C                         OUT (PIOA),A    ; EPROM Ein
+  7FC2    C3 0000                       JP 0000H        ; EPROM NEUSTART -> PROGRAMM ENDE
                                 ;------------------------
-  7FB7    42 4C 41 53           TEX1:   DEFM 'BLASE VERGLEICH:'
-  7FBB    45 20 56 45           
-  7FBF    52 47 4C 45           
-  7FC3    49 43 48 3A           
-                                ;TEX1I: DEFB 78H,78H,78H,78H    
-  0010                          TXL     EQU $-TEX1
-                                
-  7FC7    42 4C 41 53           TEX2:   DEFM 'BLASE GEFUNDEN: '
-  7FCB    45 20 47 45           
-  7FCF    46 55 4E 44           
-  7FD3    45 4E 3A 20           
-  7FD7    00 00 00 00           TEX2I:  DEFB 00H,00H,00H,00H    
-                                
-  7FDB    4B 49 53 59           TEX3:   DEFM 'KISYS 08.12.2009/17'
+  7FC5    42 4C 41 53           TEX1:   DEFM 'BLASE VERGLEICH:'
+  7FC9    45 20 56 45           
+  7FCD    52 47 4C 45           
         MACRO-80 3.43   27-Jul-81       PAGE    1-51
 
 
-  7FDF    53 20 30 38           
-  7FE3    2E 31 32 2E           
-  7FE7    32 30 30 39           
-  7FEB    2F 31 37              
+  7FD1    49 43 48 3A           
+                                ;TEX1I: DEFB 78H,78H,78H,78H    
+  0010                          TXL     EQU $-TEX1
+                                
+  7FD5    42 4C 41 53           TEX2:   DEFM 'BLASE GEFUNDEN: '
+  7FD9    45 20 47 45           
+  7FDD    46 55 4E 44           
+  7FE1    45 4E 3A 20           
+  7FE5    00 00 00 00           TEX2I:  DEFB 00H,00H,00H,00H    
+                                
+  7FE9    4B 49 53 59           TEX3:   DEFM 'KISYS 08.12.2009/17'
+  7FED    53 20 30 38           
+  7FF1    2E 31 32 2E           
+  7FF5    32 30 30 39           
+  7FF9    2F 31 37              
   0013                          TXL3    EQU $-TEX3
                                 ;-----------------------
                                 ;  BIOS Function Summary
                                 
-  7FEE    C5                    BIOS:   PUSH    BC
-  7FEF    E5                            PUSH    HL
-  7FF0    5E                            LD      E,(HL)          ; Speicher Lesen 
-  7FF1    CD 0005                       CALL    0005H
-  7FF4    E1                            POP     HL
-  7FF5    C1                            POP     BC
-  7FF6    23                            INC     HL
-  7FF7    10 F5                         DJNZ    BIOS
-  7FF9    C9                            RET
+  7FFC    C5                    BIOS:   PUSH    BC
+  7FFD    E5                            PUSH    HL
+  7FFE    5E                            LD      E,(HL)          ; Speicher Lesen 
+  7FFF    CD 0005                       CALL    0005H
+  8002    E1                            POP     HL
+  8003    C1                            POP     BC
+  8004    23                            INC     HL
+  8005    10 F5                         DJNZ    BIOS
+  8007    C9                            RET
                                 ;----------------------
                                 ; Blasen Adress Buffer
                                 
-  7FFA    00 00 00 00           BF00:   DEFB    00H,00H,00H,00H,80H,00H         ; U,T1,T2 Zaehler zum Blase eroeffnen
-  7FFE    80 00                 
-  8000    00 00 00 00           BF01:   DEFB    00H,00H,00H,00H,00H,00H         ; LAST CURSOR POS XX,YY
-  8004    00 00                 
-  8006    00 00 00 00           BF02:   DEFB    00H,00H,00H,00H,00H,00H
-  800A    00 00                 
-  800C    00 00 00 00           BF03:   DEFB    00H,00H,00H,00H,00H,00H
-  8010    00 00                 
-  8012    00 00 00 00           BF04:   DEFB    00H,00H,00H,00H,00H,00H
-  8016    00 00                 
-  8018    00 00 00 00           BF05:   DEFB    00H,00H,00H,00H,00H,00H
-  801C    00 00                 
-  801E    00 00 00 00           BF06:   DEFB    00H,00H,00H,00H         ; Datenbankverwaltung
-  8022    00 00 00 00           BF07:   DEFB    00H,00H,00H,00H         ; Letzte HDD SORTIERADRESSE
+  8008    00 00 00 00           BF00:   DEFB    00H,00H,00H,00H,80H,00H         ; U,T1,T2 Zaehler zum Blase eroeffnen
+  800C    80 00                 
+  800E    00 00 00 00           BF01:   DEFB    00H,00H,00H,00H,00H,00H         ; LAST CURSOR POS XX,YY
+  8012    00 00                 
+  8014    00 00 00 00           BF02:   DEFB    00H,00H,00H,00H,00H,00H
+  8018    00 00                 
+  801A    00 00 00 00           BF03:   DEFB    00H,00H,00H,00H,00H,00H
+  801E    00 00                 
+  8020    00 00 00 00           BF04:   DEFB    00H,00H,00H,00H,00H,00H
+  8024    00 00                 
+  8026    00 00 00 00           BF05:   DEFB    00H,00H,00H,00H,00H,00H
+  802A    00 00                 
+  802C    00 00 00 00           BF06:   DEFB    00H,00H,00H,00H         ; Datenbankverwaltung
+  8030    00 00 00 00           BF07:   DEFB    00H,00H,00H,00H         ; Letzte HDD SORTIERADRESSE
                                 ;----------------------
-  8026    00 00 00 00           BF10:   DEFB    00H,00H,00H,00H,00H,00H,00H,00H ; User Type, G.Zaehler
-  802A    00 00 00 00           
+  8034    00 00 00 00           BF10:   DEFB    00H,00H,00H,00H,00H,00H,00H,00H ; User Type, G.Zaehler
+  8038    00 00 00 00           
                                 ;----------------------
                                 ; Kalender
-  802E    30                    DAYJ:   DEFB    30H
-  802F    30                    DAYM:   DEFB    30H
-  8030    30                    DAYT:   DEFB    30H
-  8031    30 30 30 30           DAYZ:   DEFB    30H,30H,30H,30H,30H,30H
-  8035    30 30                 
+  803C    30                    DAYJ:   DEFB    30H
+  803D    30                    DAYM:   DEFB    30H
+  803E    30                    DAYT:   DEFB    30H
+  803F    30 30 30 30           DAYZ:   DEFB    30H,30H,30H,30H,30H,30H
+  8043    30 30                 
                                 
-                                ;----------------------
-                                ; Eingabe Meldung Zeile 24, Spalte 1
-  0007                          CURUD   EQU 07H                 ; Zaehlen ab 01 - 09
-  8037    00 00                 ZEIL:   DEFB 00H,00H
-  8039    1B 5B 31 6D           COL01:  DEFB 1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH        ;COLOR
-  803D    1B 5B 34 34           
-  8041    6D                    
-  8042    1B 5B 3F 32           CURON:  DEFB 1BH,5BH,3FH,32H,35H,68H            ;SET CURSOR ON
-  8046    35 68                 
-  8048    1B 5B 3F 32           CUROFF: DEFB 1BH,5BH,3FH,32H,35H,6CH            ;SET CURSOR OFF
-  804C    35 6C                 
         MACRO-80 3.43   27-Jul-81       PAGE    1-52
 
 
-  804E    1B 5B 32 34           EBUFF:  DEFB 1BH,5BH,'2','4',';','0','1','H'
-  8052    3B 30 31 48           
-  8056    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  805A    6D                    
-  805B    20 20 20 20                   DEFM '                           '
-  805F    20 20 20 20           
-  8063    20 20 20 20           
-  8067    20 20 20 20           
-  806B    20 20 20 20           
-  806F    20 20 20 20           
-  8073    20 20 20              
-  8076    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  807A    3B 30 31 48           
-  807E    53 75 63 68           EBUFFE: DEFM 'Suche:'
-  8082    65 3A                 
-  0036                          EZLEN   EQU $-EBUFF
+                                ;----------------------
+                                ; Eingabe Meldung Zeile 24, Spalte 1
+  0007                          CURUD   EQU 07H                 ; Zaehlen ab 01 - 09
+  8045    00 00                 ZEIL:   DEFB 00H,00H
+  8047    1B 5B 31 6D           COL01:  DEFB 1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH        ;COLOR
+  804B    1B 5B 34 34           
+  804F    6D                    
+  8050    1B 5B 3F 32           CURON:  DEFB 1BH,5BH,3FH,32H,35H,68H            ;SET CURSOR ON
+  8054    35 68                 
+  8056    1B 5B 3F 32           CUROFF: DEFB 1BH,5BH,3FH,32H,35H,6CH            ;SET CURSOR OFF
+  805A    35 6C                 
+  805C    1B 5B 32 34           EBUFF:  DEFB 1BH,5BH,'2','4',';','0','1','H'
+  8060    3B 30 31 48           
+  8064    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  8068    6D                    
+  8069    20 20 20 20                   DEFM '                           '
+  806D    20 20 20 20           
+  8071    20 20 20 20           
+  8075    20 20 20 20           
+  8079    20 20 20 20           
+  807D    20 20 20 20           
+  8081    20 20 20              
   8084    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
   8088    3B 30 31 48           
-  808C    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  8090    6D                    
-  8091    4C 69 73 74                   DEFM 'List                '
-  8095    20 20 20 20           
-  8099    20 20 20 20           
-  809D    20 20 20 20           
-  80A1    20 20 20 20           
-  80A5    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  80A9    3B 30 31 48           
-  80AD    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  80B1    6D                    
-  80B2    8E 6E 64 65                   DEFM  142D,'ndern              '
-  80B6    72 6E 20 20           
-  80BA    20 20 20 20           
-  80BE    20 20 20 20           
-  80C2    20 20 20 20           
-  80C6    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  80CA    3B 30 31 48           
-  80CE    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  80D2    6D                    
-  80D3    53 70 65 69                   DEFM 'Speichern           '
-  80D7    63 68 65 72           
-  80DB    6E 20 20 20           
-  80DF    20 20 20 20           
-  80E3    20 20 20 20           
-  80E7    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  80EB    3B 30 31 48           
-  80EF    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  80F3    6D                    
-  80F4    56 65 72 67                   DEFM 'Vergessen           '
-  80F8    65 73 73 65           
-  80FC    6E 20 20 20           
-  8100    20 20 20 20           
-  8104    20 20 20 20           
-  8108    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  810C    3B 30 31 48           
-  8110    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  8114    6D                    
+  808C    53 75 63 68           EBUFFE: DEFM 'Suche:'
+  8090    65 3A                 
+  0036                          EZLEN   EQU $-EBUFF
+  8092    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  8096    3B 30 31 48           
+  809A    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  809E    6D                    
+  809F    4C 69 73 74                   DEFM 'List                '
+  80A3    20 20 20 20           
+  80A7    20 20 20 20           
+  80AB    20 20 20 20           
+  80AF    20 20 20 20           
+  80B3    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  80B7    3B 30 31 48           
+  80BB    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  80BF    6D                    
+  80C0    8E 6E 64 65                   DEFM  142D,'ndern              '
+  80C4    72 6E 20 20           
+  80C8    20 20 20 20           
+  80CC    20 20 20 20           
+  80D0    20 20 20 20           
+  80D4    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  80D8    3B 30 31 48           
+  80DC    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  80E0    6D                    
+  80E1    53 70 65 69                   DEFM 'Speichern           '
+  80E5    63 68 65 72           
+  80E9    6E 20 20 20           
+  80ED    20 20 20 20           
+  80F1    20 20 20 20           
+  80F5    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  80F9    3B 30 31 48           
         MACRO-80 3.43   27-Jul-81       PAGE    1-53
 
 
-  8115    45 6E 64 65                   DEFM 'Ende                '
-  8119    20 20 20 20           
-  811D    20 20 20 20           
-  8121    20 20 20 20           
-  8125    20 20 20 20           
+  80FD    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  8101    6D                    
+  8102    56 65 72 67                   DEFM 'Vergessen           '
+  8106    65 73 73 65           
+  810A    6E 20 20 20           
+  810E    20 20 20 20           
+  8112    20 20 20 20           
+  8116    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  811A    3B 30 31 48           
+  811E    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  8122    6D                    
+  8123    45 6E 64 65                   DEFM 'Ende                '
+  8127    20 20 20 20           
+  812B    20 20 20 20           
+  812F    20 20 20 20           
+  8133    20 20 20 20           
                                 
-  8129    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  812D    3B 30 31 48           
-  8131    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  8135    6D                    
-  8136    20 20 20 4C                   DEFM '   List             '
-  813A    69 73 74 20           
-  813E    20 20 20 20           
-  8142    20 20 20 20           
-  8146    20 20 20 20           
+  8137    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  813B    3B 30 31 48           
+  813F    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  8143    6D                    
+  8144    20 20 20 4C                   DEFM '   List             '
+  8148    69 73 74 20           
+  814C    20 20 20 20           
+  8150    20 20 20 20           
+  8154    20 20 20 20           
                                 
-  814A    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  814E    3B 30 31 48           
-  8152    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  8156    6D                    
-  8157    20 20 8E 6E                   DEFM '  ',142D,'ndern               '
-  815B    64 65 72 6E           
-  815F    20 20 20 20           
-  8163    20 20 20 20           
-  8167    20 20 20 20           
-  816B    20 20 20              
+  8158    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  815C    3B 30 31 48           
+  8160    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  8164    6D                    
+  8165    20 20 8E 6E                   DEFM '  ',142D,'ndern               '
+  8169    64 65 72 6E           
+  816D    20 20 20 20           
+  8171    20 20 20 20           
+  8175    20 20 20 20           
+  8179    20 20 20              
                                 
-  816E    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  8172    3B 30 31 48           
-  8176    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  817A    6D                    
-  817B    41 6E 6C 65                   DEFM 'Anlegen             '
-  817F    67 65 6E 20           
-  8183    20 20 20 20           
-  8187    20 20 20 20           
-  818B    20 20 20 20           
+  817C    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  8180    3B 30 31 48           
+  8184    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  8188    6D                    
+  8189    41 6E 6C 65                   DEFM 'Anlegen             '
+  818D    67 65 6E 20           
+  8191    20 20 20 20           
+  8195    20 20 20 20           
+  8199    20 20 20 20           
                                 
-  818F    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
-  8193    3B 30 31 48           
-  8197    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
-  819B    6D                    
-  819C    53 70 65 69                   DEFM 'Speichern           '
-  81A0    63 68 65 72           
-  81A4    6E 20 20 20           
-  81A8    20 20 20 20           
-  81AC    20 20 20 20           
-                                
-  81B0    3A                            DEFB ':'        ; Ende Text
-                                
-  81B1                          ZCUR:
-                                ;!!!    DEFB 08H                                
-  81B1    4C 49 53 54                   DEFM 'LISTF.COM   '                             
-  81B5    46 2E 43 4F           
-  81B9    4D 20 20 20           
-                                ;!!!    DEFB 07H        
-  81BD    4D 45 4D 2E                   DEFM 'MEM.COM     '
+  819D    1B 5B 32 34                   DEFB 1BH,5BH,'2','4',';','0','1','H'
+  81A1    3B 30 31 48           
+  81A5    1B 5B 33 37                   DEFB 1BH,5BH,'3','7','m'        ; Vordergrund Zeichen
+  81A9    6D                    
+  81AA    53 70 65 69                   DEFM 'Speichern           '
+  81AE    63 68 65 72           
+  81B2    6E 20 20 20           
+  81B6    20 20 20 20           
         MACRO-80 3.43   27-Jul-81       PAGE    1-54
 
 
-  81C1    43 4F 4D 20           
-  81C5    20 20 20 20           
+  81BA    20 20 20 20           
+                                
+  81BE    3A                            DEFB ':'        ; Ende Text
+                                
+  81BF                          ZCUR:
                                 ;!!!    DEFB 08H                                
-  81C9    45 44 49 54                   DEFM 'EDIT.COM'                         
-  81CD    2E 43 4F 4D           
+  81BF    4C 49 53 54                   DEFM 'LISTF.COM   '                             
+  81C3    46 2E 43 4F           
+  81C7    4D 20 20 20           
+                                ;!!!    DEFB 07H        
+  81CB    4D 45 4D 2E                   DEFM 'MEM.COM     '
+  81CF    43 4F 4D 20           
+  81D3    20 20 20 20           
+                                ;!!!    DEFB 08H                                
+  81D7    45 44 49 54                   DEFM 'EDIT.COM'                         
+  81DB    2E 43 4F 4D           
                                 
                                 ;----------------------
                                 
-  81D1                          PRLO1:
+  81DF                          PRLO1:
                                 ;!!!    DEFB 08H
-  81D1    46 41 4B 54                   DEFM 'FAKT.COM'
-  81D5    2E 43 4F 4D           
+  81DF    46 41 4B 54                   DEFM 'FAKT.COM'
+  81E3    2E 43 4F 4D           
                                 
-  81D9    53 74 61 72           STEX:   DEFM 'Start Programm  '
-  81DD    74 20 50 72           
-  81E1    6F 67 72 61           
-  81E5    6D 6D 20 20           
+  81E7    53 74 61 72           STEX:   DEFM 'Start Programm  '
+  81EB    74 20 50 72           
+  81EF    6F 67 72 61           
+  81F3    6D 6D 20 20           
   0010                          LSTEX   EQU $-STEX
                                 
-  81E9    4B 49 53 79           LCDE:   DEFM  'KISystem Winterhalter'
-  81ED    73 74 65 6D           
-  81F1    20 57 69 6E           
-  81F5    74 65 72 68           
-  81F9    61 6C 74 65           
-  81FD    72                    
+  81F7    4B 49 53 79           LCDE:   DEFM  'KISystem Winterhalter'
+  81FB    73 74 65 6D           
+  81FF    20 57 69 6E           
+  8203    74 65 72 68           
+  8207    61 6C 74 65           
+  820B    72                    
   0015                          LCDEX   EQU     $-LCDE
                                 
-  81FE    1B 5B 31 35           COMZ:   DEFB 1BH,5BH,31H,35H,3BH,30H,31H,48H,1BH,5BH,30H,4AH
-  8202    3B 30 31 48           
-  8206    1B 5B 30 4A           
-  820A    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,32H,6DH
-  820E    6D 1B 5B 34           
-  8212    32 6D                 
-  8214    43 6F 6D 6D                   DEFM  'Commando Zeile= '
-  8218    61 6E 64 6F           
-  821C    20 5A 65 69           
-  8220    6C 65 3D 20           
+  820C    1B 5B 31 35           COMZ:   DEFB 1BH,5BH,31H,35H,3BH,30H,31H,48H,1BH,5BH,30H,4AH
+  8210    3B 30 31 48           
+  8214    1B 5B 30 4A           
+  8218    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,32H,6DH
+  821C    6D 1B 5B 34           
+  8220    32 6D                 
+  8222    43 6F 6D 6D                   DEFM  'Commando Zeile= '
+  8226    61 6E 64 6F           
+  822A    20 5A 65 69           
+  822E    6C 65 3D 20           
   0026                          COMZX   EQU     $-COMZ
                                 
                                 
-  8224    1B 5B 32 34           KEYZ:   DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H
-  8228    3B 30 31 48           
-  822C    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,32H,6DH
-  8230    6D 1B 5B 34           
-  8234    32 6D                 
-  8236    4B 45 59 20                   DEFM  'KEY Stepp= '
-  823A    53 74 65 70           
-  823E    70 3D 20              
-  001D                          KEYZX   EQU     $-KEYZ
-                                
-  8241    1B 5B 30 31           MELD01: DEFB 1BH,5BH,30H,31H,3BH,30H,31H,48H
-  8245    3B 30 31 48           
-  8249    1B 5B 33 31                   DEFB 1BH,5BH,33H,31H,6DH,1BH,5BH,34H,34H,6DH
-  824D    6D 1B 5B 34           
-  8251    34 6D                 
-  8253    44 69 65 73                   DEFM  'Dieser Begriff ist mir nicht bekannt'
+  8232    1B 5B 32 34           KEYZ:   DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H
+  8236    3B 30 31 48           
+  823A    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,32H,6DH
+  823E    6D 1B 5B 34           
+  8242    32 6D                 
         MACRO-80 3.43   27-Jul-81       PAGE    1-55
 
 
-  8257    65 72 20 42           
-  825B    65 67 72 69           
-  825F    66 66 20 69           
-  8263    73 74 20 6D           
-  8267    69 72 20 6E           
-  826B    69 63 68 74           
-  826F    20 62 65 6B           
-  8273    61 6E 6E 74           
+  8244    4B 45 59 20                   DEFM  'KEY Stepp= '
+  8248    53 74 65 70           
+  824C    70 3D 20              
+  001D                          KEYZX   EQU     $-KEYZ
+                                
+  824F    1B 5B 30 31           MELD01: DEFB 1BH,5BH,30H,31H,3BH,30H,31H,48H
+  8253    3B 30 31 48           
+  8257    1B 5B 33 31                   DEFB 1BH,5BH,33H,31H,6DH,1BH,5BH,34H,34H,6DH
+  825B    6D 1B 5B 34           
+  825F    34 6D                 
+  8261    44 69 65 73                   DEFM  'Dieser Begriff ist mir nicht bekannt'
+  8265    65 72 20 42           
+  8269    65 67 72 69           
+  826D    66 66 20 69           
+  8271    73 74 20 6D           
+  8275    69 72 20 6E           
+  8279    69 63 68 74           
+  827D    20 62 65 6B           
+  8281    61 6E 6E 74           
   0036                          MELD01X EQU     $-MELD01
                                 
-  8277    1B 5B 32 34           PROZ:   DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H
-  827B    3B 30 31 48           
-  827F    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,32H,6DH
-  8283    6D 1B 5B 34           
-  8287    32 6D                 
-  8289    44 61 74 65                   DEFM  'Dateiname= Dez/Text'
-  828D    69 6E 61 6D           
-  8291    65 3D 20 44           
-  8295    65 7A 2F 54           
-  8299    65 78 74              
+  8285    1B 5B 32 34           PROZ:   DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H
+  8289    3B 30 31 48           
+  828D    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,32H,6DH
+  8291    6D 1B 5B 34           
+  8295    32 6D                 
+  8297    44 61 74 65                   DEFM  'Dateiname= Dez/Text'
+  829B    69 6E 61 6D           
+  829F    65 3D 20 44           
+  82A3    65 7A 2F 54           
+  82A7    65 78 74              
   0025                          PROZX   EQU     $-PROZ
                                 
-  829C    1B 5B 32 34           DERR:   DEFB 1BH,5BH,32H,34H,3BH,31H,31H,48H
-  82A0    3B 31 31 48           
-  82A4    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,37H,6DH
-  82A8    6D 1B 5B 34           
-  82AC    37 6D                 
-  82AE    44 49 53 4B                   DEFM  'DISK / HDD ERROR $'
-  82B2    20 2F 20 48           
-  82B6    44 44 20 45           
-  82BA    52 52 4F 52           
-  82BE    20 24                 
-  82C0    05 05                         DEFB 05H,05H
+  82AA    1B 5B 32 34           DERR:   DEFB 1BH,5BH,32H,34H,3BH,31H,31H,48H
+  82AE    3B 31 31 48           
+  82B2    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH,1BH,5BH,34H,37H,6DH
+  82B6    6D 1B 5B 34           
+  82BA    37 6D                 
+  82BC    44 49 53 4B                   DEFM  'DISK / HDD ERROR $'
+  82C0    20 2F 20 48           
+  82C4    44 44 20 45           
+  82C8    52 52 4F 52           
+  82CC    20 24                 
+  82CE    05 05                         DEFB 05H,05H
   0026                          L_DERR  EQU $-DERR
                                 ;---------------------------
-  82C2    43 00 00 00           NBLASE: DEFB  MNBL1,00H,00H,00H,80H,00H                       ;         
-  82C6    80 00                 
+  82D0    43 00 00 00           NBLASE: DEFB  MNBL1,00H,00H,00H,80H,00H                       ;         
+  82D4    80 00                 
                                         ;------------------
-  82C8    1B 5B 32 4A           NBL1:   DEFB  1BH,5BH,32H,4AH,1BH,5BH,48H,1BH,5BH,33H,37H,6DH ; 12 Zeichen
-  82CC    1B 5B 48 1B           
-  82D0    5B 33 37 6D           
-  82D4    1B 5B 31 6D                   DEFB  1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH             ; 9 ZEICHEN
-  82D8    1B 5B 34 34           
-  82DC    6D                    
-  82DD    20 20 20 20                   DEFM '                                              ' ; 46 ZEICHEN
-  82E1    20 20 20 20           
-  82E5    20 20 20 20           
-  82E9    20 20 20 20           
-  82ED    20 20 20 20           
-  82F1    20 20 20 20           
-  82F5    20 20 20 20           
-  82F9    20 20 20 20           
-  82FD    20 20 20 20           
-  8301    20 20 20 20           
-  8305    20 20 20 20           
-  8309    20 20                 
+  82D6    1B 5B 32 4A           NBL1:   DEFB  1BH,5BH,32H,4AH,1BH,5BH,48H,1BH,5BH,33H,37H,6DH ; 12 Zeichen
+  82DA    1B 5B 48 1B           
+  82DE    5B 33 37 6D           
+  82E2    1B 5B 31 6D                   DEFB  1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH             ; 9 ZEICHEN
+  82E6    1B 5B 34 34           
+  82EA    6D                    
+  82EB    20 20 20 20                   DEFM '                                              ' ; 46 ZEICHEN
         MACRO-80 3.43   27-Jul-81       PAGE    1-56
 
 
+  82EF    20 20 20 20           
+  82F3    20 20 20 20           
+  82F7    20 20 20 20           
+  82FB    20 20 20 20           
+  82FF    20 20 20 20           
+  8303    20 20 20 20           
+  8307    20 20 20 20           
+  830B    20 20 20 20           
+  830F    20 20 20 20           
+  8313    20 20 20 20           
+  8317    20 20                 
   0043                          MNBL1   EQU $-NBL1
                                         ; Taste
-  830B    00                            DEFB 00H                                        ; Key Eingabe
+  8319    00                            DEFB 00H                                        ; Key Eingabe
                                         ; Programm
-  830C    01                            DEFB 01H                                        ; Programme
+  831A    01                            DEFB 01H                                        ; Programme
                                 ;!!!    DEFB 0AH                                        ; Leange Programm
-  830D    4D 41 53 4B                   DEFM 'MASKE1.COM  '                             ; 10 ZEICHEN
-  8311    45 31 2E 43           
-  8315    4F 4D 20 20           
-  8319    39                            DEFB MNBL2 ;57D                                 ; zum naechsten Textlaenge
-  831A    1B 5B 33 37           NBL2:   DEFB 1BH,5BH,33H,37H,6DH                        ; 5 ZEICHEN
-  831E    6D                    
-  831F    1B 5B 30 33                   DEFB 1BH,5BH,30H,33H,3BH,30H,31H,48H            ; 8 ZEICHEN
-  8323    3B 30 31 48           
-  8327    09 09 09                      DEFB 09H,09H,09H                                ; 3 ZEICHEN     
-  832A    4E 65 75 65                   DEFM 'Neue Seite eroeffnet'                     ; 20 ZEICHEN
-  832E    20 53 65 69           
-  8332    74 65 20 65           
-  8336    72 6F 65 66           
-  833A    66 6E 65 74           
-  833E    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN     
-  8340    20 31 20 20                   DEFM ' 1  A'                                    ; 5 ZEICHEN
-  8344    41                    
-  8345    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
-  8347    20 32 20 20                   DEFM ' 2  S'                                    ; 5 ZEICHEN     
-  834B    53                    
-  834C    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
-  834E    20 39 20 20                   DEFM ' 9  E'                                    ; 5 ZEICHEN
-  8352    45                    
+  831B    4D 41 53 4B                   DEFM 'MASKE1.COM  '                             ; 10 ZEICHEN
+  831F    45 31 2E 43           
+  8323    4F 4D 20 20           
+  8327    39                            DEFB MNBL2 ;57D                                 ; zum naechsten Textlaenge
+  8328    1B 5B 33 37           NBL2:   DEFB 1BH,5BH,33H,37H,6DH                        ; 5 ZEICHEN
+  832C    6D                    
+  832D    1B 5B 30 33                   DEFB 1BH,5BH,30H,33H,3BH,30H,31H,48H            ; 8 ZEICHEN
+  8331    3B 30 31 48           
+  8335    09 09 09                      DEFB 09H,09H,09H                                ; 3 ZEICHEN     
+  8338    4E 65 75 65                   DEFM 'Neue Seite eroeffnet'                     ; 20 ZEICHEN
+  833C    20 53 65 69           
+  8340    74 65 20 65           
+  8344    72 6F 65 66           
+  8348    66 6E 65 74           
+  834C    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN     
+  834E    20 31 20 20                   DEFM ' 1  A'                                    ; 5 ZEICHEN
+  8352    41                    
+  8353    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
+  8355    20 32 20 20                   DEFM ' 2  S'                                    ; 5 ZEICHEN     
+  8359    53                    
+  835A    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
+  835C    20 39 20 20                   DEFM ' 9  E'                                    ; 5 ZEICHEN
+  8360    45                    
   0039                          MNBL2   EQU $-NBL2
                                         ; TASTE
-  8353    10                            DEFB 10H
+  8361    10                            DEFB 10H
                                         ; PROGRAMM
-  8354    02                            DEFB 02H
+  8362    02                            DEFB 02H
                                 ;!!!    DEFB 08D
-  8355    41 55 54 4F                   DEFM 'AUTO.COM    '
-  8359    2E 43 4F 4D           
-  835D    20 20 20 20           
+  8363    41 55 54 4F                   DEFM 'AUTO.COM    '
+  8367    2E 43 4F 4D           
+  836B    20 20 20 20           
                                 ;!!!    DEFB 07D        
-  8361    4D 45 4D 2E                   DEFM 'MEM.COM     '
-  8365    43 4F 4D 20           
-  8369    20 20 20 20           
-  836D    00 00                         DEFB 00H,00H     ; 00= keine Keyeingabe folgend, 00= kein Progr.
+  836F    4D 45 4D 2E                   DEFM 'MEM.COM     '
+  8373    43 4F 4D 20           
+  8377    20 20 20 20           
+  837B    00 00                         DEFB 00H,00H     ; 00= keine Keyeingabe folgend, 00= kein Progr.
   00AD                          NBLLE   EQU     $-NBLASE
                                 ;----------------------
-  836F    43 00 00 01           TBLASE: DEFB  MTBLA1,00H,00H,01H,80H,00H                                ;       
-  8373    80 00                 
-                                        ;------------
-  8375    1B 5B 30 6D           TBLA1:  DEFB  1BH,5BH,30H,6DH,1BH,5BH,48H,1BH,5BH,33H,37H,6DH   ; 12 Zeichen
-  8379    1B 5B 48 1B           
-  837D    5B 33 37 6D           
-  8381    1B 5B 31 6D                   DEFB  1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH               ; 9 ZEICHEN
-  8385    1B 5B 34 34           
-  8389    6D                    
-  838A    20 20 20 20                   DEFM '                                              '   ; 46 ZEICHEN
-  838E    20 20 20 20           
         MACRO-80 3.43   27-Jul-81       PAGE    1-57
 
 
-  8392    20 20 20 20           
-  8396    20 20 20 20           
-  839A    20 20 20 20           
-  839E    20 20 20 20           
-  83A2    20 20 20 20           
-  83A6    20 20 20 20           
-  83AA    20 20 20 20           
-  83AE    20 20 20 20           
-  83B2    20 20 20 20           
-  83B6    20 20                 
+  837D    43 00 00 01           TBLASE: DEFB  MTBLA1,00H,00H,01H,80H,00H                                ;       
+  8381    80 00                 
+                                        ;------------
+  8383    1B 5B 30 6D           TBLA1:  DEFB  1BH,5BH,30H,6DH,1BH,5BH,48H,1BH,5BH,33H,37H,6DH   ; 12 Zeichen
+  8387    1B 5B 48 1B           
+  838B    5B 33 37 6D           
+  838F    1B 5B 31 6D                   DEFB  1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH               ; 9 ZEICHEN
+  8393    1B 5B 34 34           
+  8397    6D                    
+  8398    20 20 20 20                   DEFM '                                              '   ; 46 ZEICHEN
+  839C    20 20 20 20           
+  83A0    20 20 20 20           
+  83A4    20 20 20 20           
+  83A8    20 20 20 20           
+  83AC    20 20 20 20           
+  83B0    20 20 20 20           
+  83B4    20 20 20 20           
+  83B8    20 20 20 20           
+  83BC    20 20 20 20           
+  83C0    20 20 20 20           
+  83C4    20 20                 
   0043                          MTBLA1  EQU $-TBLA1
                                         ; Taste
-  83B8    00                            DEFB 00H                                        ; Key Eingabe
+  83C6    00                            DEFB 00H                                        ; Key Eingabe
                                         ; Programm
-  83B9    01                            DEFB 01H                                        ; Programme
+  83C7    01                            DEFB 01H                                        ; Programme
                                 ;!!!    DEFB 0AH                                        ; Leange Programm
-  83BA    45 44 49 54                   DEFM 'EDITOR.COM  '                             ; 10 ZEICHEN
-  83BE    4F 52 2E 43           
-  83C2    4F 4D 20 20           
+  83C8    45 44 49 54                   DEFM 'EDITOR.COM  '                             ; 10 ZEICHEN
+  83CC    4F 52 2E 43           
+  83D0    4F 4D 20 20           
   0057                          TBLLE   EQU     $-TBLASE
                                 ;-----------------------------
-  83C6    43 00 02 00           SMASKE: DEFB MSMAS1,00H,02H,00H,76H,80H
-  83CA    76 80                 
+  83D4    43 00 02 00           SMASKE: DEFB MSMAS1,00H,02H,00H,76H,80H
+  83D8    76 80                 
                                         ;-------------------
                                         ; BLOCK LAENG OBEN SMASKE ERSTER WERT(43H)
-  83CC    1B 5B 32 4A           SMAS1:  DEFB 1BH,5BH,32H,4AH,1BH,5BH,48H,1BH,5BH,33H,37H,6DH
-  83D0    1B 5B 48 1B           
-  83D4    5B 33 37 6D           
-  83D8    1B 5B 31 6D                   DEFB 1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH
-  83DC    1B 5B 34 34           
-  83E0    6D                    
-  83E1    53 74 61 72                   DEFM 'Start                                         ' ;46D Zeichen
-  83E5    74 20 20 20           
-  83E9    20 20 20 20           
-  83ED    20 20 20 20           
-  83F1    20 20 20 20           
-  83F5    20 20 20 20           
-  83F9    20 20 20 20           
-  83FD    20 20 20 20           
-  8401    20 20 20 20           
-  8405    20 20 20 20           
-  8409    20 20 20 20           
-  840D    20 20                 
+  83DA    1B 5B 32 4A           SMAS1:  DEFB 1BH,5BH,32H,4AH,1BH,5BH,48H,1BH,5BH,33H,37H,6DH
+  83DE    1B 5B 48 1B           
+  83E2    5B 33 37 6D           
+  83E6    1B 5B 31 6D                   DEFB 1BH,5BH,31H,6DH,1BH,5BH,34H,34H,6DH
+  83EA    1B 5B 34 34           
+  83EE    6D                    
+  83EF    53 74 61 72                   DEFM 'Start                                         ' ;46D Zeichen
+  83F3    74 20 20 20           
+  83F7    20 20 20 20           
+  83FB    20 20 20 20           
+  83FF    20 20 20 20           
+  8403    20 20 20 20           
+  8407    20 20 20 20           
+  840B    20 20 20 20           
+  840F    20 20 20 20           
+  8413    20 20 20 20           
+  8417    20 20 20 20           
+  841B    20 20                 
                                         ;------------------
   0043                          MSMAS1  EQU $-SMAS1
-  840F    00                            DEFB 00H        
-  8410    01                            DEFB 01H        ; ANZAHL PROGRAMMAUFRUFE
-                                ;!!!    DEFB 0AH        ; FILE NAME LAENGE
-  8411    4D 41 53 4B                   DEFM 'MASKE1.COM  '
-  8415    45 31 2E 43           
-  8419    4F 4D 20 20           
-  841D    20 20 20 20                   DEFM '      Ersatzseite KI-System V1.0 '
-  8421    20 20 45 72           
-  8425    73 61 74 7A           
-  8429    73 65 69 74           
-  842D    65 20 4B 49           
         MACRO-80 3.43   27-Jul-81       PAGE    1-58
 
 
-  8431    2D 53 79 73           
-  8435    74 65 6D 20           
-  8439    56 31 2E 30           
-  843D    20                    
-  843E    0D 0A                         DEFB 0DH,0AH
-  8440    10                            DEFB 10H        ; TASTATUR MENGE ZEICHENEINGABE
-  8441    01                            DEFB 01H        ; ANZAHL PROGRAMMAUFRUFE
+  841D    00                            DEFB 00H        
+  841E    01                            DEFB 01H        ; ANZAHL PROGRAMMAUFRUFE
+                                ;!!!    DEFB 0AH        ; FILE NAME LAENGE
+  841F    4D 41 53 4B                   DEFM 'MASKE1.COM  '
+  8423    45 31 2E 43           
+  8427    4F 4D 20 20           
+  842B    20 20 20 20                   DEFM '      Ersatzseite KI-System V1.0 '
+  842F    20 20 45 72           
+  8433    73 61 74 7A           
+  8437    73 65 69 74           
+  843B    65 20 4B 49           
+  843F    2D 53 79 73           
+  8443    74 65 6D 20           
+  8447    56 31 2E 30           
+  844B    20                    
+  844C    0D 0A                         DEFB 0DH,0AH
+  844E    10                            DEFB 10H        ; TASTATUR MENGE ZEICHENEINGABE
+  844F    01                            DEFB 01H        ; ANZAHL PROGRAMMAUFRUFE
                                 ;!!!    DEFB 07H        ; FILE NAME LAENGE
-  8442    4D 45 4D 2E                   DEFM 'MEM.COM     '
-  8446    43 4F 4D 20           
-  844A    20 20 20 20           
+  8450    4D 45 4D 2E                   DEFM 'MEM.COM     '
+  8454    43 4F 4D 20           
+  8458    20 20 20 20           
   0088                          SRAL    EQU $-SMASKE
                                 
-  844E    39                            DEFB 57D
-  844F    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH                        ; 5 ZEICHEN
-  8453    6D                    
-  8454    1B 5B 30 33                   DEFB 1BH,5BH,30H,33H,3BH,30H,31H,48H            ; 8 ZEICHEN
-  8458    3B 30 31 48           
-  845C    09 09 09                      DEFB 09H,09H,09H                                ; 3 ZEICHEN     
-  845F    4E 65 75 65                   DEFM 'Neue TYPE2 eroeffnet'                     ; 20 ZEICHEN
-  8463    20 54 59 50           
-  8467    45 32 20 65           
-  846B    72 6F 65 66           
-  846F    66 6E 65 74           
-  8473    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN     
-  8475    20 30 20 41                   DEFM ' 0 A?'                                    ; 5 ZEICHEN
-  8479    3F                    
-  847A    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
-  847C    20 31 20 20                   DEFM ' 1  S'                                    ; 5 ZEICHEN     
-  8480    53                    
-  8481    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
-  8483    20 39 20 20                   DEFM ' 9  E'                                    ; 5 ZEICHEN
-  8487    45                    
+  845C    39                            DEFB 57D
+  845D    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH                        ; 5 ZEICHEN
+  8461    6D                    
+  8462    1B 5B 30 33                   DEFB 1BH,5BH,30H,33H,3BH,30H,31H,48H            ; 8 ZEICHEN
+  8466    3B 30 31 48           
+  846A    09 09 09                      DEFB 09H,09H,09H                                ; 3 ZEICHEN     
+  846D    4E 65 75 65                   DEFM 'Neue TYPE2 eroeffnet'                     ; 20 ZEICHEN
+  8471    20 54 59 50           
+  8475    45 32 20 65           
+  8479    72 6F 65 66           
+  847D    66 6E 65 74           
+  8481    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN     
+  8483    20 30 20 41                   DEFM ' 0 A?'                                    ; 5 ZEICHEN
+  8487    3F                    
+  8488    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
+  848A    20 31 20 20                   DEFM ' 1  S'                                    ; 5 ZEICHEN     
+  848E    53                    
+  848F    0A 0D                         DEFB 0AH,0DH                                    ; 2 ZEICHEN
+  8491    20 39 20 20                   DEFM ' 9  E'                                    ; 5 ZEICHEN
+  8495    45                    
                                         ; TASTE
-  8488    10                            DEFB 10H
+  8496    10                            DEFB 10H
                                         ; PROGRAMM
-  8489    01                            DEFB 01H
-  848A    07                            DEFB 07H        
-  848B    4D 45 4D 2E                   DEFM 'MEM.COM     '
-  848F    43 4F 4D 20           
-  8493    20 20 20 20           
-  8497    00 00                         DEFB 00H,00H     ; 00= keine Keyeingabe folgend, 00= kein Progr.
+  8497    01                            DEFB 01H
+  8498    07                            DEFB 07H        
+  8499    4D 45 4D 2E                   DEFM 'MEM.COM     '
+  849D    43 4F 4D 20           
+  84A1    20 20 20 20           
+  84A5    00 00                         DEFB 00H,00H     ; 00= keine Keyeingabe folgend, 00= kein Progr.
                                 
                                 END
         MACRO-80 3.43   27-Jul-81       PAGE    S
@@ -3473,23 +3484,23 @@
 Macros:
 
 Symbols:
-757B    _ED12           7849    _WAIT1          7ECD    ASCII_CODE      
-7EE6    ASC_1           7EF6    ASC_2           0047    BAUD1           
-0047    BAUD2           0047    BAUD3           7FFA    BF00            
-8000    BF01            8006    BF02            800C    BF03            
-8012    BF04            8018    BF05            801E    BF06            
-8022    BF07            8026    BF10            6503    BFRHH           
+757B    _ED12           7849    _WAIT1          7EDB    ASCII_CODE      
+7EF4    ASC_1           7F04    ASC_2           0047    BAUD1           
+0047    BAUD2           0047    BAUD3           8008    BF00            
+800E    BF01            8014    BF02            801A    BF03            
+8020    BF04            8026    BF05            802C    BF06            
+8030    BF07            8034    BF10            6503    BFRHH           
 6502    BFRHL           6501    BFRLH           6500    BFRLL           
 650F    BFSHH           650E    BFSHL           650D    BFSLH           
 650C    BFSLL           650B    BFVHH           650A    BFVHL           
-6509    BFVLH           6508    BFVLL           7FEE    BIOS            
+6509    BFVLH           6508    BFVLL           7FFC    BIOS            
 7074    BL              70AF    BL00            70CC    BL000           
-70DF    BL01            7174    BL02            793D    BL021           
-799E    BL022           79A4    BL023           799C    BL02X           
+70DF    BL01            7174    BL02            794E    BL021           
+79AC    BL022           79B2    BL023           79A6    BL02X           
 7189    BL03            71A4    BL030           719A    BL031           
-71C2    BL033           729F    BL04            7949    BL120           
-7995    BL121           7975    BL123           7987    BL124           
-798E    BL125           71F6    BL13            71DE    BL131           
+71C2    BL033           729F    BL04            795A    BL120           
+79A7    BL121           7986    BL123           7998    BL124           
+799F    BL125           71F6    BL13            71DE    BL131           
 71E3    BL132           7201    BL13D           72AF    BL14            
 720C    BL23            7214    BL231           7224    BL33            
 722F    BL43            723A    BL53            725A    BL73            
@@ -3497,17 +3508,17 @@ Symbols:
 7299    BL831           7288    BL84            6200    BLAN            
 72B7    BS10            6205    BSTAT           0080    BUFF            
 0020    CMD_READSEC     0030    CMD_WRITESEC    7822    COFF            
-7065    COL0            8039    COL01           706A    COL1            
-81FE    COMZ            0026    COMZX           7811    CON             
+7065    COL0            8047    COL01           706A    COL1            
+820C    COMZ            0026    COMZX           7811    CON             
 6C3F    COP             0007    CPOS            0010    CTC             
-7829    CUR01           7818    CUR02           7F96    CUR03           
-8048    CUROFF          8042    CURON           6518    CURS            
+7829    CUR01           7818    CUR02           7FA4    CUR03           
+8056    CUROFF          8050    CURON           6518    CURS            
 651C    CURT            0007    CURUD           77CB    CUT             
-802E    DAYJ            802F    DAYM            8030    DAYT            
-8031    DAYZ            00F4    DCI             0001    DCLR            
-000C    DCON            829C    DERR            0002    DHOM            
-78BB    DISK            0001    DISPLAY         804E    EBUFF           
-807E    EBUFFE          7518    ED00            750A    ED01            
+803C    DAYJ            803D    DAYM            803E    DAYT            
+803F    DAYZ            00F4    DCI             0001    DCLR            
+000C    DCON            82AA    DERR            0002    DHOM            
+78BB    DISK            0001    DISPLAY         805C    EBUFF           
+808C    EBUFFE          7518    ED00            750A    ED01            
 7512    ED02            756D    ED03            753C    ED10            
 7564    ED100           7567    ED11            7579    ED12            
 7591    ED13            75AF    ED14            75B4    ED15            
@@ -3519,8 +3530,8 @@ Symbols:
 764F    EING11          767E    EING21          768E    EING22          
 76A9    EING23          76B9    EING24          76C8    EING25          
 76E1    EING26          76E3    EING27          76EB    EING30          
-0040    EOFF            7FAE    EPROMON         787B    ERR1            
-71BD    EXIT            7FA5    EXTERN          716A    EZ01            
+0040    EOFF            7FBC    EPROMON         787B    ERR1            
+71BD    EXIT            7FB3    EXTERN          716A    EZ01            
 7171    EZ02            7107    EZ03            7137    EZ04            
 0036    EZLEN           005C    FCB             006B    FCBCR           
 005D    FCBFN           0065    FCBFT           007C    FCBRA           
@@ -3530,7 +3541,7 @@ Symbols:
         MACRO-80 3.43   27-Jul-81       PAGE    S-1
 
 
-7DF8    HDIST           778E    HEX00           7737    HEX11           
+7E06    HDIST           778E    HEX00           7737    HEX11           
 774A    HEX12           778E    HEX14           7783    HEXA            
 7802    HEXC            772C    HEXI1           773F    HEXI2           
 774E    HEXIE           7751    HEXP            00F0    IDE             
@@ -3538,85 +3549,85 @@ Symbols:
 00F8    IDEDAT          00F6    IDEDOR          00F9    IDEERR          
 789F    IDERES          78A5    IDERES1         00FA    IDESCNT         
 00FE    IDESDH          00FB    IDESNUM         00FF    IDESTAT         
-7F9E    INTERN          0000    KANAL0          0001    KANAL1          
+7FAC    INTERN          0000    KANAL0          0001    KANAL1          
 0003    KANAL3          0004    KANAL4          0005    KANAL5          
-79BB    KEY01           7917    KEYB            0009    KEYBUF          
-0002    KEYIN           0001    KEYOUT          79A9    KEYST           
-8224    KEYZ            001D    KEYZX           7024    KI              
-7096    KI1             00F5    LATCH           79BD    LBA0            
-7A06    LBA20           7A07    LBA21           7A03    LBA4            
-7A0C    LBA5            0060    LCD             81E9    LCDE            
-0015    LCDEX           7ABB    LIS0            7ABD    LIS1            
-7A95    LIST            6513    LOGHH           6512    LOGHL           
-6511    LOGLH           6510    LOGLL           0100    LOS             
-0120    LOS1            0008    LPOS            0010    LSTEX           
-0026    L_DERR          7A46    L__6            7A3E    L__7            
-76F1    MAS00           7701    MAS01           771D    MAS02           
-8241    MELD01          0036    MELD01X         A101    MMC             
-0007    MMCE            0043    MNBL1           0039    MNBL2           
-0043    MSMAS1          0043    MTBLA1          82C8    NBL1            
-831A    NBL2            82C2    NBLASE          00AD    NBLLE           
-001C    PIOA            001E    PIOB            81D1    PRLO1           
-0130    PRO             7000    PROG            8277    PROZ            
-0025    PROZX           0005    P_READ          0006    P_WRITE         
-6524    RADR            6000    RAM             0021    RAMH            
-0000    RAML            6727    RAMS            6B27    RAMT            
-6527    RAMV            0000    RBLAN           0005    RBSTAT          
-7CA1    RD01            7D5D    RD02            7D0E    RD03            
-7C3D    RD06            7B4B    RD07            7B4E    RD08            
-7B56    RD09            7C76    RD16            7C83    RD17            
-7C8B    RD170           7C96    RD171           7BE2    RD25            
-7C14    RD250           7BF6    RD255           7C00    RD26            
-7D43    RD30            7C32    RD35            7C20    RD36            
-7D71    RD90            7D95    RD91            7D98    RD911           
-7D9E    RD92            7C59    RDD1            7DAB    RDREAD          
-7F8B    RDU01           7F8E    RDU02           7F6F    RDU03           
-7DD4    RDWRITE         F814    READ            0000    REG1            
-00C1    REG3            0044    REG4            00EA    REG5            
-7A5D    RLIST           6526    RMEN            0006    RSOTR           
-0004    RTERM           6BEF    RTEX            0002    RTYPE1          
-0003    RTYPE2          701E    RUN             0001    RUSER           
-77BB    SA1             77BF    SA2             77C1    SA3             
-6520    SANDB           77AB    SANDU           0020    SDC             
-0004    SELDM           00F7    SELDS           F838    SELDSK          
-F82F    SETDMA          F835    SETSEC          F832    SETTRK          
-0018    SIOA            001A    SIOB            0018    SIORES          
-83CC    SMAS1           83C6    SMASKE          0088    SRAL            
-81D9    STEX            72EA    STX01           72DC    SU00            
-72F0    SU01            733F    SU02            7342    SU03            
-7356    SU04            741A    SU21            74CF    SU23            
-73FF    SU25            74D7    SU32            74E5    SU33            
+79C9    KEY01           7917    KEYB            793D    KEYB1           
+0009    KEYBUF          0002    KEYIN           0001    KEYOUT          
+79B7    KEYST           8232    KEYZ            001D    KEYZX           
+7024    KI              7096    KI1             00F5    LATCH           
+79CB    LBA0            7A14    LBA20           7A15    LBA21           
+7A11    LBA4            7A1A    LBA5            0060    LCD             
+81F7    LCDE            0015    LCDEX           7AC9    LIS0            
+7ACB    LIS1            7AA3    LIST            6513    LOGHH           
+6512    LOGHL           6511    LOGLH           6510    LOGLL           
+0100    LOS             0120    LOS1            0008    LPOS            
+0010    LSTEX           0026    L_DERR          7A54    L__6            
+7A4C    L__7            76F1    MAS00           7701    MAS01           
+771D    MAS02           824F    MELD01          0036    MELD01X         
+A101    MMC             0007    MMCE            0043    MNBL1           
+0039    MNBL2           0043    MSMAS1          0043    MTBLA1          
+82D6    NBL1            8328    NBL2            82D0    NBLASE          
+00AD    NBLLE           001C    PIOA            001E    PIOB            
+81DF    PRLO1           0130    PRO             7000    PROG            
+8285    PROZ            0025    PROZX           0005    P_READ          
+0006    P_WRITE         6524    RADR            6000    RAM             
+0021    RAMH            0000    RAML            6727    RAMS            
+6B27    RAMT            6527    RAMV            0000    RBLAN           
+0005    RBSTAT          7CAF    RD01            7D6B    RD02            
+7D1C    RD03            7C4B    RD06            7B59    RD07            
+7B5C    RD08            7B64    RD09            7C84    RD16            
+7C91    RD17            7C99    RD170           7CA4    RD171           
+7BF0    RD25            7C22    RD250           7C04    RD255           
+7C0E    RD26            7D51    RD30            7C40    RD35            
+7C2E    RD36            7D7F    RD90            7DA3    RD91            
+7DA6    RD911           7DAC    RD92            7C67    RDD1            
+7DB9    RDREAD          7F99    RDU01           7F9C    RDU02           
+7F7D    RDU03           7DE2    RDWRITE         F814    READ            
+0000    REG1            00C1    REG3            0044    REG4            
+00EA    REG5            7A6B    RLIST           6526    RMEN            
+0006    RSOTR           0004    RTERM           6BEF    RTEX            
+0002    RTYPE1          0003    RTYPE2          701E    RUN             
+0001    RUSER           77BB    SA1             77BF    SA2             
+77C1    SA3             6520    SANDB           77AB    SANDU           
+0020    SDC             0004    SELDM           00F7    SELDS           
+F838    SELDSK          F82F    SETDMA          F835    SETSEC          
+F832    SETTRK          0018    SIOA            001A    SIOB            
+0018    SIORES          83DA    SMAS1           83D4    SMASKE          
+0088    SRAL            81E7    STEX            72EA    STX01           
+72DC    SU00            72F0    SU01            733F    SU02            
+7342    SU03            7356    SU04            741A    SU21            
+74CF    SU23            73FF    SU25            74D7    SU32            
         MACRO-80 3.43   27-Jul-81       PAGE    S-2
 
 
-74AD    SU52            74C1    SU520           7423    SU62            
-7455    SU63            73DF    SU80            7395    SU82            
-73A5    SU83            73AE    SU84            738D    SU85            
-73CC    SU86            73D9    SU87            737C    SU88            
-7466    SU90            74AA    SU95            7476    SU99            
-78ED    SUCH0           78FB    SUCH1           78FD    SUCH2           
-7000    T0              7003    T1              7006    T2              
-7009    T3              700C    T4              700F    T5              
-7012    T6              7015    T7              7018    T8              
-701B    T9              7AC8    TAS             7B27    TAS00           
-7BB5    TAS03           7CE0    TAS22           7D06    TAS24           
-7E00    TASK            7E4B    TASK99          FFA2    TASKSP          
-8375    TBLA1           836F    TBLASE          0057    TBLLE           
-71D2    TEING           6204    TERM            7FAA    TERN            
-7FB7    TEX1            7FC7    TEX2            7FD7    TEX2I           
-7FDB    TEX3            0004    TIME1           0004    TIME2           
-0004    TIME3           FFAB    TRACK           FFA5    TRACKH          
-FFA4    TRACKL          7E4F    TWRITE          0010    TXL             
-0013    TXL3            6202    TYPE1           6203    TYPE2           
-7E73    UHR00           7EC0    UHR01           7EFE    UHR10           
-0080    URCS            6201    USER            783E    WAITDRQ         
-7833    WAITRDY         00F0    WDTCR           00F1    WDTER           
-7A7B    WLIST           F817    WRITE           81B1    ZCUR            
-7728    ZEI00           8037    ZEIL            
+74E5    SU33            74AD    SU52            74C1    SU520           
+7423    SU62            7455    SU63            73DF    SU80            
+7395    SU82            73A5    SU83            73AE    SU84            
+738D    SU85            73CC    SU86            73D9    SU87            
+737C    SU88            7466    SU90            74AA    SU95            
+7476    SU99            78ED    SUCH0           78FB    SUCH1           
+78FD    SUCH2           7000    T0              7003    T1              
+7006    T2              7009    T3              700C    T4              
+700F    T5              7012    T6              7015    T7              
+7018    T8              701B    T9              7AD6    TAS             
+7B35    TAS00           7BC3    TAS03           7CEE    TAS22           
+7D14    TAS24           7E0E    TASK            7E59    TASK99          
+FFA2    TASKSP          8383    TBLA1           837D    TBLASE          
+0057    TBLLE           71D2    TEING           6204    TERM            
+7FB8    TERN            7FC5    TEX1            7FD5    TEX2            
+7FE5    TEX2I           7FE9    TEX3            0004    TIME1           
+0004    TIME2           0004    TIME3           FFAB    TRACK           
+FFA5    TRACKH          FFA4    TRACKL          7E5D    TWRITE          
+0010    TXL             0013    TXL3            6202    TYPE1           
+6203    TYPE2           7E81    UHR00           7ECE    UHR01           
+7F0C    UHR10           0080    URCS            6201    USER            
+783E    WAITDRQ         7833    WAITRDY         00F0    WDTCR           
+00F1    WDTER           7A89    WLIST           F817    WRITE           
+81BF    ZCUR            7728    ZEI00           8045    ZEIL            
 
 
 
 No Fatal error(s)
 
 
-                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
