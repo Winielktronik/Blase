@@ -150,592 +150,721 @@
                                         ;--------------
                                         ; search image output
                                         ;
-  0110    CD 03C5                       CALL MASK1
+  0110    CD 0361                       CALL MASK1
+  0113    CD 037E                       CALL MENU       ; menu right output
+  0116    3E 00                         LD A,00
+  0118    32 0686                       LD (ZEILEN),A
                                         ;
-                                        ; from here issue
-                                        ;
-  0113    C5                            PUSH BC
-  0114    06 08                         LD B,LPOS
-  0116    CD 03B5                       CALL UPROG2
-  0119    01 0471                       LD BC,0471H
-  011C    ED 43 0542                    LD (FILEN),BC
-  0120    CD 03AE                       CALL UPROG
-  0123    C1                            POP BC
-  0124    3E 31                         LD A,'1'
-  0126    32 0544               FIL6:   LD (ZEILEN),A
-  0129    CD 039D                       CALL TEXOUT
-  012C    3E 20                         LD A,' '
-  012E    CD 039D                       CALL TEXOUT
-  0131    06 0C                         LD B,0CH
-  0133    7E                    FIL7:   LD A,(HL)
-  0134    FE 21                         CP 21H
-  0136    38 31                         JR C,TEXIN
-  0138    CD 039D                       CALL TEXOUT
-  013B    23                            INC HL
-  013C    7E                            LD A,(HL)
-  013D    FE 2E                         CP '.'
-  013F    28 04                         JR Z,FIL8
-        MACRO-80 3.43   27-Jul-81       PAGE    1-3
-
-
-  0141    10 F0                         DJNZ FIL7
-  0143    18 24                         JR TEXIN
-                                        ;------------
-  0145    05                    FIL8:   DEC B
-  0146    23                            INC HL
-  0147    10 FD                         DJNZ FIL8+1
-                                        ;------------
-  0149    C5                            PUSH BC
-  014A    06 08                         LD B,LPOS
-  014C    CD 03B5                       CALL UPROG2
-  014F    ED 4B 0542                    LD BC,(FILEN)
-  0153    04                            INC B
-  0154    ED 43 0542                    LD (FILEN),BC
-  0158    CD 03AE                       CALL UPROG
-  015B    C1                            POP BC
-  015C    7E                            LD A,(HL)
-  015D    FE 21                         CP 21H
-  015F    38 08                         JR C,TEXIN
-  0161    3A 0544                       LD A,(ZEILEN)
-  0164    3C                            INC A
-  0165    E5                            PUSH HL         ; SWAP HL->DE
-  0166    D1                            POP DE
-  0167    18 BD                         JR FIL6         
                                         ;--------------------
                                         ; SET CURSOR ON START POSITION
                                         ;
-  0169    CD 040D               TEXIN:  CALL SDEL
-  016C    11 0434                       LD DE,TTEX
-  016F    CD 03E2                       CALL BTEX       ; text block TTEX output
-  0172    01 1110                       LD BC,1110H     ; positon 
-  0175    21 0E01                       LD HL,0E01H     ; length Width 
-  0178    CD 0227                       CALL WINDOW
+  011B    CD 045B               TEXIN:  CALL SDEL
+  011E    11 0489                       LD DE,TTEX
+  0121    CD 03D1                       CALL BTEX       ; text block TTEX output
+  0124    11 0599                       LD DE,MTEX
+  0127    CD 03D1                       CALL BTEX       ; text block TTEX output
+  012A    C5                    TEXIN1: PUSH BC
+  012B    D5                            PUSH DE
+  012C    E5                            PUSH HL
+  012D    CD 0445                       CALL INKEY
+  0130    E1                            POP HL
+  0131    D1                            POP DE
+  0132    C1                            POP BC
+  0133    FE 00                         CP 0
+  0135    28 F3                         JR Z,TEXIN1
+  0137    FE 1B                         CP 1BH
+  0139    CA 0284                       JP Z,AUEND
+  013C    F5                            PUSH AF
+        MACRO-80 3.43   27-Jul-81       PAGE    1-3
+
+
+  013D    CD 0454                       CALL DELK
+  0140    F1                            POP AF
+  0141    FE 31                         CP 31H          ; <1
+  0143    38 E5                         JR C,TEXIN1
+  0145    FE 35                         CP 35H          ; >4
+  0147    30 E1                         JR NC,TEXIN1
+                                ; AUSWERTUNG KEY
+  0149    01 3333                       LD BC,3333H     ; B=H , C=V
+  014C    CD 03E2                       CALL COLM
+  014F    11 0489                       LD DE,TTEX
+  0152    CD 03D1                       CALL BTEX       ; text block TTEX output
+  0155    11 05D2                       LD DE,NRMENU
+  0158    CD 03D1                       CALL BTEX       ; text block TTEX output
+  015B    CD 0445               LOOP1:  CALL INKEY
+  015E    FE 00                         CP 0
+  0160    28 F9                         JR Z,LOOP1      
+  0162    01 1605                       LD BC,1605H     ; positon 
+  0165    21 0E01                       LD HL,0E01H     ; length Width 
+  0168    CD 01C3                       CALL WINDOW
                                         ;--------------
                                         ; TEXT input
                                         ;
-  017B    21 6B27                       LD HL,RAMT
-  017E    AF                            XOR A
-  017F    77                            LD (HL),A
-  0180    11 0536                       LD DE,AUTO
-  0183    06 08                         LD B,08H        ; input character length (file) name.
-  0185    C5                    KEY1:   PUSH BC
-  0186    D5                            PUSH DE
-  0187    E5                            PUSH HL
-  0188    CD 03FE                       CALL INKEY
-  018B    E1                            POP HL
-  018C    D1                            POP DE
-  018D    C1                            POP BC
-  018E    FE 00                         CP 0
-  0190    28 F3                         JR Z,KEY1
-  0192    CD 03EC                       CALL COMKEY
-  0195    FE 0D                         CP 0DH
-  0197    28 17                         JR Z,KEY2
-  0199    D5                            PUSH DE
-  019A    3E 2E                         LD A,'.'
+  016B    21 6B27                       LD HL,RAMT
+  016E    AF                            XOR A
+  016F    77                            LD (HL),A
+  0170    11 0678                       LD DE,AUTO
+  0173    06 08                         LD B,08H        ; input character length (file) name.
+  0175    C5                    KEY1:   PUSH BC
+  0176    D5                            PUSH DE
+  0177    E5                            PUSH HL
+  0178    CD 0445                       CALL INKEY
+  017B    E1                            POP HL
+  017C    D1                            POP DE
+  017D    C1                            POP BC
+  017E    FE 00                         CP 0
+  0180    28 F3                         JR Z,KEY1
+  0182    CD 0433                       CALL COMKEY
+  0185    FE 0D                         CP 0DH
+  0187    28 17                         JR Z,KEY2
+  0189    D5                            PUSH DE
+  018A    3E 2E                         LD A,'.'
+  018C    12                            LD (DE),A
+  018D    13                            INC DE
+  018E    3E 43                         LD A,'C'
+  0190    12                            LD (DE),A
+  0191    13                            INC DE
+  0192    3E 4F                         LD A,'O'
+  0194    12                            LD (DE),A
+  0195    13                            INC DE
+  0196    3E 4D                         LD A,'M'
+  0198    12                            LD (DE),A
+  0199    13                            INC DE 
+  019A    3E 20                         LD A,' '
   019C    12                            LD (DE),A
-  019D    13                            INC DE
+  019D    D1                            POP DE
+  019E    18 D5                         JR KEY1
         MACRO-80 3.43   27-Jul-81       PAGE    1-4
 
 
-  019E    3E 43                         LD A,'C'
-  01A0    12                            LD (DE),A
-  01A1    13                            INC DE
-  01A2    3E 4F                         LD A,'O'
-  01A4    12                            LD (DE),A
-  01A5    13                            INC DE
-  01A6    3E 4D                         LD A,'M'
-  01A8    12                            LD (DE),A
-  01A9    13                            INC DE 
-  01AA    3E 20                         LD A,' '
-  01AC    12                            LD (DE),A
-  01AD    D1                            POP DE
-  01AE    18 D5                         JR KEY1
                                         ;--------------
                                         ; search image output
                                         ;
-  01B0    CD 03C5               KEY2:   CALL MASK1
+  01A0    CD 0361               KEY2:   CALL MASK1 ; HIER DANN DIE MENU SELECT 1,2,3,4 UEBER (ZEILEN)
                                         ;
-                                        ; from here issue
-                                        ;
-  01B3    C5                            PUSH BC
-  01B4    06 08                         LD B,LPOS
-  01B6    CD 03B5                       CALL UPROG2
-  01B9    01 0471                       LD BC,0471H
-  01BC    ED 43 0542                    LD (FILEN),BC
-  01C0    CD 03AE                       CALL UPROG
-  01C3    C1                            POP BC
-  01C4    11 0536                       LD DE,AUTO
-  01C7    3E 31                         LD A,'1'
-  01C9    32 0544               KEY7:   LD (ZEILEN),A
-  01CC    CD 039D                       CALL TEXOUT
-  01CF    3E 20                         LD A,' '
-  01D1    CD 039D                       CALL TEXOUT
-  01D4    06 0C                         LD B,0CH
-  01D6    1A                    SUCHD:  LD A,(DE)
-  01D7    FE 21                         CP 21H
-  01D9    38 3D                         JR C,KEY9
-  01DB    77                            LD (HL),A       
-  01DC    CD 039D                       CALL TEXOUT
-  01DF    13                            INC DE
-  01E0    23                            INC HL
-  01E1    1A                            LD A,(DE)
-  01E2    FE 2E                         CP '.'
-  01E4    28 04                         JR Z,SUCHE      ; ->continue without issue
-  01E6    10 EE                         DJNZ SUCHD
-  01E8    18 2E                         JR KEY9
-                                        ;------------
-  01EA    1A                    SUCHE:  LD A,(DE)
-  01EB    77                            LD (HL),A
-  01EC    FE 21                         CP 21H
-  01EE    38 04                         JR C,KEY8
-  01F0    13                            INC DE
-  01F1    23                            INC HL
-  01F2    10 F6                         DJNZ SUCHE
-                                        ;!!! JR KEY9
-                                        ;------------
-        MACRO-80 3.43   27-Jul-81       PAGE    1-5
-
-
-  01F4    05                    KEY8:   DEC B
-  01F5    23                            INC HL
-  01F6    10 FD                         DJNZ KEY8+1
-  01F8    C5                            PUSH BC
-  01F9    06 08                         LD B,LPOS
-  01FB    CD 03B5                       CALL UPROG2
-  01FE    ED 4B 0542                    LD BC,(FILEN)
-  0202    04                            INC B
-  0203    ED 43 0542                    LD (FILEN),BC
-  0207    CD 03AE                       CALL UPROG
-  020A    C1                            POP BC
-  020B    7E                            LD A,(HL)
-  020C    FE 21                         CP 21H
-  020E    38 08                         JR C,KEY9
-  0210    3A 0544                       LD A,(ZEILEN)
-  0213    3C                            INC A
-  0214    E5                            PUSH HL         ; SWAP HL->DE
-  0215    D1                            POP DE
-  0216    18 B1                         JR KEY7         
                                         ;--------------
-  0218    06 02                 KEY9:   LD B,KEYIN
-  021A    CD 03B5                       CALL UPROG2
-  021D    CD 03AE                       CALL UPROG
-  0220    FE 00                         CP 0
-  0222    28 F4                         JR Z,KEY9       ; press key for end
-  0224    C3 02E8                       JP AUEND
+  01A3    06 0C                         LD B,0CH
+  01A5    11 0678                       LD DE,AUTO
+  01A8    1A                    KEY7:   LD A,(DE)
+  01A9    77                            LD (HL),A
+  01AA    13                            INC DE
+  01AB    23                            INC HL
+  01AC    10 FA                         DJNZ KEY7
+  01AE    CD 0361                       CALL MASK1
+  01B1    CD 037E                       CALL MENU       ; menu right output
+                                        ;--------------
+  01B4    06 02                 KEY9:   LD B,KEYIN
+  01B6    CD 0351                       CALL UPROG2
+  01B9    CD 034A                       CALL UPROG
+  01BC    FE 00                         CP 0
+  01BE    28 F4                         JR Z,KEY9       ; press key for end
+  01C0    C3 0284                       JP AUEND
                                         ;------------------
                          C              INCLUDE RAHMEN.MAC      ; SET WINDOW:
                          C              ;----------------
-  0227    22 02D9        C      WINDOW: LD (WINXY),HL   ; WINDOW X,Y
-  022A    ED 43 02DB     C              LD (WINPOS),BC  ; STARTPOS X,Y
-  022E    C5             C              PUSH BC         ; =X,Y POSITION 
-  022F    E5             C              PUSH HL         ; =X,Y LAENGE
-  0230    04             C              INC B
-  0231    0C             C              INC C
-  0232    ED 43 02DD     C              LD (WINCHA),BC  ; for pos in windows
-  0236    06 08          C              LD B,LPOS       ; SUBROUTINE CALL CURSOR IN BLASE ON POSITION
-  0238    CD 03B5        C              CALL UPROG2
-  023B    ED 4B 02DB     C              LD BC,(WINPOS)
-  023F    CD 03AE        C              CALL UPROG
+  01C3    22 0275        C      WINDOW: LD (WINXY),HL   ; WINDOW X,Y
+  01C6    ED 43 0277     C              LD (WINPOS),BC  ; STARTPOS X,Y
+  01CA    C5             C              PUSH BC         ; =X,Y POSITION 
+  01CB    E5             C              PUSH HL         ; =X,Y LAENGE
+  01CC    04             C              INC B
+  01CD    0C             C              INC C
+  01CE    ED 43 0279     C              LD (WINCHA),BC  ; for pos in windows
+  01D2    06 08          C              LD B,LPOS       ; SUBROUTINE CALL CURSOR IN BLASE ON POSITION
+  01D4    CD 0351        C              CALL UPROG2
+  01D7    ED 4B 0277     C              LD BC,(WINPOS)
+  01DB    CD 034A        C              CALL UPROG
                          C              ;----------------
                          C              ; START WINDOW
                          C              ;
-  0242    3A 02DF        C              LD A,(WINDO)    ; LEFT UP CORNER
-  0245    CD 02CC        C              CALL WINOUT
-  0248    ED 4B 02D9     C              LD BC,(WINXY)   ; LOAD X
-  024C    3A 02E0        C      WINX1:  LD A,(WINDO+1)  ; UP X LINE
-  024F    CD 02CC        C              CALL WINOUT
-  0252    10 F8          C              DJNZ WINX1
-  0254    3A 02E1        C              LD A,(WINDO+2)  ; RIGHT UP CORNER
-  0257    CD 02CC        C              CALL WINOUT
+  01DE    3A 027B        C              LD A,(WINDO)    ; LEFT UP CORNER
+  01E1    CD 0268        C              CALL WINOUT
+  01E4    ED 4B 0275     C              LD BC,(WINXY)   ; LOAD X
+  01E8    3A 027C        C      WINX1:  LD A,(WINDO+1)  ; UP X LINE
+  01EB    CD 0268        C              CALL WINOUT
+  01EE    10 F8          C              DJNZ WINX1
+  01F0    3A 027D        C              LD A,(WINDO+2)  ; RIGHT UP CORNER
+  01F3    CD 0268        C              CALL WINOUT
                          C              ;----------------OK.
                          C              ; NEW LINE
                          C              ;
-  025A    06 08          C      WINY1:  LD B,LPOS       ; BIOS BLASE
-  025C    CD 03B5        C              CALL UPROG2
+  01F6    06 08          C      WINY1:  LD B,LPOS       ; BIOS BLASE
+  01F8    CD 0351        C              CALL UPROG2
+  01FB    ED 4B 0277     C              LD BC,(WINPOS)
+  01FF    04             C              INC B
+  0200    78             C              LD A,B
+  0201    27             C              DAA
+        MACRO-80 3.43   27-Jul-81       PAGE    1-5
+
+
+  0202    47             C              LD B,A
+  0203    ED 43 0277     C              LD (WINPOS),BC
+  0207    CD 034A        C              CALL UPROG      ; SET
+  020A    3A 027E        C              LD A,(WINDO+3)  ; LEFT SIDE
+  020D    CD 0268        C              CALL WINOUT
+                         C              ;----------------
+  0210    ED 4B 0275     C              LD BC,(WINXY)
+  0214    3A 027F        C      WINX2:  LD A,(WINDO+4)  ; SPACE 
+  0217    CD 0268        C              CALL WINOUT
+  021A    10 F8          C              DJNZ WINX2
+  021C    3A 0280        C              LD A,(WINDO+5)  ; RIGHT SIDE
+  021F    CD 0268        C              CALL WINOUT
+  0222    ED 4B 0275     C              LD BC,(WINXY)
+  0226    0D             C              DEC C
+  0227    ED 43 0275     C              LD (WINXY),BC
+  022B    20 C9          C              JR NZ,WINY1
+  022D    06 08          C              LD B,LPOS
+  022F    CD 0351        C              CALL UPROG2
+  0232    ED 4B 0277     C              LD BC,(WINPOS)
+  0236    04             C              INC B
+  0237    78             C              LD A,B
+  0238    27             C              DAA
+  0239    47             C              LD B,A
+  023A    ED 43 0277     C              LD (WINPOS),BC
+  023E    CD 034A        C              CALL UPROG      ; SET
+  0241    3A 0281        C              LD A,(WINDO+6)  ; LEFT DOWN CORNER
+  0244    CD 0268        C              CALL WINOUT
+  0247    ED 4B 0275     C              LD BC,(WINXY)
+  024B    3A 0282        C      WINX3:  LD A,(WINDO+7)  ; DOWN LINE 
+  024E    CD 0268        C              CALL WINOUT
+  0251    10 F8          C              DJNZ WINX3
+  0253    3A 0283        C              LD A,(WINDO+8)  ; RIGHT SIDE
+  0256    CD 0268        C              CALL WINOUT
+  0259    06 08          C              LD B,LPOS
+  025B    CD 0351        C              CALL UPROG2
+  025E    ED 4B 0279     C              LD BC,(WINCHA)
+  0262    CD 034A        C              CALL UPROG      ; SET
+  0265    E1             C              POP HL
+  0266    C1             C              POP BC
+  0267    C9             C              RET
+                         C              ;-----------------
+  0268    C5             C      WINOUT: PUSH BC
+  0269    E5             C              PUSH HL
+  026A    06 01          C              LD B,KEYOUT     ; SUBROUTINE KEY CALL OUTPUT IN BLASE
+  026C    CD 0351        C              CALL UPROG2
+  026F    CD 034A        C              CALL UPROG
+  0272    E1             C              POP HL
+  0273    C1             C              POP BC
+  0274    C9             C              RET
+  0275    0000           C      WINXY:  DEFW 0000H
+  0277    0000           C      WINPOS: DEFW 0000H
+  0279    0000           C      WINCHA: DEFW 0000H
+  027B    DA C4 BF       C      WINDO:  DEFB 218D,196D,191D
+  027E    B3 20 B3       C              DEFB 179D,20H,179D
+  0281    C0 C4 D9       C              DEFB 192D,196D,217D
+                         C              ;-----------------
         MACRO-80 3.43   27-Jul-81       PAGE    1-6
 
 
-  025F    ED 4B 02DB     C              LD BC,(WINPOS)
-  0263    04             C              INC B
-  0264    78             C              LD A,B
-  0265    27             C              DAA
-  0266    47             C              LD B,A
-  0267    ED 43 02DB     C              LD (WINPOS),BC
-  026B    CD 03AE        C              CALL UPROG      ; SET
-  026E    3A 02E2        C              LD A,(WINDO+3)  ; LEFT SIDE
-  0271    CD 02CC        C              CALL WINOUT
-                         C              ;----------------
-  0274    ED 4B 02D9     C              LD BC,(WINXY)
-  0278    3A 02E3        C      WINX2:  LD A,(WINDO+4)  ; SPACE 
-  027B    CD 02CC        C              CALL WINOUT
-  027E    10 F8          C              DJNZ WINX2
-  0280    3A 02E4        C              LD A,(WINDO+5)  ; RIGHT SIDE
-  0283    CD 02CC        C              CALL WINOUT
-  0286    ED 4B 02D9     C              LD BC,(WINXY)
-  028A    0D             C              DEC C
-  028B    ED 43 02D9     C              LD (WINXY),BC
-  028F    20 C9          C              JR NZ,WINY1
-  0291    06 08          C              LD B,LPOS
-  0293    CD 03B5        C              CALL UPROG2
-  0296    ED 4B 02DB     C              LD BC,(WINPOS)
-  029A    04             C              INC B
-  029B    78             C              LD A,B
-  029C    27             C              DAA
-  029D    47             C              LD B,A
-  029E    ED 43 02DB     C              LD (WINPOS),BC
-  02A2    CD 03AE        C              CALL UPROG      ; SET
-  02A5    3A 02E5        C              LD A,(WINDO+6)  ; LEFT DOWN CORNER
-  02A8    CD 02CC        C              CALL WINOUT
-  02AB    ED 4B 02D9     C              LD BC,(WINXY)
-  02AF    3A 02E6        C      WINX3:  LD A,(WINDO+7)  ; DOWN LINE 
-  02B2    CD 02CC        C              CALL WINOUT
-  02B5    10 F8          C              DJNZ WINX3
-  02B7    3A 02E7        C              LD A,(WINDO+8)  ; RIGHT SIDE
-  02BA    CD 02CC        C              CALL WINOUT
-  02BD    06 08          C              LD B,LPOS
-  02BF    CD 03B5        C              CALL UPROG2
-  02C2    ED 4B 02DD     C              LD BC,(WINCHA)
-  02C6    CD 03AE        C              CALL UPROG      ; SET
-  02C9    E1             C              POP HL
-  02CA    C1             C              POP BC
-  02CB    C9             C              RET
-                         C              ;-----------------
-  02CC    C5             C      WINOUT: PUSH BC
-  02CD    E5             C              PUSH HL
-  02CE    06 01          C              LD B,KEYOUT     ; SUBROUTINE KEY CALL OUTPUT IN BLASE
-  02D0    CD 03B5        C              CALL UPROG2
-  02D3    CD 03AE        C              CALL UPROG
-  02D6    E1             C              POP HL
-  02D7    C1             C              POP BC
-  02D8    C9             C              RET
-  02D9    0000           C      WINXY:  DEFW 0000H
-  02DB    0000           C      WINPOS: DEFW 0000H
-  02DD    0000           C      WINCHA: DEFW 0000H
-        MACRO-80 3.43   27-Jul-81       PAGE    1-7
-
-
-  02DF    DA C4 BF       C      WINDO:  DEFB 218D,196D,191D
-  02E2    B3 20 B3       C              DEFB 179D,20H,179D
-  02E5    C0 C4 D9       C              DEFB 192D,196D,217D
-                         C              ;-----------------
                          C      
                                         ;-----------------
-  02E8    E1                    AUEND:  POP HL
-  02E9    D1                            POP DE
-  02EA    C1                            POP BC
+  0284    E1                    AUEND:  POP HL
+  0285    D1                            POP DE
+  0286    C1                            POP BC
                                         ;---------
                                 ;!!!    CALL ESTACK     ; 
-  02EB    DD F9                         LD SP,IX        ; return SP
-  02ED    DD E1                         POP IX
+  0287    DD F9                         LD SP,IX        ; return SP
+  0289    DD E1                         POP IX
                                         ;---------
-  02EF    AF                            XOR A
-  02F0    32 6B27                       LD (RAMT),A
-  02F3    3E 00                         LD A,00         ; program start condition
-  02F5    32 6200                       LD (BLAN),A
-  02F8    C9                            RET             ; Exit program end
+  028B    AF                            XOR A
+  028C    32 6B27                       LD (RAMT),A
+  028F    3E 00                         LD A,00         ; program start condition
+  0291    32 6200                       LD (BLAN),A
+  0294    C9                            RET             ; Exit program end
                                 ;------------------------
                          C              INCLUDE ESTACK.MAC      ; SET ESTACK:
                          C              ;----------------
-  02F9    DD E5          C      ESTACK: PUSH IX
-  02FB    E1             C              POP HL
-  02FC    ED 72          C              SBC HL,SP
-  02FE    20 01          C              JR NZ,ERROR
-  0300    C9             C              RET
-  0301    38 05          C      ERROR:  JR C,ERR1
-  0303    11 031B        C              LD DE,ETEX1
-  0306    18 03          C              JR ERR2
-  0308    11 034F        C      ERR1:   LD DE,ETEX2
-  030B    E5             C      ERR2:   PUSH HL
-  030C    C5             C              PUSH BC
-  030D    F5             C              PUSH AF
-  030E    0E 09          C              LD C,09H
-  0310    CD 0005        C              CALL 0005H
-  0313    F1             C              POP AF
-  0314    C1             C              POP BC
-  0315    E1             C              POP HL
-  0316    0E 00          C              LD C,0H
-  0318    C3 0000        C              JP 0
+  0295    DD E5          C      ESTACK: PUSH IX
+  0297    E1             C              POP HL
+  0298    ED 72          C              SBC HL,SP
+  029A    20 01          C              JR NZ,ERROR
+  029C    C9             C              RET
+  029D    38 05          C      ERROR:  JR C,ERR1
+  029F    11 02B7        C              LD DE,ETEX1
+  02A2    18 03          C              JR ERR2
+  02A4    11 02EB        C      ERR1:   LD DE,ETEX2
+  02A7    E5             C      ERR2:   PUSH HL
+  02A8    C5             C              PUSH BC
+  02A9    F5             C              PUSH AF
+  02AA    0E 09          C              LD C,09H
+  02AC    CD 0005        C              CALL 0005H
+  02AF    F1             C              POP AF
+  02B0    C1             C              POP BC
+  02B1    E1             C              POP HL
+  02B2    0E 00          C              LD C,0H
+  02B4    C3 0000        C              JP 0
                          C              ;------------
-  031B    1B 5B 32 34    C      ETEX1:  DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H    ;cursor pos.
-  031F    3B 30 31 48    C      
-  0323    3E 2D 2D 2D    C              DEFM '>---- Stack ERROR < IX - 0000 < FFFF ---<'
-  0327    2D 20 53 74    C      
-  032B    61 63 6B 20    C      
-  032F    45 52 52 4F    C      
-  0333    52 20 3C 20    C      
-  0337    49 58 20 2D    C      
-  033B    20 30 30 30    C      
-  033F    30 20 3C 20    C      
-  0343    46 46 46 46    C      
-  0347    20 2D 2D 2D    C      
-  034B    3C             C      
-  034C    0A 0D          C              DEFB 0AH,0DH
-        MACRO-80 3.43   27-Jul-81       PAGE    1-8
-
-
-  034E    24             C              DEFM '$'
+  02B7    1B 5B 32 34    C      ETEX1:  DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H    ;cursor pos.
+  02BB    3B 30 31 48    C      
+  02BF    3E 2D 2D 2D    C              DEFM '>---- Stack ERROR < IX - 0000 < FFFF ---<'
+  02C3    2D 20 53 74    C      
+  02C7    61 63 6B 20    C      
+  02CB    45 52 52 4F    C      
+  02CF    52 20 3C 20    C      
+  02D3    49 58 20 2D    C      
+  02D7    20 30 30 30    C      
+  02DB    30 20 3C 20    C      
+  02DF    46 46 46 46    C      
+  02E3    20 2D 2D 2D    C      
+  02E7    3C             C      
+  02E8    0A 0D          C              DEFB 0AH,0DH
+  02EA    24             C              DEFM '$'
                          C      
-  034F    1B 5B 32 34    C      ETEX2:  DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H    ;cursor pos.
-  0353    3B 30 31 48    C      
-  0357    3E 2D 2D 2D    C              DEFM '>---- Stack ERROR > IX - FFFF > 0000 ---<'
-  035B    2D 20 53 74    C      
-  035F    61 63 6B 20    C      
-  0363    45 52 52 4F    C      
-  0367    52 20 3E 20    C      
-  036B    49 58 20 2D    C      
-  036F    20 46 46 46    C      
-  0373    46 20 3E 20    C      
-  0377    30 30 30 30    C      
-  037B    20 2D 2D 2D    C      
-  037F    3C             C      
-  0380    0A 0D          C              DEFB 0AH,0DH
-  0382    24             C              DEFM '$'
+  02EB    1B 5B 32 34    C      ETEX2:  DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H    ;cursor pos.
+  02EF    3B 30 31 48    C      
+        MACRO-80 3.43   27-Jul-81       PAGE    1-7
+
+
+  02F3    3E 2D 2D 2D    C              DEFM '>---- Stack ERROR > IX - FFFF > 0000 ---<'
+  02F7    2D 20 53 74    C      
+  02FB    61 63 6B 20    C      
+  02FF    45 52 52 4F    C      
+  0303    52 20 3E 20    C      
+  0307    49 58 20 2D    C      
+  030B    20 46 46 46    C      
+  030F    46 20 3E 20    C      
+  0313    30 30 30 30    C      
+  0317    20 2D 2D 2D    C      
+  031B    3C             C      
+  031C    0A 0D          C              DEFB 0AH,0DH
+  031E    24             C              DEFM '$'
                          C      
                          C      ;---------------------
                                 ;-------------------------
                                         ; CURSOR OFF END FROM CHARACTER SET
-  0383    C5                    CURPOS: PUSH BC
-  0384    04                            INC B           ;CHARACTER LENGTH +1
-  0385    3E 00                         LD A,00H        ;COUNR FROM 0
-  0387    3C                    CURP1:  INC A
-  0388    27                            DAA
-  0389    10 FC                         DJNZ CURP1
-  038B    47                            LD B,A
-  038C    E6 0F                         AND 0FH
-  038E    32 651F                       LD (CURT+3),A
-  0391    78                            LD A,B
-  0392    0F                            RRCA
-  0393    0F                            RRCA
-  0394    0F                            RRCA
-  0395    0F                            RRCA
-  0396    E6 0F                         AND 0FH
-  0398    32 651E                       LD (CURT+2),A
-  039B    C1                            POP BC
-  039C    C9                            RET
+  031F    C5                    CURPOS: PUSH BC
+  0320    04                            INC B           ;CHARACTER LENGTH +1
+  0321    3E 00                         LD A,00H        ;COUNR FROM 0
+  0323    3C                    CURP1:  INC A
+  0324    27                            DAA
+  0325    10 FC                         DJNZ CURP1
+  0327    47                            LD B,A
+  0328    E6 0F                         AND 0FH
+  032A    32 651F                       LD (CURT+3),A
+  032D    78                            LD A,B
+  032E    0F                            RRCA
+  032F    0F                            RRCA
+  0330    0F                            RRCA
+  0331    0F                            RRCA
+  0332    E6 0F                         AND 0FH
+  0334    32 651E                       LD (CURT+2),A
+  0337    C1                            POP BC
+  0338    C9                            RET
                                         ;---------------
                                         ; give up sing in a
                                         ;
-  039D    F5                    TEXOUT: PUSH AF
-  039E    C5                            PUSH BC
-  039F    D5                            PUSH DE
-  03A0    E5                            PUSH HL
-  03A1    06 01                         LD B,KEYOUT
-  03A3    CD 03B5                       CALL UPROG2
-  03A6    CD 03AE                       CALL UPROG
-  03A9    E1                            POP HL
-  03AA    D1                            POP DE
-  03AB    C1                            POP BC
-  03AC    F1                            POP AF
-  03AD    C9                            RET
+  0339    F5                    TEXOUT: PUSH AF
+  033A    C5                            PUSH BC
+  033B    D5                            PUSH DE
+  033C    E5                            PUSH HL
+  033D    06 01                         LD B,KEYOUT
+  033F    CD 0351                       CALL UPROG2
+  0342    CD 034A                       CALL UPROG
+  0345    E1                            POP HL
+  0346    D1                            POP DE
+  0347    C1                            POP BC
+  0348    F1                            POP AF
+  0349    C9                            RET
                                         ;------------
                                         ; EXECUTE PARAMETER AND JUMP BACK
-        MACRO-80 3.43   27-Jul-81       PAGE    1-9
-
-
                                         ;
-  03AE    D5                    UPROG:  PUSH DE         ; DE AS A BACKSPACE ADDRESS ON A STACK
-  03AF    C9                            RET             ; JUMP (DE) -> WIE POP DE
+  034A    D5                    UPROG:  PUSH DE         ; DE AS A BACKSPACE ADDRESS ON A STACK
+  034B    C9                            RET             ; JUMP (DE) -> WIE POP DE
                                         ;----------------
+        MACRO-80 3.43   27-Jul-81       PAGE    1-8
+
+
                                         ; EXECUTE PARAMETER AND JUMP BACK
                                         ;
-  03B0    E5                    UPROG1: PUSH HL         ; HL AS A BACKSPACE ADDRESS ON A STACK
-  03B1    21 6B27                       LD HL,RAMT
-  03B4    C9                            RET             ; JUMP (HL) -> WIE POP HL       
+  034C    E5                    UPROG1: PUSH HL         ; HL AS A BACKSPACE ADDRESS ON A STACK
+  034D    21 6B27                       LD HL,RAMT
+  0350    C9                            RET             ; JUMP (HL) -> WIE POP HL       
                                         ;----------------
                                         ; LOAD THE JUMP ADDRESS IN DE
                                         ;
-  03B5    E5                    UPROG2: PUSH HL
-  03B6    21 7000                       LD HL,PROG
-  03B9    11 0003                       LD DE,03H       ; distance 3byte jump
-  03BC    19                    SUM:    ADD HL,DE
-  03BD    10 FD                         DJNZ SUM
-  03BF    23                            INC HL          ; Skip JP COMMAND (C3....)
-  03C0    5E                            LD E,(HL)
-  03C1    23                            INC HL
-  03C2    56                            LD D,(HL)
-  03C3    E1                            POP HL
-  03C4    C9                            RET
+  0351    E5                    UPROG2: PUSH HL
+  0352    21 7000                       LD HL,PROG
+  0355    11 0003                       LD DE,03H       ; distance 3byte jump
+  0358    19                    SUM:    ADD HL,DE
+  0359    10 FD                         DJNZ SUM
+  035B    23                            INC HL          ; Skip JP COMMAND (C3....)
+  035C    5E                            LD E,(HL)
+  035D    23                            INC HL
+  035E    56                            LD D,(HL)
+  035F    E1                            POP HL
+  0360    C9                            RET
                                         ;--------------
-                                        ; earch file name begining
+                                        ; search file name begining
                                         ;
-  03C5    21 6000               MASK1:  LD HL,RAM
-  03C8    46                            LD B,(HL)       ; first block length header
-  03C9    21 6006                       LD HL,RAM+6
-  03CC    23                    MASK2:  INC HL
-  03CD    10 FD                         DJNZ MASK2      ; step length
-  03CF    23                    MASK3:  INC HL          ; 
-  03D0    3E 1B                         LD A,1BH
-  03D2    BE                            CP (HL)
-  03D3    20 FA                         JR NZ,MASK3
-  03D5    2B                            DEC HL          ; 
-  03D6    46                            LD B,(HL)       ; to B
-  03D7    04                            INC B
-  03D8    7E                            LD A,(HL)
-  03D9    CD 039D                       CALL TEXOUT
-  03DC    23                            INC HL
-  03DD    23                    MASK4:  INC HL
-  03DE    10 FD                         DJNZ MASK4      ; until the text/image block end
-  03E0    23                            INC HL          ; file name block beginning
-  03E1    C9                            RET
+  0361    21 6000               MASK1:  LD HL,RAM
+  0364    46                            LD B,(HL)       ; first block length header
+  0365    21 6006                       LD HL,RAM+6
+  0368    23                    MASK2:  INC HL
+  0369    10 FD                         DJNZ MASK2      ; step length
+  036B    23                    MASK3:  INC HL          ; 
+  036C    3E 1B                         LD A,1BH
+  036E    BE                            CP (HL)
+  036F    20 FA                         JR NZ,MASK3
+  0371    2B                            DEC HL          ; 
+  0372    46                            LD B,(HL)       ; to B
+  0373    04                            INC B
+  0374    7E                            LD A,(HL)
+  0375    CD 0339                       CALL TEXOUT
+  0378    23                            INC HL
+  0379    23                    MASK4:  INC HL
+  037A    10 FD                         DJNZ MASK4      ; until the text/image block end
+  037C    23                            INC HL          ; file name block beginning
+  037D    C9                            RET
                                         ;---------------
+                                        ; from here issue
+                                        ;
+  037E    C5                    MENU:   PUSH BC
+  037F    06 08                         LD B,LPOS
+  0381    CD 0351                       CALL UPROG2
+  0384    01 0471                       LD BC,0471H
+  0387    ED 43 0684                    LD (FILEN),BC
+  038B    CD 034A                       CALL UPROG
+  038E    C1                            POP BC
+  038F    3E 31                         LD A,'1'
+  0391    32 0686               MENU6:  LD (ZEILEN),A
+  0394    CD 0339                       CALL TEXOUT
+  0397    3E 20                         LD A,' '
+  0399    CD 0339                       CALL TEXOUT
+        MACRO-80 3.43   27-Jul-81       PAGE    1-9
+
+
+  039C    06 0C                         LD B,0CH
+  039E    7E                    MENU7:  LD A,(HL)
+  039F    FE 21                         CP 21H
+  03A1    D8                            RET C
+  03A2    CD 0339                       CALL TEXOUT
+  03A5    23                            INC HL
+  03A6    7E                            LD A,(HL)
+  03A7    FE 2E                         CP '.'
+  03A9    28 03                         JR Z,MENU8
+  03AB    10 F1                         DJNZ MENU7
+  03AD    C9                            RET     ;!!!JR TEXIN
+                                        ;------------
+  03AE    05                    MENU8:  DEC B
+  03AF    23                            INC HL
+  03B0    10 FD                         DJNZ MENU8+1
+                                        ;------------
+  03B2    C5                            PUSH BC
+  03B3    06 08                         LD B,LPOS
+  03B5    CD 0351                       CALL UPROG2
+  03B8    ED 4B 0684                    LD BC,(FILEN)
+  03BC    04                            INC B
+  03BD    ED 43 0684                    LD (FILEN),BC
+  03C1    CD 034A                       CALL UPROG
+  03C4    C1                            POP BC
+  03C5    7E                            LD A,(HL)
+  03C6    FE 21                         CP 21H
+  03C8    D8                            RET C
+  03C9    3A 0686                       LD A,(ZEILEN)
+  03CC    3C                            INC A
+  03CD    E5                            PUSH HL         ; SWAP HL->DE
+  03CE    D1                            POP DE
+  03CF    18 C0                         JR MENU6
+                                        ;--------------------
                                         ; text block output
                                         ;
-  03E2    E5                    BTEX:   PUSH HL
-  03E3    C5                            PUSH BC
-  03E4    0E 09                         LD C,09H
-  03E6    CD 0005                       CALL 0005
-  03E9    C1                            POP BC
-  03EA    E1                            POP HL
-  03EB    C9                            RET
-                                        ;----------------
+  03D1    E5                    BTEX:   PUSH HL
+  03D2    C5                            PUSH BC
+  03D3    0E 09                         LD C,09H
+  03D5    CD 0005                       CALL 0005
+  03D8    CD 0445               BTEX1:  CALL INKEY
+  03DB    FE 00                         CP 0
+  03DD    20 F9                         JR NZ,BTEX1     ; keybuff empty?
+  03DF    C1                            POP BC
+  03E0    E1                            POP HL
+  03E1    C9                            RET
+                                        ;--------------
+                                        ; color select
+                                        ;
+  03E2    FE 31                 COLM:   CP 31H
+  03E4    20 09                         JR NZ,COLM1
+  03E6    78                            LD A,B
+  03E7    32 04BF                       LD (TTEX11),A
+  03EA    79                            LD A,C
+  03EB    32 04BA                       LD (TTEX1),A
+  03EE    C9                            RET
+  03EF    FE 32                 COLM1:  CP 32H
         MACRO-80 3.43   27-Jul-81       PAGE    1-10
 
 
+  03F1    20 13                         JR NZ,COLM2
+  03F3    3E 37                         LD A,37H
+  03F5    32 04BA                       LD (TTEX1),A
+  03F8    3E 34                         LD A,34H
+  03FA    32 04BF                       LD (TTEX11),A
+  03FD    78                            LD A,B
+  03FE    32 04E7                       LD (TTEX21),A
+  0401    79                            LD A,C
+  0402    32 04E2                       LD (TTEX2),A
+  0405    C9                            RET
+  0406    FE 33                 COLM2:  CP 33H
+  0408    20 13                         JR NZ,COLM3
+  040A    3E 37                         LD A,37H
+  040C    32 04E2                       LD (TTEX2),A
+  040F    3E 34                         LD A,34H
+  0411    32 04E7                       LD (TTEX21),A
+  0414    78                            LD A,B
+  0415    32 0511                       LD (TTEX31),A
+  0418    79                            LD A,C
+  0419    32 050C                       LD (TTEX3),A
+  041C    C9                            RET
+  041D    FE 34                 COLM3:  CP 34H
+  041F    C0                            RET NZ
+  0420    3E 37                         LD A,37H
+  0422    32 050C                       LD (TTEX3),A
+  0425    3E 34                         LD A,34H
+  0427    32 0511                       LD (TTEX31),A
+  042A    78                            LD A,B
+  042B    32 0544                       LD (TTEX41),A
+  042E    79                            LD A,C
+  042F    32 053F                       LD (TTEX4),A
+  0432    C9                            RET
+                                        ;----------------
                                         ; key save
                                         ;
-  03EC    E5                    COMKEY: PUSH HL
-  03ED    D5                            PUSH DE
-  03EE    C5                            PUSH BC
-  03EF    F5                            PUSH AF
-  03F0    06 09                         LD B,KEYBUF
-  03F2    CD 03B5                       CALL UPROG2
-  03F5    F1                            POP AF
-  03F6    C1                            POP BC
-  03F7    EB                            EX DE,HL        ; SPRUNADRESSE NACH HL
-  03F8    D1                            POP DE  ; ADRESSDATEN ZURUECK HOLEN
-  03F9    CD 03B0                       CALL UPROG1     ; RET SPRUNG VON HL
-  03FC    E1                            POP HL
-  03FD    C9                            RET
+  0433    E5                    COMKEY: PUSH HL
+  0434    D5                            PUSH DE
+  0435    C5                            PUSH BC
+  0436    F5                            PUSH AF
+  0437    06 09                         LD B,KEYBUF
+  0439    CD 0351                       CALL UPROG2
+  043C    F1                            POP AF
+  043D    C1                            POP BC
+  043E    EB                            EX DE,HL        ; SPRUNADRESSE NACH HL
+  043F    D1                            POP DE  ; ADRESSDATEN ZURUECK HOLEN
+  0440    CD 034C                       CALL UPROG1     ; RET SPRUNG VON HL
+  0443    E1                            POP HL
+  0444    C9                            RET
                                         ;-------
                                         ; key input
                                         ;
-  03FE    C5                    INKEY:  PUSH BC
-  03FF    D5                            PUSH DE
-  0400    E5                            PUSH HL
-  0401    06 02                         LD B,KEYIN
-  0403    CD 03B5                       CALL UPROG2
-  0406    CD 03AE                       CALL UPROG
-  0409    E1                            POP HL
-  040A    D1                            POP DE
-  040B    C1                            POP BC
-  040C    C9                            RET
-                                        ;-----------------
-                                        ; delete screen area
-                                        ;
-  040D    C5                    SDEL:   PUSH BC
-  040E    D5                            PUSH DE
-  040F    16 14                         LD D,14H
-  0411    01 0301                       LD BC,0301H
-  0414    1E 45                 SDEL1:  LD E,69D        ; loop counter line
-  0416    D5                            PUSH DE
-  0417    C5                            PUSH BC
-  0418    06 08                         LD B,LPOS
-  041A    CD 03B5                       CALL UPROG2
-  041D    C1                            POP BC
-  041E    CD 03AE                       CALL UPROG
-  0421    D1                            POP DE
-  0422    3E 20                 SDEL2:  LD A,20H
-  0424    CD 039D                       CALL TEXOUT
-  0427    1D                            DEC E
-  0428    20 F8                         JR NZ,SDEL2
-  042A    78                            LD A,B
-  042B    3C                            INC A
-  042C    27                            DAA
-  042D    47                            LD B,A
-  042E    15                            DEC D
-  042F    20 E3                         JR NZ,SDEL1
-  0431    D1                            POP DE
-  0432    C1                            POP BC
-  0433    C9                            RET
+  0445    C5                    INKEY:  PUSH BC
+  0446    D5                            PUSH DE
+  0447    E5                            PUSH HL
+  0448    06 02                         LD B,KEYIN
+  044A    CD 0351                       CALL UPROG2
         MACRO-80 3.43   27-Jul-81       PAGE    1-11
 
 
+  044D    CD 034A                       CALL UPROG
+  0450    E1                            POP HL
+  0451    D1                            POP DE
+  0452    C1                            POP BC
+  0453    C9                            RET
+                                        ;-----------------
+                                        ; delete sign and cursor 1step left
+  0454    11 0649               DELK:   LD DE,DELKEY
+  0457    CD 03D1                       CALL BTEX
+  045A    C9                            RET
+                                        ;-----------------
+                                        ; delete screen area
+                                        ;
+  045B    C5                    SDEL:   PUSH BC
+  045C    D5                            PUSH DE
+  045D    11 0643                       LD DE,CUROFF
+  0460    CD 03D1                       CALL BTEX       ; text block TTEX output
+  0463    01 0369                       LD BC,0369H     ; set cursor position
+  0466    D5                    SDEL1:  PUSH DE
+  0467    C5                            PUSH BC
+  0468    06 08                         LD B,LPOS
+  046A    CD 0351                       CALL UPROG2
+  046D    C1                            POP BC
+  046E    CD 034A                       CALL UPROG
+  0471    D1                            POP DE
+  0472    11 064E               SDEL2:  LD DE,LROW
+  0475    CD 03D1                       CALL BTEX
+  0478    78                            LD A,B
+  0479    3C                            INC A
+  047A    27                            DAA
+  047B    47                            LD B,A
+  047C    FE 22                         CP 22H
+  047E    20 E6                         JR NZ,SDEL1
+  0480    11 063D                       LD DE,CURON
+  0483    CD 03D1                       CALL BTEX       ; text block TTEX output
+  0486    D1                            POP DE
+  0487    C1                            POP BC
+  0488    C9                            RET
                                 ;---------------------------
                                 ;
-  0434    1B 5B 30 33           TTEX:   DEFB 1BH,5BH,30H,33H,3BH,30H,35H,48H    ; 
-  0438    3B 30 35 48           
-  043C    53 65 69 74                   DEFM 'Seite neu erstellen '
-  0440    65 20 6E 65           
-  0444    75 20 65 72           
-  0448    73 74 65 6C           
-  044C    6C 65 6E 20           
-  0450    1B 5B 30 36                   DEFB 1BH,5BH,30H,36H,3BH,30H,35H,48H    ; 
-  0454    3B 30 35 48           
-  0458    31 3E 20 41                   DEFM '1> Aendern (Pos.Numer)'
-  045C    65 6E 64 65           
-  0460    72 6E 20 28           
-  0464    50 6F 73 2E           
-  0468    4E 75 6D 65           
-  046C    72 29                 
-  046E    1B 5B 30 37                   DEFB 1BH,5BH,30H,37H,3BH,30H,35H,48H    ; 
-  0472    3B 30 35 48           
-  0476    32 3E 20 45                   DEFM '2> Einfuegen (Pos.Numer)'
-  047A    69 6E 66 75           
-  047E    65 67 65 6E           
-  0482    20 28 50 6F           
-  0486    73 2E 4E 75           
-  048A    6D 65 72 29           
-  048E    1B 5B 30 38                   DEFB 1BH,5BH,30H,38H,3BH,30H,35H,48H    ; 
-  0492    3B 30 35 48           
-  0496    33 3E 20 42                   DEFM '3> Bildschirmtext (mit 9 speichern)'
-  049A    69 6C 64 73           
-  049E    63 68 69 72           
-  04A2    6D 74 65 78           
-  04A6    74 20 28 6D           
-  04AA    69 74 20 39           
-  04AE    20 73 70 65           
-  04B2    69 63 68 65           
-  04B6    72 6E 29              
-  04B9    1B 5B 30 39                   DEFB 1BH,5BH,30H,39H,3BH,30H,35H,48H    ; 
-  04BD    3B 30 35 48           
-  04C1    45 43 53 3E                   DEFM 'ECS> alles verwerfen'
-  04C5    20 61 6C 6C           
-  04C9    65 73 20 76           
-  04CD    65 72 77 65           
-  04D1    72 66 65 6E           
-  04D5    1B 5B 31 31                   DEFB 1BH,5BH,31H,31H,3BH,30H,31H,48H    ; 
-  04D9    3B 30 31 48           
-  04DD    24                            DEFM '$'        ; block output end BIOS
-  04DE    2A                            DEFB 2AH
-  00AB                          TTLEN   EQU $-TTEX
-                                
-  04DF    00 00 00 00           BF02:   DEFB 00H,00H,00H,00H
-  04E3    00 00 00 00           BF03:   DEFB 00H,00H,00H,00H    
-                                
-  04E7    1B 5B 02 04           EBUFF:  DEFB 1BH,5BH,02H,04H,3BH,00H,01H,48H
-  04EB    3B 00 01 48           
-  04EF    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH
-  04F3    6D                    
+  0489    1B 5B 33 37           TTEX:   DEFB 1BH,5BH,33H,37H,6DH
+  048D    6D                    
+  048E    1B 5B 34 34                   DEFB 1BH,5BH,34H,34H,6DH
+  0492    6D                    
+  0493    1B 5B 30 33                   DEFB 1BH,5BH,30H,33H,3BH,30H,35H,48H    ; 
+  0497    3B 30 35 48           
+  049B    53 65 69 74                   DEFM 'Seite neu erstellen '
+  049F    65 20 6E 65           
+  04A3    75 20 65 72           
+  04A7    73 74 65 6C           
+  04AB    6C 65 6E 20           
+  04AF    1B 5B 30 36                   DEFB 1BH,5BH,30H,36H,3BH,30H,35H,48H    ; 
+  04B3    3B 30 35 48           
+  04B7    1B 5B 33                      DEFB 1BH,5BH,33H
+  04BA    37 6D                 TTEX1:  DEFB 37H,6DH
+  04BC    1B 5B 34                      DEFB 1BH,5BH,34H
         MACRO-80 3.43   27-Jul-81       PAGE    1-12
 
 
-  04F4    20 20 20 20                   DEFM '                             '
-  04F8    20 20 20 20           
-  04FC    20 20 20 20           
-  0500    20 20 20 20           
-  0504    20 20 20 20           
-  0508    20 20 20 20           
-  050C    20 20 20 20           
-  0510    20                    
-  002A                          EZLEN   EQU $-EBUFF
+  04BF    34 6D                 TTEX11: DEFB 34H,6DH
+  04C1    31 3E 20 41                   DEFM '1> Aendern (Pos.Numer)'
+  04C5    65 6E 64 65           
+  04C9    72 6E 20 28           
+  04CD    50 6F 73 2E           
+  04D1    4E 75 6D 65           
+  04D5    72 29                 
+  04D7    1B 5B 30 37                   DEFB 1BH,5BH,30H,37H,3BH,30H,35H,48H    ; 
+  04DB    3B 30 35 48           
+  04DF    1B 5B 33                      DEFB 1BH,5BH,33H
+  04E2    37 6D                 TTEX2:  DEFB 37H,6DH
+  04E4    1B 5B 34                      DEFB 1BH,5BH,34H
+  04E7    34 6D                 TTEX21: DEFB 34H,6DH
+  04E9    32 3E 20 45                   DEFM '2> Einfuegen (Pos.Numer)'
+  04ED    69 6E 66 75           
+  04F1    65 67 65 6E           
+  04F5    20 28 50 6F           
+  04F9    73 2E 4E 75           
+  04FD    6D 65 72 29           
+  0501    1B 5B 30 38                   DEFB 1BH,5BH,30H,38H,3BH,30H,35H,48H    ; 
+  0505    3B 30 35 48           
+  0509    1B 5B 33                      DEFB 1BH,5BH,33H
+  050C    37 6D                 TTEX3:  DEFB 37H,6DH
+  050E    1B 5B 34                      DEFB 1BH,5BH,34H
+  0511    34 6D                 TTEX31: DEFB 34H,6DH
+  0513    33 3E 20 4D                   DEFM '3> Menupunkt loeschen (Pos.Numer)'
+  0517    65 6E 75 70           
+  051B    75 6E 6B 74           
+  051F    20 6C 6F 65           
+  0523    73 63 68 65           
+  0527    6E 20 28 50           
+  052B    6F 73 2E 4E           
+  052F    75 6D 65 72           
+  0533    29                    
+  0534    1B 5B 30 39                   DEFB 1BH,5BH,30H,39H,3BH,30H,35H,48H    ; 
+  0538    3B 30 35 48           
+  053C    1B 5B 33                      DEFB 1BH,5BH,33H
+  053F    37 6D                 TTEX4:  DEFB 37H,6DH
+  0541    1B 5B 34                      DEFB 1BH,5BH,34H
+  0544    34 6D                 TTEX41: DEFB 34H,6DH
+  0546    34 3E 20 42                   DEFM '4> Bildschirmtext (mit 9 speichern)'
+  054A    69 6C 64 73           
+  054E    63 68 69 72           
+  0552    6D 74 65 78           
+  0556    74 20 28 6D           
+  055A    69 74 20 39           
+  055E    20 73 70 65           
+  0562    69 63 68 65           
+  0566    72 6E 29              
+  0569    1B 5B 31 31                   DEFB 1BH,5BH,31H,31H,3BH,30H,35H,48H    ; 
+  056D    3B 30 35 48           
+  0571    45 43 53 3E                   DEFM 'ECS> alles verwerfen'
+  0575    20 61 6C 6C           
+  0579    65 73 20 76           
+  057D    65 72 77 65           
+  0581    72 66 65 6E           
+        MACRO-80 3.43   27-Jul-81       PAGE    1-13
+
+
+  0585    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH
+  0589    6D                    
+  058A    1B 5B 34 34                   DEFB 1BH,5BH,34H,34H,6DH
+  058E    6D                    
+  058F    1B 5B 31 34                   DEFB 1BH,5BH,31H,34H,3BH,30H,31H,48H    ; 
+  0593    3B 30 31 48           
+  0597    24                            DEFM '$'        ; block output end BIOS
+  0598    2A                            DEFB 2AH
+  0110                          TTLEN   EQU $-TTEX
+                                        ;------------
+  0599    1B 5B 33 37           MTEX:   DEFB 1BH,5BH,33H,37H,6DH
+  059D    6D                    
+  059E    1B 5B 33 34                   DEFB 1BH,5BH,33H,34H,6DH
+  05A2    6D                    
+  05A3    1B 5B 32 34                   DEFB 1BH,5BH,32H,34H,3BH,30H,31H,48H    ; 
+  05A7    3B 30 31 48           
+  05AB    41 75 73 77                   DEFM 'Auswahl: '
+  05AF    61 68 6C 3A           
+  05B3    20                    
+  05B4    1B 37                         DEFB 1BH,37H    ; cursor pos save
+  05B6    20 20 20 20                   DEFM '                         '
+  05BA    20 20 20 20           
+  05BE    20 20 20 20           
+  05C2    20 20 20 20           
+  05C6    20 20 20 20           
+  05CA    20 20 20 20           
+  05CE    20                    
+  05CF    1B 38                         DEFB 1BH,38H    ; return cursor pos
+  05D1    24                            DEFM '$'        ; block output end BIOS
+                                        ;------------
+  05D2    1B 5B 31 36           NRMENU: DEFB 1BH,5BH,31H,36H,3BH,30H,31H,48H    ; 
+  05D6    3B 30 31 48           
+  05DA    4E 72 2E 20                   DEFM 'Nr. eingeben: '
+  05DE    65 69 6E 67           
+  05E2    65 62 65 6E           
+  05E6    3A 20                 
+  05E8    1B 37                         DEFB 1BH,37H    ; cursor pos save
+  05EA    20 20 20 20                   DEFM '                         '
+  05EE    20 20 20 20           
+  05F2    20 20 20 20           
+  05F6    20 20 20 20           
+  05FA    20 20 20 20           
+  05FE    20 20 20 20           
+  0602    20                    
+  0603    1B 38                         DEFB 1BH,38H    ; return cursor pos
+  0605    24                            DEFM '$'        ; block output end BIOS
+                                        ;-------------
+  0606    00 00 00 00           BF02:   DEFB 00H,00H,00H,00H
+  060A    00 00 00 00           BF03:   DEFB 00H,00H,00H,00H    
                                 
-  0511    1B 5B 02 04           ABUFF:  DEFB 1BH,5BH,02H,04H,3BH,00H,01H,48H
-  0515    3B 00 01 48           
-  0519    20 20 20 20           AUTEX:  DEFM '                             '
-  051D    20 20 20 20           
-  0521    20 20 20 20           
-  0525    20 20 20 20           
-  0529    20 20 20 20           
-  052D    20 20 20 20           
-  0531    20 20 20 20           
-  0535    20                    
+  060E    1B 5B 02 04           EBUFF:  DEFB 1BH,5BH,02H,04H,3BH,00H,01H,48H
+  0612    3B 00 01 48           
+  0616    1B 5B 33 37                   DEFB 1BH,5BH,33H,37H,6DH
+  061A    6D                    
+  061B    1B 5B 34 34                   DEFB 1BH,5BH,34H,34H,6DH
+  061F    6D                    
+        MACRO-80 3.43   27-Jul-81       PAGE    1-14
+
+
+  0620    20 20 20 20                   DEFM '                             '
+  0624    20 20 20 20           
+  0628    20 20 20 20           
+  062C    20 20 20 20           
+  0630    20 20 20 20           
+  0634    20 20 20 20           
+  0638    20 20 20 20           
+  063C    20                    
+  002F                          EZLEN   EQU $-EBUFF
+                                
+  063D    1B 5B 3F 25           CURON:  DEFB 1BH,5BH,'?','%','h'
+  0641    68                    
+  0642    24                            DEFM '$'        ; block output end BIOS
+  0643    1B 5B 3F 25           CUROFF: DEFB 1BH,5BH,'?','%','l'
+  0647    6C                    
+  0648    24                            DEFM '$'        ; block output end BIOS
+  0649    1B 5B 44              DELKEY: DEFB 1BH,5BH,'D'
+  064C    20                            DEFB 20H
+  064D    24                            DEFM '$'        ; block output end BIOS
+  064E    1B 5B 31 4B           LROW:   DEFB 1BH,5BH,'1','K'
+  0652    24                            DEFM '$'        ; block output end BIOS
+                                
+  0653    1B 5B 02 04           ABUFF:  DEFB 1BH,5BH,02H,04H,3BH,00H,01H,48H
+  0657    3B 00 01 48           
+  065B    20 20 20 20           AUTEX:  DEFM '                             '
+  065F    20 20 20 20           
+  0663    20 20 20 20           
+  0667    20 20 20 20           
+  066B    20 20 20 20           
+  066F    20 20 20 20           
+  0673    20 20 20 20           
+  0677    20                    
   0025                          AZLEN   EQU $-ABUFF
-                                
-  0536    2E 43 4F 4D           AUTO:   DEFM '.COM        '
-  053A    20 20 20 20           
-  053E    20 20 20 20           
-  0542    0000                  FILEN:  DEFW 0000H
-  0544    00                    ZEILEN: DEFB 00H
+  0678    2E 43 4F 4D           AUTO:   DEFM '.COM        '
+  067C    20 20 20 20           
+  0680    20 20 20 20           
+  0684    0000                  FILEN:  DEFW 0000H
+  0686    00                    ZEILEN: DEFB 00H
                                 
                                 END
         MACRO-80 3.43   27-Jul-81       PAGE    S
@@ -744,55 +873,62 @@
 Macros:
 
 Symbols:
-0511    ABUFF           02E8    AUEND           0519    AUTEX           
-0536    AUTO            0025    AZLEN           04DF    BF02            
-04E3    BF03            6503    BFRHH           6502    BFRHL           
+0653    ABUFF           0284    AUEND           065B    AUTEX           
+0678    AUTO            0025    AZLEN           0606    BF02            
+060A    BF03            6503    BFRHH           6502    BFRHL           
 6501    BFRLH           6500    BFRLL           650F    BFSHH           
 650E    BFSHL           650D    BFSLH           650C    BFSLL           
 650B    BFVHH           650A    BFVHL           6509    BFVLH           
 6508    BFVLL           6200    BLAN            6205    BSTAT           
-03E2    BTEX            0080    BUFF            0020    CMD_READSEC     
-0030    CMD_WRITESEC    03EC    COMKEY          6C3F    COP             
-0007    CPOS            0387    CURP1           0383    CURPOS          
-6518    CURS            651C    CURT            04E7    EBUFF           
-0308    ERR1            030B    ERR2            0301    ERROR           
-02F9    ESTACK          031B    ETEX1           034F    ETEX2           
-002A    EZLEN           005C    FCB             006B    FCBCR           
+03D1    BTEX            03D8    BTEX1           0080    BUFF            
+0020    CMD_READSEC     0030    CMD_WRITESEC    03E2    COLM            
+03EF    COLM1           0406    COLM2           041D    COLM3           
+0433    COMKEY          6C3F    COP             0007    CPOS            
+0643    CUROFF          063D    CURON           0323    CURP1           
+031F    CURPOS          6518    CURS            651C    CURT            
+0454    DELK            0649    DELKEY          060E    EBUFF           
+02A4    ERR1            02A7    ERR2            029D    ERROR           
+0295    ESTACK          02B7    ETEX1           02EB    ETEX2           
+002F    EZLEN           005C    FCB             006B    FCBCR           
 005D    FCBFN           0065    FCBFT           007C    FCBRA           
-0020    FDC             0126    FIL6            0133    FIL7            
-0145    FIL8            0542    FILEN           0800    HDD             
+0020    FDC             0684    FILEN           0800    HDD             
 00BE    HDDE            00F0    IDE             00FD    IDECHI          
 00FC    IDECLO          00FF    IDECMD          00F8    IDEDAT          
 00F6    IDEDOR          00F9    IDEERR          00FA    IDESCNT         
 00FE    IDESDH          00FB    IDESNUM         00FF    IDESTAT         
-03FE    INKEY           0185    KEY1            01B0    KEY2            
-01C9    KEY7            01F4    KEY8            0218    KEY9            
-0009    KEYBUF          0002    KEYIN           0001    KEYOUT          
-0060    LCD             6513    LOGHH           6512    LOGHL           
-6511    LOGLH           6510    LOGLL           0008    LPOS            
-03C5    MASK1           03CC    MASK2           03CF    MASK3           
-03DD    MASK4           A101    MMC             0007    MMCE            
-001E    PIOB            7000    PROG            0005    P_READ          
-0006    P_WRITE         6524    RADR            6000    RAM             
-6727    RAMS            6B27    RAMT            6527    RAMV            
-0000    RBLAN           0005    RBSTAT          6526    RMEN            
-0006    RSOTR           0004    RTERM           6BEF    RTEX            
-0002    RTYPE1          0003    RTYPE2          0001    RUSER           
-6520    SANDB           040D    SDEL            0414    SDEL1           
-0422    SDEL2           0004    SELDM           00F7    SELDS           
-01D6    SUCHD           01EA    SUCHE           03BC    SUM             
-6204    TERM            0169    TEXIN           039D    TEXOUT          
-0434    TTEX            00AB    TTLEN           6202    TYPE1           
-6203    TYPE2           03AE    UPROG           03B0    UPROG1          
-03B5    UPROG2          0080    URCS            6201    USER            
-02DD    WINCHA          02DF    WINDO           0227    WINDOW          
-02CC    WINOUT          02DB    WINPOS          024C    WINX1           
-0278    WINX2           02AF    WINX3           02D9    WINXY           
-025A    WINY1           0544    ZEILEN          
+0445    INKEY           0175    KEY1            01A0    KEY2            
+01A8    KEY7            01B4    KEY9            0009    KEYBUF          
+0002    KEYIN           0001    KEYOUT          0060    LCD             
+6513    LOGHH           6512    LOGHL           6511    LOGLH           
+6510    LOGLL           015B    LOOP1           0008    LPOS            
+064E    LROW            0361    MASK1           0368    MASK2           
+036B    MASK3           0379    MASK4           037E    MENU            
+0391    MENU6           039E    MENU7           03AE    MENU8           
+A101    MMC             0007    MMCE            0599    MTEX            
+05D2    NRMENU          001E    PIOB            7000    PROG            
+0005    P_READ          0006    P_WRITE         6524    RADR            
+6000    RAM             6727    RAMS            6B27    RAMT            
+6527    RAMV            0000    RBLAN           0005    RBSTAT          
+6526    RMEN            0006    RSOTR           0004    RTERM           
+6BEF    RTEX            0002    RTYPE1          0003    RTYPE2          
+0001    RUSER           6520    SANDB           045B    SDEL            
+0466    SDEL1           0472    SDEL2           0004    SELDM           
+00F7    SELDS           0358    SUM             6204    TERM            
+011B    TEXIN           012A    TEXIN1          0339    TEXOUT          
+0489    TTEX            04BA    TTEX1           04BF    TTEX11          
+04E2    TTEX2           04E7    TTEX21          050C    TTEX3           
+0511    TTEX31          053F    TTEX4           0544    TTEX41          
+0110    TTLEN           6202    TYPE1           6203    TYPE2           
+034A    UPROG           034C    UPROG1          0351    UPROG2          
+0080    URCS            6201    USER            0279    WINCHA          
+027B    WINDO           01C3    WINDOW          0268    WINOUT          
+0277    WINPOS          01E8    WINX1           0214    WINX2           
+024B    WINX3           0275    WINXY           01F6    WINY1           
+0686    ZEILEN          
 
 
 
 No Fatal error(s)
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
