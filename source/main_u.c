@@ -49,6 +49,7 @@
 #include "BlaseSort.h"
 #include "Z84C15.h"
 #include "KernelConf.h"
+#include "HDD.h"
 //#include "zsldevinit.asm"
 
 #define UART                 0			// change to 1 when using UART 1
@@ -60,7 +61,7 @@
 //#define DEVICE_NAME          "eZ80F91"
 #define DEVICE_NAME          "_Z84C15_IORQ"
 
-
+/*
 #if !defined(_ZSL_UART_USED)
 #if (UART==1) 
 #define	UART_FCTL	     	 UART1_FCTL
@@ -104,6 +105,8 @@ const char version[] = "1.0";
 
 void uart_init(void) 
 { 
+
+/*
 #ifndef _SIMULATE
  #ifdef _ZSL_UART_USED
 	ei();
@@ -149,6 +152,7 @@ void uart_init(void)
 #endif 
 }
 
+/*
 #if defined(_ZSL_UART_USED)
 #ifdef ZSL_DEVICE_UART1
 /*** Note: As default, ZSL uses UART0 for functions: getch, putch and peekc.
@@ -157,6 +161,7 @@ void uart_init(void)
  *         peekc if they are used in this project.
  */
 
+/*
 INT getch( VOID )
 {
 	CHAR ch ;
@@ -204,7 +209,7 @@ int putch(int ch)
     }
     return (ch);
 }
-#endif
+
 
 int getch(void)
 {
@@ -212,9 +217,11 @@ int getch(void)
     return (UART_RBR);
 }
 #endif 
+*/
 	
 int main()
 {
+
     int i, ch;
 	//i = 0;
     static char zds[] = "ZiLOG Developers Studio";
@@ -229,23 +236,14 @@ int main()
  //* 
  //* 		// and so on...
 
-    //uart_init();
-    //test();
 
+	//uart_init();
 	
 	while (1)
 	{
 
 	lcd128_init();
 	
-	trk =0x0801;
-	sec =0x0801;
-	
-	//track, sector = lba0(trk, sec);
-		
-	//printf("%d", track);
-	//printf("%s",sector);
-		
 //*****************************
 // cursor position y,x Text
 
@@ -259,20 +257,7 @@ int main()
 		{
 			lcd128_adt(0);
 		}	
-//*****************************
-// cursor position y,x Text
-
-	lcd128_data_write16(0x000a);
-	lcd128_cmd(PTR_ADDR);
 		
-//**********************
-//* LCD Clear mit Space (20H)-20H
-	
-	for (i=0; i < 322; i++)
-		{
-			lcd128_adt(0);
-		}	
-				
 //*****************************
 // cursor position y,x Grafik
 		
@@ -282,6 +267,7 @@ int main()
 
 	i = lcd128_ard();
 	LEDMATRIX_COLUMN = (i & 0x1f);
+		
 	while (i < 0xff){
 	LEDMATRIX_COLUMN = (0x0f);
 	if (i < 0xff)
@@ -297,7 +283,8 @@ int main()
 	lcd128_cmd(AWR_OFF);
 	
 	delay(500);	
-//*****************************
+
+	//*****************************
 // cursor position y,x Text
 		
 	lcd128_data_write16(0x0000);
@@ -315,15 +302,9 @@ int main()
 
 	lcd128_cmd(AWR_OFF);
     delay(500);
-	}
 	
 //*****************************
 // cursor position y,x Text
-
-	lcd128_data_write16(0x0000);	
-	
-	ch = LBA_mode_plus(10000);
-	ch = LBA_mode_minus(50000);
 	
     printf("\nUsing Uart %i\n", UART);
     printf("-----------------------\n");
@@ -334,7 +315,8 @@ int main()
     printf("f = %f\n", 1.26);
     printf("%s %i %d %f\n", device_name, 5, 25, 1.26);
     printf("-----------------------\n");
- 
+	}
+	
     while (1)
     {   ch = getchar();
         putchar(ch);
@@ -343,5 +325,5 @@ int main()
 			putchar( '\n' ) ;
         }
     }
-    return 0;
+  return 0;
 }

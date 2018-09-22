@@ -45,6 +45,7 @@
  ****************************************************************************/
 #include <eZ80.h>
 #include <stdio.h>
+#include "Stdlib.h"
 #include "LCDInit.h"
 #include "BlaseSort.h"
 #include "Z84C15.h"
@@ -89,8 +90,9 @@
 #define SetLCTL(d, p, s)     UART_LCTL = ((d-5)&3) | (((s-1)&1)<<2) | (p&3)
 #endif //!defined(_ZSL_UART_USED)
 
-#define LF                   '\n'
-#define CR                   '\r'
+#define LF  '\n'
+#define CR  '\r'
+#define BMAX 511
 
 unsigned short int trk;
 int sec;
@@ -212,11 +214,33 @@ int getch(void)
     return (UART_RBR);
 }
 #endif 
+
+
+void function(char feld[], int n_anzahl) {
+   int i;
+		for (i=0; i < n_anzahl; i++)
+		{
+			if(feld[i]>30)
+			{
+				lcd128_adt(feld[i] - 0x20);
+			};
+		}
+	}
+
+//========================================================
+//**													**
+//**			main									**
+//**													**
+//=========================================================
 	
 int main()
 {
     int i, ch;
 	//i = 0;
+	
+	char bas[BMAX] = "      MASKE1.com  ";
+
+		
     static char zds[] = "ZiLOG Developers Studio";
 	static char LCD_NAME[] = "LCD 128x128 Display";
 
@@ -229,22 +253,19 @@ int main()
  //* 
  //* 		// and so on...
 
-    //uart_init();
-    //test();
-
+    uart_init();
+	
+	printf("Start int main()\n");
+	printf("%s\n", zds);
 	
 	while (1)
 	{
 
+	printf("Start Init %s -->>  ", LCD_NAME);
+		
 	lcd128_init();
 	
-	trk =0x0801;
-	sec =0x0801;
-	
-	track, sector = lba0(trk, sec);
-		
-	printf("%d", track);
-	printf("%s",sector);
+	printf("End LCD return\n");
 		
 //*****************************
 // cursor position y,x Text
@@ -254,12 +275,52 @@ int main()
 		
 //**********************
 //* LCD Clear mit Space (20H)-20H
-	
-	for (i=0; i < 322; i++)
+		
+/*	for (i=0; i < 322; i++)
 		{
 			lcd128_adt(0);
+		}	*/
+//*****************************
+// cursor position y,x Text
+			
+	lcd128_data_write16(0x000a);
+	lcd128_cmd(PTR_ADDR);
+
+	bas[0] =  48;		// free
+	bas[1] =  49;		// USER 16Bit
+	bas[2] =  49;		// USER 16Bit
+	bas[3] =  50;		// Type1 8Bit
+	bas[4] =  51;		// Type2 8Bit
+	bas[5] =  52;		// Term  8Bit
+	
+	bas[18] = 27;		// 
+	bas[19] = 91;		//
+	bas[20] = 0x30;		// 1BH,5BH,'0','0',3BH,'7','2',66H
+	bas[21] = 0x30;		// 
+	bas[22] = 0x3b;		//
+	bas[23] = 0x37;		//
+	bas[24] = 0x32;		// 
+	bas[25] = 0x66;		//
+	
+	printf("\nArray-Test:%s",bas);
+
+	printf("\nGeben Sie ein paar Wörter ein: ");
+    scanf("%s", &bas[18]);
+   printf("Ihre Eingabe: %s\n",bas);
+//**********************
+//* LCD Clear mit Space (20H)-20H
+
+	function(bas, BMAX);
+
+/*	for (i=0; i < 511; i++)
+		{
+			if(bas[i]>30)
+			{
+				lcd128_adt(bas[i] - 0x20);
+			};
 		}	
-		
+	*/		
+    delay(50000);		
 //*****************************
 // cursor position y,x Grafik
 		
@@ -269,11 +330,12 @@ int main()
 
 	i = lcd128_ard();
 	LEDMATRIX_COLUMN = (i & 0x1f);
-	while (i < 0xff){
+		
+/*	while (i < 0xff){
 	LEDMATRIX_COLUMN = (0x0f);
 	if (i < 0xff)
 		{
-			lcd128_ard(i);
+			i = 0xa0 ;   //lcd128_ard(i);
 		}
 		else 
 		{
@@ -281,23 +343,24 @@ int main()
 		}
 	i++;
 	}
+*/
 	lcd128_cmd(AWR_OFF);
 	
-	delay(500);	
+	delay(500);
 //*****************************
 // cursor position y,x Text
 		
-	lcd128_data_write16(0x0000);
-	lcd128_cmd(PTR_ADDR);
+	//lcd128_data_write16(0x0000);
+	//lcd128_cmd(PTR_ADDR);
 	
-	lcd128_ard(AWR_ON);
+	//lcd128_ard(AWR_ON);
 
 //*****************************
 //* LCD Set ASCII((20H bis 7FH) -20H)
 	
 	for (i=0; i < 322; i++)
 		{
-			lcd128_adt(i &0x3f);
+			lcd128_adt(0);
 		}
 
 	lcd128_cmd(AWR_OFF);

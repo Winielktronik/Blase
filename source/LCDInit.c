@@ -137,7 +137,7 @@ void lcd128_init(void){
 	PC_ALT1 = 0x00;
 	PC_DDR = 0x00;
     PC_DR = 0xe2;
-
+		
 	SET_BIT(PC_DR, 7);		// LCD CS
 	delay(250);
 	SET_BIT(PC_DR, 3);		// LCD Reset
@@ -148,17 +148,24 @@ void lcd128_init(void){
 	lcd128_data_write8(0x00);	// Adre
 	lcd128_data_write8(0x00);	// Adresse
 	lcd128_cmd(ADDR_TXT_HOME);
+	
+		
+	printf("\n>LCD1>");
 		
 	// Set Graphic Home Adresse
 	lcd128_data_write8(0x00);
 	lcd128_data_write8(0x02);
 	lcd128_cmd(ADDR_GRAPHIC_HOME);
 	
+	printf("\n>LCD2>");
+	
 	// Set Text Area
 	lcd128_data_write8(0x14);
 	lcd128_data_write8(0x00);
 	lcd128_cmd(TXT_AREA);	
 
+	printf("\n>LCD3>");
+	
 	// Set Graphic Area
 	lcd128_data_write8(0x14);
 	lcd128_data_write8(0x00);
@@ -167,10 +174,14 @@ void lcd128_init(void){
 	// Mode Set (or Mode, Internal Character Generator Mode)
 	lcd128_cmd(MODE_AUTOWRITE);
 	
+	printf("\n>LCD4>");
+
 	// Set Offset Register
 	lcd128_data_write8(0x02);
 	lcd128_data_write8(0x00);
 	lcd128_cmd(ADDR_OFFSET);
+
+	printf("\n>LCD5>");
 	
 	// Display Mode (Text on, Grafik of, Cursor off)
 	lcd128_cmd(0x94);
@@ -180,6 +191,8 @@ void lcd128_init(void){
 	lcd128_cmd(PTR_ADDR);
 	
 	lcd128_cmd(AWR_ON);
+	
+
 	/*	//* LCD Clear mit Space (20H)
 	
 	for (i=0; i < 322; i++)
@@ -270,6 +283,7 @@ void lcd128_init(void){
 	lcd128_cmd(AWR_ON);
 
 	delay(2);
+	printf("End LCD Init\n");
 	
 	// Weiter .....
 	
@@ -280,6 +294,8 @@ BOOL lcd128_cmd(char cmd)
    	int __i = 0;
 	char ECB_BUS;
 	char result = 0;
+	
+	//printf("LCD-CM=%x>", cmd);
 	//ecb_bus_intern();
 	//lcd128_put_byte(LCD_CMD, cmd, result);
 	lcd128_put_byte(1, cmd, result);
@@ -293,6 +309,7 @@ BOOL lcd128_data_write8(char data)
    	int __i = 0;
 	char ECB_BUS;
 	char result = 0;
+	//printf("LCD-DW=%x>", data);
 	
 	//ecb_bus_intern();
 	//lcd128_put_byte(LCD_DAT, data, result);
@@ -324,6 +341,9 @@ BOOL lcd128_adt(char data)
 	int __i = 0;
 	char ECB_BUS;
 	char result = 0;
+
+	//printf("LCD1-a=%x", data);
+
 	lcd128_cmd(AWR_ON);
 	LEDMATRIX_COLUMN = (data & 0x1f);
 	lcd128_put_byte(2, data, result);
@@ -347,6 +367,9 @@ return result;
 void delay(int amount)  
 {
 	int i = 0;
-	while(i++ < (amount*1000));
+	//int c = 1000;		// im Flach Modus
+	int c = 2;			// im Debug Modus
+	while(i++ < (amount*c));
 	return;
 }
+
