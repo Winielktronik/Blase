@@ -187,7 +187,7 @@
   0067    23                            INC HL  ;CTC2
   0068    23                            INC HL
   0069    23                            INC HL  ;CTC3
-  006A    11 020A                       LD DE,TIMEI
+  006A    11 020C                       LD DE,TIMEI
   006D    73                            LD (HL),E
   006E    23                            INC HL
   006F    72                            LD (HL),D
@@ -204,15 +204,15 @@
   007F    D3 1E                         OUT (PIOB),A    ; SET D 74LS74(2)
   0081    D3 08                         OUT (SMOT),A    ; STARTIMPULS 74LS74(3)
                                         ;-----
-  0083    21 00C0               LOP10:  LD HL,00C0H
+  0083    21 00FF               LOP10:  LD HL,00FFH
   0086    22 8002                       LD (WEGS),HL
-  0089    21 00C0                       LD HL,00C0H
+  0089    21 010F                       LD HL,010FH
   008C    22 8004                       LD (STEPC),HL   ; COUNTER BUFFER
   008F    22 8006                       LD (STEPCI),HL  ; INT. COUNTER
   0092    DB 1E                 LOP11:  IN A,(PIOB)
   0094    CB 57                         BIT 2,A         ; NUSSKNACKER MOTOR AN 74LS74(5) 
                                 ;       JR Z,LOP20      ; =LOW MOTOR AUS
-  0096    CD 012E                       CALL TIMEC
+  0096    CD 0130                       CALL TIMEC
   0099    30 F7                         JR NC,LOP11
   009B    DB 1E                         IN A,(PIOB)
   009D    CB AF                         RES 5,A
@@ -221,113 +221,114 @@
   00A1    D3 08                         OUT (SMOT),A    ; STARTIMPULS 74LS74(3)
   00A3    21 0080                       LD HL,0080H
   00A6    22 8002                       LD (WEGS),HL
-  00A9    21 0080                       LD HL,0080H
+  00A9    21 00FF                       LD HL,00FFH
   00AC    22 8004                       LD (STEPC),HL   ; BUFFER COUNTER
   00AF    22 8006                       LD (STEPCI),HL  ; INT. COUNTER
-  00B2    CD 0159               LOP12:  CALL STEPMR
-  00B5    3A 8002                       LD A,(WEGS)
-  00B8    FE 00                         CP 0
-  00BA    20 F6                         JR NZ,LOP12
-  00BC    3E 00                         LD A,00H
-  00BE    D3 04                         OUT (LATCH),A   ; MOTOR 
-  00C0    32 8008                       LD (RLATCH),A   ; SPEICHEN
-  00C3    D3 1C                         OUT (PIOA),A    ; SCHIEBER -VDD OFF
-  00C5    D3 1E                         OUT (PIOB),A    ; SUMMER OFF/ON
-  00C7    21 00FF               LOP14:  LD HL,00FFH
+  00B2    CD 015B               LOP12:  CALL STEPMR
+  00B5    2A 8002                       LD HL,(WEGS)
+  00B8    CD 0153                       CALL DECHL
+  00BB    30 F5                         JR NC,LOP12
+  00BD    3E 00                         LD A,00H
+  00BF    D3 04                         OUT (LATCH),A   ; MOTOR 
+  00C1    32 8008                       LD (RLATCH),A   ; SPEICHEN
+  00C4    D3 1C                         OUT (PIOA),A    ; SCHIEBER -VDD OFF
+  00C6    D3 1E                         OUT (PIOB),A    ; SUMMER OFF/ON
+  00C8    21 00FF               LOP14:  LD HL,00FFH
         MACRO-80 3.43   27-Jul-81       PAGE    1-4
 
 
-  00CA    22 8006                       LD (STEPCI),HL
-  00CD    22 8004                       LD (STEPC),HL
-  00D0    3A 8006               LOP13:  LD A,(STEPCI)   ; INT. COUNTER =0
-  00D3    FE 00                         CP 0H
-  00D5    D3 08                         OUT (SMOT),A    ; STARTIMPULS 74LS74(3)
-  00D7    20 F7                         JR NZ,LOP13
-  00D9    DB 1E                         IN A,(PIOB)
-  00DB    C6 80                         ADD A,80H
-  00DD    D3 1E                         OUT (PIOB),A
-  00DF    3A 8008                       LD A,(RLATCH)
-  00E2    3C                            INC A
-  00E3    32 8008                       LD (RLATCH),A
-  00E6    CB 07                         RLC A
+  00CB    22 8006                       LD (STEPCI),HL
+  00CE    22 8004                       LD (STEPC),HL
+  00D1    2A 8006               LOP13:  LD HL,(STEPCI)  ; INT. COUNTER =0
+  00D4    CD 0153                       CALL DECHL
+  00D7    D3 08                         OUT (SMOT),A    ; STARTIMPULS 74LS74(3)
+  00D9    20 F6                         JR NZ,LOP13
+  00DB    DB 1E                         IN A,(PIOB)
+  00DD    C6 80                         ADD A,80H
+  00DF    D3 1E                         OUT (PIOB),A
+  00E1    3A 8008                       LD A,(RLATCH)
+  00E4    3C                            INC A
+  00E5    32 8008                       LD (RLATCH),A
   00E8    CB 07                         RLC A
-  00EA    D3 04                         OUT (LATCH),A
-  00EC    20 D9                         JR NZ,LOP14
-  00EE    F3                            DI
-  00EF    76                            HALT    
+  00EA    CB 07                         RLC A
+  00EC    D3 04                         OUT (LATCH),A
+  00EE    20 D8                         JR NZ,LOP14
+  00F0    F3                            DI
+  00F1    76                            HALT    
                                         ;-----
-  00F0    DB 1E                 LOP20:  IN A,(PIOB)
-  00F2    CB BF                         RES 7,A
-  00F4    D3 1E                         OUT (PIOB),A    ; SUMMER OFF    
-  00F6    DB 1C                         IN A,(PIOA)
-  00F8    E6 F0                         AND 0F0H
-  00FA    CB 58                         BIT 3,B         ; ENDSCHALTER AUSWURF SCHIEBER
-  00FC    CC 01BB                       CALL Z,STEP96
+  00F2    DB 1E                 LOP20:  IN A,(PIOB)
+  00F4    CB BF                         RES 7,A
+  00F6    D3 1E                         OUT (PIOB),A    ; SUMMER OFF    
+  00F8    DB 1C                         IN A,(PIOA)
+  00FA    E6 F0                         AND 0F0H
+  00FC    CB 58                         BIT 3,B         ; ENDSCHALTER AUSWURF SCHIEBER
+  00FE    CC 01BD                       CALL Z,STEP96
                                 
-  00FF    3A 8008               LOP3:   LD A,(RLATCH)
-  0102    D3 04                         OUT (LATCH),A   ; MOTOR 
-  0104    3C                            INC A
-  0105    32 8008                       LD (RLATCH),A
-  0108    3A 8000                       LD A,(RAM)
+  0101    3A 8008               LOP3:   LD A,(RLATCH)
+  0104    D3 04                         OUT (LATCH),A   ; MOTOR 
+  0106    3C                            INC A
+  0107    32 8008                       LD (RLATCH),A
+  010A    3A 8000                       LD A,(RAM)
                                 ;       JR NZ,LOP3 
-  010B    E6 0F                         AND 0FH
+  010D    E6 0F                         AND 0FH
                                 ;       OUT (PIOA),A
-  010D    3C                            INC A
-  010E    32 8000                       LD (RAM),A
-  0111    CD 01C7                       CALL STEPML
-  0114    18 E9                         JR LOP3
+  010F    3C                            INC A
+  0110    32 8000                       LD (RAM),A
+  0113    CD 01C9                       CALL STEPML
+  0116    18 E9                         JR LOP3
                                 
-  0116    3E 00                         LD A,00H        ; OUTPUT 74LS273 STOPP
-  0118    D3 04                 LOP2:   OUT (LATCH),A   ; MOTOR 
-  011A    32 8000                       LD (RAM),A
+  0118    3E 00                         LD A,00H        ; OUTPUT 74LS273 STOPP
+  011A    D3 04                 LOP2:   OUT (LATCH),A   ; MOTOR 
+  011C    32 8000                       LD (RAM),A
                                 ;       AND 0FH
                                 ;       OUT (PIOA),A    ; ZUM TEST
-  011D    3A 800A                       LD A,(RAM+10)
-  0120    3C                            INC A
-  0121    D3 1C                         OUT (PIOA),A
-  0123    32 800A                       LD (RAM+10),A
-  0126    3E 4F                         LD A,4FH
+  011F    3A 800A                       LD A,(RAM+10)
+  0122    3C                            INC A
+  0123    D3 1C                         OUT (PIOA),A
+  0125    32 800A                       LD (RAM+10),A
+  0128    3E 4F                         LD A,4FH
                                 ;       OUT (WDTCR),A
-  0128    3A 8000                       LD A,(RAM)
-  012B    3C                            INC A
+  012A    3A 8000                       LD A,(RAM)
+  012D    3C                            INC A
                                 ;       JR NZ,LOP2
-  012C    18 EA                         JR LOP2
+  012E    18 EA                         JR LOP2
                                 ;------------------------
         MACRO-80 3.43   27-Jul-81       PAGE    1-5
 
 
                                 ; TIMER COUNTER (WEGS) 16BIT -1
                                 ;
-  012E    F3                    TIMEC:  DI              ; UM NICHT UNTERBROCHEN ZU WERDEN
-  012F    D5                            PUSH DE
-  0130    E5                            PUSH HL
-  0131    2A 8006                       LD HL,(STEPCI)  ; PER INT DOWN COUNTER
-  0134    CD 0151                       CALL DECHL
-  0137    30 14                         JR NC,TIMEC1
-  0139    2A 8004                       LD HL,(STEPC)
-  013C    22 8006                       LD (STEPCI),HL
-  013F    2A 8002                       LD HL,(WEGS)
-  0142    CD 0151                       CALL DECHL
-  0145    38 06                         JR C,TIMEC1
-  0147    20 01                         JR NZ,TIMEC2
-  0149    37                            SCF             ; SET CARRY-FLAG
-  014A    22 8002               TIMEC2: LD (WEGS),HL
-  014D    E1                    TIMEC1: POP HL
-  014E    D1                            POP DE
-  014F    FB                            EI
-  0150    C9                            RET
-  0151    D5                    DECHL:  PUSH DE
-  0152    11 0001                       LD DE,0001H
-  0155    ED 52                         SBC HL,DE
-  0157    D1                            POP DE
-  0158    C9                            RET
+  0130    F3                    TIMEC:  DI              ; UM NICHT UNTERBROCHEN ZU WERDEN
+  0131    D5                            PUSH DE
+  0132    E5                            PUSH HL
+  0133    2A 8006                       LD HL,(STEPCI)  ; PER INT DOWN COUNTER
+  0136    CD 0153                       CALL DECHL
+  0139    30 14                         JR NC,TIMEC1
+  013B    2A 8004                       LD HL,(STEPC)
+  013E    22 8006                       LD (STEPCI),HL
+  0141    2A 8002                       LD HL,(WEGS)
+  0144    CD 0153                       CALL DECHL
+  0147    38 06                         JR C,TIMEC1
+  0149    20 01                         JR NZ,TIMEC2
+  014B    37                            SCF             ; SET CARRY-FLAG
+  014C    22 8002               TIMEC2: LD (WEGS),HL
+  014F    E1                    TIMEC1: POP HL
+  0150    D1                            POP DE
+  0151    FB                            EI
+  0152    C9                            RET
+                                        ;------------
+  0153    D5                    DECHL:  PUSH DE
+  0154    11 0001                       LD DE,0001H
+  0157    ED 52                         SBC HL,DE
+  0159    D1                            POP DE
+  015A    C9                            RET
                                 
                                 ;------------------------
                                 ; NUSSKNACHER MOTOR OEFFNEN
                                 ; SET D7 AN 74LS373(2) WENDERELAIS =0
                                 ; FUER OEFFNEN
                                 
-  0159                          KMOT0:  
+  015B                          KMOT0:  
                                 
                                 
                                 ;------------------------
@@ -335,144 +336,144 @@
                                 ; TAKT AN PIOA PA3-PA0
                                 ; -> 5,9,A,6,5,usw.....
                                 ;
-  0159    F5                    STEPMR: PUSH AF
-  015A    C5                            PUSH BC
-  015B    E5                            PUSH HL
+  015B    F5                    STEPMR: PUSH AF
+  015C    C5                            PUSH BC
+  015D    E5                            PUSH HL
                                         ; ENDSCHALTER ABFRAGE
-  015C    DB 1E                         IN A,(PIOB)
-  015E    47                            LD B,A
-  015F    CB 57                         BIT 2,A         ; NUSSKNACKER MOTOR AN 74LS74(5) 
+  015E    DB 1E                         IN A,(PIOB)
+  0160    47                            LD B,A
+  0161    CB 57                         BIT 2,A         ; NUSSKNACKER MOTOR AN 74LS74(5) 
                                 ;       JR Z,STEP97     ; =LOW MOTOR AUS
-  0161    DB 1C                         IN A,(PIOA)
-  0163    E6 F0                         AND 0F0H
-  0165    CB 58                         BIT 3,B         ; ENDSCHALTER AUSWURF SCHIEBER
-  0167    28 52                         JR Z,STEP96
+  0163    DB 1C                         IN A,(PIOA)
+  0165    E6 F0                         AND 0F0H
+  0167    CB 58                         BIT 3,B         ; ENDSCHALTER AUSWURF SCHIEBER
+  0169    28 52                         JR Z,STEP96
                                         ; COUNTER ABFRAGEN
-  0169    2A 8006                       LD HL,(STEPCI)
-  016C    CD 0151                       CALL DECHL
-  016F    30 46                         JR NC,STEP97
-                                        ;---------
+  016B    2A 8006                       LD HL,(STEPCI)
+  016E    CD 0153                       CALL DECHL
+  0171    30 46                         JR NC,STEP97
         MACRO-80 3.43   27-Jul-81       PAGE    1-6
 
 
-  0171    2A 8002                       LD HL,(WEGS)
-  0174    CD 0151                       CALL DECHL
-  0177    38 03                         JR C,FLIP70
-  0179    22 8002                       LD (WEGS),HL
-  017C    DB 1C                 FLIP70: IN A,(PIOA)
-  017E    E6 F0                         AND 0F0H
-  0180    47                            LD B,A
-  0181    DB 1C                         IN A,(PIOA)
-  0183    E6 0F                         AND 0FH         ; PA0-PA3
-  0185    FE 05                         CP 05H
-  0187    28 10                         JR Z,FLIP741
-  0189    FE 06                         CP 06H
-  018B    28 18                         JR Z,FLIP742
-  018D    FE 09                         CP 09H
-  018F    28 10                         JR Z,FLIP743
-  0191    FE 0A                         CP 0AH
-  0193    28 08                         JR Z,FLIP744
-  0195    3E 05                         LD A,05H
-  0197    18 0E                         JR STEP99
+                                        ;---------
+  0173    2A 8002                       LD HL,(WEGS)
+  0176    CD 0153                       CALL DECHL
+  0179    38 03                         JR C,FLIP70
+  017B    22 8002                       LD (WEGS),HL
+  017E    DB 1C                 FLIP70: IN A,(PIOA)
+  0180    E6 F0                         AND 0F0H
+  0182    47                            LD B,A
+  0183    DB 1C                         IN A,(PIOA)
+  0185    E6 0F                         AND 0FH         ; PA0-PA3
+  0187    FE 05                         CP 05H
+  0189    28 10                         JR Z,FLIP741
+  018B    FE 06                         CP 06H
+  018D    28 18                         JR Z,FLIP742
+  018F    FE 09                         CP 09H
+  0191    28 10                         JR Z,FLIP743
+  0193    FE 0A                         CP 0AH
+  0195    28 08                         JR Z,FLIP744
+  0197    3E 05                         LD A,05H
+  0199    18 0E                         JR STEP99
                                         ;----------     
-  0199                          FLIP741:
-  0199    C6 04                         ADD A,04H       ; 05+04=09
-  019B    18 0A                         JR STEP99
-  019D                          FLIP744:
-  019D    D6 04                         SUB 04H         ; 0A-04=06
-  019F    18 06                         JR STEP99
-  01A1                          FLIP743:
-  01A1    C6 01                         ADD A,01H       ; 09+01=0A
-  01A3    18 02                         JR STEP99
-  01A5                          FLIP742:
-  01A5    D6 01                         SUB 01H         ; 06-01=05
-  01A7    4F                    STEP99: LD C,A
-  01A8    21 003C                       LD HL,03CH      ; 1ms*HL 
-  01AB    22 8006                       LD (STEPCI),HL
-  01AE    22 8004                       LD (STEPC),HL
-  01B1    79                            LD A,C
-  01B2    B0                            OR B            ; PIOA PA4 - 7
-  01B3    D3 1C                 STEP98: OUT (PIOA),A
-  01B5    DB 1E                         IN A,(PIOB)
-  01B7    E1                    STEP97: POP HL
-  01B8    C1                            POP BC
-  01B9    F1                            POP AF  
-  01BA    C9                            RET
+  019B                          FLIP741:
+  019B    C6 04                         ADD A,04H       ; 05+04=09
+  019D    18 0A                         JR STEP99
+  019F                          FLIP744:
+  019F    D6 04                         SUB 04H         ; 0A-04=06
+  01A1    18 06                         JR STEP99
+  01A3                          FLIP743:
+  01A3    C6 01                         ADD A,01H       ; 09+01=0A
+  01A5    18 02                         JR STEP99
+  01A7                          FLIP742:
+  01A7    D6 01                         SUB 01H         ; 06-01=05
+  01A9    4F                    STEP99: LD C,A
+  01AA    21 003C                       LD HL,03CH      ; 1ms*HL 
+  01AD    22 8006                       LD (STEPCI),HL
+  01B0    22 8004                       LD (STEPC),HL
+  01B3    79                            LD A,C
+  01B4    B0                            OR B            ; PIOA PA4 - 7
+  01B5    D3 1C                 STEP98: OUT (PIOA),A
+  01B7    DB 1E                         IN A,(PIOB)
+  01B9    E1                    STEP97: POP HL
+  01BA    C1                            POP BC
+  01BB    F1                            POP AF  
+  01BC    C9                            RET
                                 ;---------------
                                 ; ENDSCHALTER ERREICHT
                                 ;
-  01BB    3E 00                 STEP96: LD A,00H
-  01BD    32 8002                       LD (WEGS),A
-  01C0    3A 001C                       LD A,(PIOA)
-  01C3    E6 F0                         AND 0F0H
-  01C5    18 EC                         JR STEP98
+  01BD    3E 00                 STEP96: LD A,00H
+  01BF    32 8002                       LD (WEGS),A
+  01C2    3A 001C                       LD A,(PIOA)
+  01C5    E6 F0                         AND 0F0H
+  01C7    18 EC                         JR STEP98
                                 
                                 ;------------------------
                                 ; 4 Phasen Steppermotor links/Auswurf
                                 ; TAKT AN PIOA PA3-PA0
-                                ; -> 5,6,A,9,5,usw.....
         MACRO-80 3.43   27-Jul-81       PAGE    1-7
 
 
-  01C7    F5                    STEPML: PUSH AF
-  01C8    C5                            PUSH BC
-  01C9    E5                            PUSH HL
+                                ; -> 5,6,A,9,5,usw.....
+  01C9    F5                    STEPML: PUSH AF
+  01CA    C5                            PUSH BC
+  01CB    E5                            PUSH HL
                                         ; COUNTER ABFRAGEN
-  01CA    2A 8006                       LD HL,(STEPCI)
-  01CD    CD 0151                       CALL DECHL
-  01D0    30 E5                         JR NC,STEP97
+  01CC    2A 8006                       LD HL,(STEPCI)
+  01CF    CD 0153                       CALL DECHL
+  01D2    30 E5                         JR NC,STEP97
                                         ;---------
-  01D2    2A 8002                       LD HL,(WEGS)
-  01D5    CD 0151                       CALL DECHL
-  01D8    38 03                         JR C,FLOP70
-  01DA    22 8002                       LD (WEGS),HL
-  01DD    DB 1C                 FLOP70: IN A,(PIOA)
-  01DF    E6 F0                         AND 0F0H
-  01E1    47                            LD B,A
-  01E2    DB 1C                         IN A,(PIOA)
-  01E4    E6 0F                         AND 0FH         ; PA0-PA3
-  01E6    FE 05                         CP 05H
-  01E8    28 10                         JR Z,FLOP741
-  01EA    FE 06                         CP 06H
-  01EC    28 18                         JR Z,FLOP742
-  01EE    FE 09                         CP 09H
-  01F0    28 10                         JR Z,FLOP743
-  01F2    FE 0A                         CP 0AH
-  01F4    28 08                         JR Z,FLOP744
-  01F6    3E 05                         LD A,05H
-  01F8    18 AD                         JR STEP99
+  01D4    2A 8002                       LD HL,(WEGS)
+  01D7    CD 0153                       CALL DECHL
+  01DA    38 03                         JR C,FLOP70
+  01DC    22 8002                       LD (WEGS),HL
+  01DF    DB 1C                 FLOP70: IN A,(PIOA)
+  01E1    E6 F0                         AND 0F0H
+  01E3    47                            LD B,A
+  01E4    DB 1C                         IN A,(PIOA)
+  01E6    E6 0F                         AND 0FH         ; PA0-PA3
+  01E8    FE 05                         CP 05H
+  01EA    28 10                         JR Z,FLOP741
+  01EC    FE 06                         CP 06H
+  01EE    28 18                         JR Z,FLOP742
+  01F0    FE 09                         CP 09H
+  01F2    28 10                         JR Z,FLOP743
+  01F4    FE 0A                         CP 0AH
+  01F6    28 08                         JR Z,FLOP744
+  01F8    3E 05                         LD A,05H
+  01FA    18 AD                         JR STEP99
                                         ;----------     
-  01FA                          FLOP741:
-  01FA    C6 01                         ADD A,01H       ; 05+01=06
-  01FC    18 A9                         JR STEP99
-  01FE                          FLOP744:
-  01FE    D6 01                         SUB 01H         ; 0A-01=09
-  0200    18 A5                         JR STEP99
-  0202                          FLOP743:
-  0202    D6 04                         SUB 04H         ; 09-04=05
-  0204    18 A1                         JR STEP99
-  0206                          FLOP742:
-  0206    C6 04                         ADD A,04H       ; 06+04=0A
-  0208    18 9D                         JR STEP99
+  01FC                          FLOP741:
+  01FC    C6 01                         ADD A,01H       ; 05+01=06
+  01FE    18 A9                         JR STEP99
+  0200                          FLOP744:
+  0200    D6 01                         SUB 01H         ; 0A-01=09
+  0202    18 A5                         JR STEP99
+  0204                          FLOP743:
+  0204    D6 04                         SUB 04H         ; 09-04=05
+  0206    18 A1                         JR STEP99
+  0208                          FLOP742:
+  0208    C6 04                         ADD A,04H       ; 06+04=0A
+  020A    18 9D                         JR STEP99
                                 
                                 ;-----------------------
                                 ; INTERRUPT ROUTINE  RETI
                                 ; Timer in Millisec.
                                 ;
-  020A    F5                    TIMEI:  PUSH AF
-  020B    E5                            PUSH HL
-  020C    2A 8006                       LD HL,(STEPCI)
-  020F    CD 0151                       CALL DECHL
-  0212    38 03                         JR C,TIME01
-  0214    22 8006                       LD (STEPCI),HL
-  0217    E1                    TIME01: POP HL
-  0218    F1                            POP AF
-  0219    FB                            EI
-  021A    ED 4D                         RETI
-                                
+  020C    F5                    TIMEI:  PUSH AF
+  020D    E5                            PUSH HL
+  020E    2A 8006                       LD HL,(STEPCI)
+  0211    CD 0153                       CALL DECHL
+  0214    38 03                         JR C,TIME01
+  0216    22 8006                       LD (STEPCI),HL
+  0219    E1                    TIME01: POP HL
+  021A    F1                            POP AF
+  021B    FB                            EI
+  021C    ED 4D                         RETI
         MACRO-80 3.43   27-Jul-81       PAGE    1-8
 
 
+                                
                                 ;------------------------
                                 END
         MACRO-80 3.43   27-Jul-81       PAGE    S
@@ -484,32 +485,24 @@ Symbols:
 0007    BAUD0           0047    BAUD1           0047    BAUD2           
 0087    BAUD3           0010    CTC0            0011    CTC1            
 0012    CTC2            0013    CTC3            00F4    DCI             
-0151    DECHL           017C    FLIP70          0199    FLIP741         
-01A5    FLIP742         01A1    FLIP743         019D    FLIP744         
-01DD    FLOP70          01FA    FLOP741         0206    FLOP742         
-0202    FLOP743         01FE    FLOP744         9FF0    IADR            
+0153    DECHL           017E    FLIP70          019B    FLIP741         
+01A7    FLIP742         01A3    FLIP743         019F    FLIP744         
+01DF    FLOP70          01FC    FLOP741         0208    FLOP742         
+0204    FLOP743         0200    FLOP744         9FF0    IADR            
 004E    ICTC0           0056    ICTC1           0000    KANAL0          
 0001    KANAL1          0003    KANAL3          0004    KANAL4          
-0005    KANAL5          0159    KMOT0           0004    LATCH           
+0005    KANAL5          015B    KMOT0           0004    LATCH           
 0083    LOP10           0092    LOP11           00B2    LOP12           
-00D0    LOP13           00C7    LOP14           0118    LOP2            
-00F0    LOP20           00FF    LOP3            0080    MSTIME          
+00D1    LOP13           00C8    LOP14           011A    LOP2            
+00F2    LOP20           0101    LOP3            0080    MSTIME          
 001C    PIOA            001E    PIOB            8000    RAM             
 0000    REG1            00C1    REG3            0044    REG4            
 00EA    REG5            8008    RLATCH          00EF    SCDP            
 00EE    SCRP            0018    SIOA            001A    SIOB            
 0018    SIORES          0008    SMOT            8000    STATUS          
-01BB    STEP96          01B7    STEP97          01B3    STEP98          
-01A7    STEP99          8004    STEPC           8006    STEPCI          
-01C7    STEPML          0159    STEPMR          0004    TIME0           
-0217    TIME01          0004    TIME1           0004    TIME2           
-0050    TIME3           012E    TIMEC           014D    TIMEC1          
-014A    TIMEC2          020A    TIMEI           00F1    WDTCR           
-00F0    WDTMR           8002    WEGS            
-
-
-
-No Fatal error(s)
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+01BD    STEP96          01B9    STEP97          01B5    STEP98          
+01A9    STEP99          8004    STEPC           8006    STEPCI          
+01C9    STEPML          015B    STEPMR          0004    TIME0           
+0219    TIME01          0004    TIME1           0004    TIME2           
+0050    TIME3           0130    TIMEC           014F    TIMEC1          
+014C    TIMEC2          020C    TI
